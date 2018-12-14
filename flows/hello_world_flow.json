@@ -1,0 +1,33 @@
+{
+  "Comment": "Sync a folder tree to a remote host via a DMZ intermediate and generate an identifier for the final location",
+  "StartAt": "RunHelloWorld",
+  "States": {
+    "RunHelloWorld": {
+      "Comment": "Say Hello World",
+      "Type": "Action",
+      "Resource": "http://actions.automate.globus.org/HelloWorld",
+      "InputPath": "$.HelloInput",
+      "ResultPath": "$.HelloResult",
+      "RunAs": "User",
+      "Next": "HelloWait",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "HelloWait": {
+      "Comment": "Wait for Hello World Action to Complete",
+      "Type": "ActionWait",
+      "ResultPath": "$.HelloResult",
+      "End": true,
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    }
+  }
+}

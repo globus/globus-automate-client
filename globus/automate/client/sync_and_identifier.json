@@ -1,0 +1,90 @@
+{
+  "Comment": "Sync a folder tree to a remote host via a DMZ intermediate and generate an identifier for the final location",
+  "StartAt": "TransferSourceToDMZ",
+  "States": {
+    "TransferSourceToDMZ": {
+      "Comment": "Copy from source to DMZ endpoint",
+      "Type": "Action",
+      "Resource": "https://actions.automate.globus.org/Transfer",
+      "InputPath": "$.TransferSourceToDMZSpec",
+      "ResultPath": "$.TransferSourceToDMZSpecResult",
+      "RunAs": "User",
+      "Next": "TransferSourceToDMZWait",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "TransferSourceToDMZWait": {
+      "Comment": "Wait for Copy from source to DMZ endpoint to complete",
+      "Type": "ActionWait",
+      "ResultPath": "$.TransferSourceToDMZSpecResult",
+      "Next": "TransferDMZToDest",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "TransferDMZToDest": {
+      "Comment": "Copy from DMZ intermediate to Destination endpoint",
+      "Type": "Action",
+      "Resource": "https://actions.automate.globus.org/Transfer",
+      "InputPath": "$.TransferDMZToDestSpec",
+      "ResultPath": "$.TransferDMZToDestSpecResult",
+      "RunAs": "User",
+      "Next": "TransferDMZToDestWait",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "TransferDMZToDestWait": {
+      "Comment": "Wait for Copy from DMZ to Destination endpoint to complete",
+      "Type": "ActionWait",
+      "ResultPath": "$.TransferDMZToDestSpecResult",
+      "Next": "CreateIdentifier",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "CreateIdentifier": {
+      "Comment": "Create an Identifier for the new data location",
+      "Type": "Action",
+      "Resource": "https://actions.automate.globus.org/IdentifierCreate",
+      "InputPath": "$.IdentifierCreateSpec",
+      "ResultPath": "$.IdentifierCreateSpecResult",
+      "RunAs": "User",
+      "Next": "CleanDMZ",
+      "Catch": [
+        {
+        "ErrorEquals": ["States.ALL"],
+          "Next": "CleanDMZ"
+        }
+      ]
+    },
+    "CleanDMZ": {
+      "Comment": "Remove Intermediate Data stored in DMZ",
+      "Type": "Action",
+      "Resource": "https://actions.automate.globus.org/TransferDelete",
+      "InputPath": "$.CleanDMZSpec",
+      "ResultPath": "$.CleanDMZSpecResult",
+      "RunAs": "User",
+      "Next": "CleanDMZWait"
+    },
+    "CleanDMZWait": {
+      "Comment": "Wait for DMZ Cleanup to complete",
+      "Type": "ActionWait",
+      "ResultPath": "$.CleanDMZSpecResult",
+      "End": true
+    }
+  }
+}
