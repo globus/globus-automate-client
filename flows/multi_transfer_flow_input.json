@@ -1,0 +1,24 @@
+{
+  "Transfer1Input": {
+    "source_endpoint_id": "go#ep1",
+    "destination_endpoint_id": "go#ep2",
+    "transfer_items": [
+      {
+        "source_path": "/~/campus_source/dataset1/",
+        "destination_path": "/~/dmz_temp/dataset1",
+        "recursive": true
+      }
+    ]
+  },
+  "Transfer2Input": {
+    "source_endpoint_id": "go#ep2",
+    "destination_endpoint_id": "go#ep1",
+    "transfer_items": [
+      {
+        "source_path": "/~/dmz_temp/dataset1/",
+        "destination_path": "/~/dataset_repository/dataset1",
+        "recursive": true
+      }
+    ]
+  }
+}

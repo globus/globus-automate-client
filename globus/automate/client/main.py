@@ -39,6 +39,21 @@ def read_arg_content_from_file(arg_val: str) -> str:
 @subcommand(
     [
         argument(
+            "action-provider-url",
+            help="The base URL for the Action Provider to introspect",
+            nargs=1,
+        )
+    ],
+    parent=subparsers,
+)
+def action_provider_introspect(args):
+    ac = create_action_client(vars(args)["action-provider-url"][0], "NoTokenNeeded")
+    return ac.introspect()
+
+
+@subcommand(
+    [
+        argument(
             "--body",
             required=True,
             help="JSON Format for the body of the Action to run",
@@ -49,7 +64,8 @@ def read_arg_content_from_file(arg_val: str) -> str:
 def action_run(args):
     ac = get_action_client_for_args(args)
     if ac is not None:
-        body = json.loads(args.body)
+        body = read_arg_content_from_file(args.body)
+        body = json.loads(body)
         req_id = str(uuid.uuid4())
         run_ret = ac.run(body, req_id)
         return run_ret
@@ -95,18 +111,15 @@ def action_release(args):
 @subcommand(
     [
         argument(
-            "--flow-definition",
-            help="JSON representation of the flow to deploy",
-            required=True,
+            "flow-definition", help="JSON representation of the flow to deploy", nargs=1
         )
     ],
     parent=subparsers,
 )
 def flow_deploy(args):
     fc = create_flows_client(CLIENT_ID)
-    flow_defn = read_arg_content_from_file(args.flow_definition)
+    flow_defn = read_arg_content_from_file(vars(args)["flow-definition"][0])
     flow_dict = json.loads(flow_defn)
-    print(f"Deploying flow:\n{json.dumps(flow_dict, indent=2)}")
     return fc.deploy_flow(flow_dict)
 
 
@@ -151,7 +164,7 @@ def flow_run(args):
     ],
     parent=subparsers,
 )
-def flow_execution_status(args):
+def flow_action_status(args):
     fc = create_flows_client(CLIENT_ID)
     flow_id = args.flow_id
     flow_scope = args.flow_scope
@@ -161,7 +174,7 @@ def flow_execution_status(args):
 
 def main():
     cli.add_argument("--action-scope")
-    cli.add_argument("--action_url")
+    cli.add_argument("--action-url")
     args = cli.parse_args()
     try:
         ret = args.func(args)
