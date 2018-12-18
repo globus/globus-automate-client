@@ -1,0 +1,14 @@
+openapi: 3.0.0
+info:
+  title: Globus Flows API
+  description: ''
+  version: 2018-12-05.1
+  contact:
+    name: Globus Support
+    url: 'https://support.globus.org/hc/en-us/requests/new'
+    email: 'support@globus.org'
+  termsOfService: 'https://www.globus.org/legal/terms'
+
+servers:
+  - url: 'https://flows.automate.globus.org/'
+    description: production

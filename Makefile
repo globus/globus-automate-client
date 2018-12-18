@@ -4,7 +4,7 @@ export VIRTUAL_ENV = .venv
 PYTHON_VERSION ?= python3.6
 POETRY ?= $(VIRTUAL_ENV)/bin/poetry
 
-.PHONY: lock test build clean help lint develop format typecheck lint_all
+.PHONY: lock test build clean help lint develop format typecheck lint_all api-docs
 
 # settings from .pytest.cfg file
 PYTEST_OPTS?=-c .pytest.cfg
@@ -59,6 +59,14 @@ lint_all: develop format lint typecheck
 
 test: lint_all
 	$(POETRY) run pytest --verbose $(PYTEST_OPTS)
+
+%.html: %.yaml
+	npx redoc-cli bundle --output $@ --title "Globus Automate APIs" $<
+
+node_modules: package.json
+	npm install
+
+api-docs: node_modules docs/actions-api-spec.html docs/flows-api-spec.html
 
 clean:
 	rm -rf $(VIRTUAL_ENV)
