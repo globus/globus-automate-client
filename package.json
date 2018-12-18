@@ -1,0 +1,26 @@
+{
+  "name": "queues",
+  "version": "1.0.0",
+  "description": "Globus queues service",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "redoc-cli": "^0.7.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/globusonline/queues.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/globusonline/queues/issues"
+  },
+  "homepage": "https://github.com/globusonline/queues#readme"
+}

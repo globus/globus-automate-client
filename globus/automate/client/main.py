@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import sys
 import uuid
 import json
 import time
@@ -183,6 +184,9 @@ def main():
             print(ret_string)
     except GlobusAPIError as gae:
         print(f"Request failed due to {str(gae)}")
+    except AttributeError:
+        # Would occur if no func is provided on the invocation
+        cli.print_help(sys.stderr)
 
 
 if __name__ == "__main__":
