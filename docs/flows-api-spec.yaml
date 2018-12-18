@@ -12,3 +12,80 @@ info:
 servers:
   - url: 'https://flows.automate.globus.org/'
     description: production
+
+paths:
+  /:
+    post:
+      summary:
+        tags:
+          - /
+        security:
+          - bearer_token:
+              - 'https://TODO_GET_SCOPE_NAME'
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '/#/components/schemas/FlowDefinition'
+        responses:
+          '201':
+            description: 'Flow created'
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/FlowDeployedResponse'
+security:
+  - bearer_token: []
+
+components:
+  securitySchemes:
+    bearer_token:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://auth.globus.org/v2/oauth2/token'
+          scopes:
+            https://auth.globus.org/scopes/{provider_scope_name}: Authorization to perform operations at the action provider
+        authorizationCode:
+          authorizationUrl: 'https://auth.globus.org/v2/oauth2/authorize'
+          tokenUrl: 'https://auth.globus.org/v2/oauth2/token'
+          refreshUrl: 'https://auth.globus.org/v2/oauth2/token'
+          scopes:
+            https://auth.globus.org/scopes/{provider_scope_name}: Authorization to perform operations at the action provider
+
+  schemas:
+    FlowDefinition:
+      type: object
+      required: [definition]
+      properties:
+        definition:
+          description: 'A complete flow definition per Guidelines for Creating Flows'
+          type: object
+          required: ['StartAt', 'States']
+          properties:
+            Comment:
+              type: string
+              description: 'Optional comment describing the Flow'
+            StartAt:
+              type: string
+              description: 'The name of the first State to execute in the Flow'
+            States:
+              type: array
+              description: 'A list of states making up the Flow. Each state is an Object keyed by the state name referencing an Object containing the state definition'
+              items:
+                type: object
+    FlowDeployedResponse:
+      type: object
+      required: [id, scope_string, definition]
+      properties:
+        id:
+          type: string
+        scope_string:
+          type: string
+          format: uri
+          description: 'The value of the Globus Auth scope which must be presented to perform operations on the flow, including the run operation to start a flow instance running'
+        definition:
+          type: object
+          schema:
+            $ref: '/#/components/schemas/FlowDefinition'
