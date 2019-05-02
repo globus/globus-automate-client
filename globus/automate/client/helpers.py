@@ -14,18 +14,24 @@ def argument(*name_or_flags, **kwargs):
     # return ([*name_or_flags], kwargs) # <-- tuple, set, and list unpacking requires Python 3.5 or greater
 
 
-def subcommand(args, parent, **kwargs):
-    def decorator(func):
-        parser = parent.add_parser(
-            func.__name__.replace('_', '-'),
-            description=func.__doc__,
-            **kwargs)
-        for arg in args:
-            parser.add_argument(*arg[0], **arg[1])
-        parser.set_defaults(func=func)
-        return func
+class Subcommand(object):
+    def __init__(self, root_parser):
+        self.root_parser = root_parser
+        self.subparsers = root_parser.add_subparsers(dest="subcommand")
 
-    return decorator
+    def __call__(self, args, **kwargs):
+        def decorator(func):
+            parser = self.subparsers.add_parser(
+                func.__name__.replace('_', '-'),
+                description=func.__doc__,
+                parents=[self.root_parser],
+                **kwargs)
+            for arg in args:
+                parser.add_argument(*arg[0], **arg[1])
+            parser.set_defaults(func=func)
+            return func
+
+        return decorator
 
 
 _internal_arg_names = ['func', 'subcommand', 'identifier']
