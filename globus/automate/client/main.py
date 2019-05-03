@@ -11,14 +11,23 @@ from globus_sdk.exc import GlobusAPIError
 from .action_client import ActionClient, create_action_client
 from .flows_client import create_flows_client
 from .token_management import get_access_token_for_scope
-from .helpers import Subcommand, argument, clear_internal_args, json_parse_args
+from .helpers import subcommand, argument, clear_internal_args, json_parse_args
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
 cli = ArgumentParser(add_help=False)
-cli.add_argument("--action-scope")
-cli.add_argument("--action-url")
-subcommand = Subcommand(cli)
+subparsers = cli.add_subparsers(dest="subcommand")
+action_scoped_args = [
+    argument("--action-scope", help="The Globus Auth scope associated with the Action"),
+    argument(
+        "--action-url", help="The base URL used for accessing the Action", required=True
+    ),
+]
+
+flow_scoped_args = [
+    argument("--flow-id", help="Id of flow to execute", required=True),
+    argument("--flow-scope", help="Scope of the flow to execute"),
+]
 
 
 def get_action_client_for_args(args) -> Optional[ActionClient]:
@@ -39,28 +48,22 @@ def read_arg_content_from_file(arg_val: str) -> str:
     return arg_val
 
 
-@subcommand(
-    [
-        argument(
-            "action-provider-url",
-            help="The base URL for the Action Provider to introspect",
-            nargs=1,
-        )
-    ]
-)
+@subcommand(action_scoped_args, parent=subparsers)
 def action_provider_introspect(args):
     ac = create_action_client(vars(args)["action-provider-url"][0], "NoTokenNeeded")
     return ac.introspect()
 
 
 @subcommand(
-    [
+    action_scoped_args
+    + [
         argument(
             "--body",
             required=True,
             help="JSON Format for the body of the Action to run",
         )
-    ]
+    ],
+    parent=subparsers,
 )
 def action_run(args):
     ac = get_action_client_for_args(args)
@@ -74,7 +77,9 @@ def action_run(args):
 
 
 @subcommand(
-    [argument("action-id", help="action_id value to return status for", nargs=1)],
+    action_scoped_args
+    + [argument("action-id", help="action_id value to return status for", nargs=1)],
+    parent=subparsers,
 )
 def action_status(args):
     ac = get_action_client_for_args(args)
@@ -85,7 +90,9 @@ def action_status(args):
 
 
 @subcommand(
-    [argument("action-id", help="action_id value to cancel", nargs=1)],
+    action_scoped_args
+    + [argument("action-id", help="action_id value to cancel", nargs=1)],
+    parent=subparsers,
 )
 def action_cancel(args):
     ac = get_action_client_for_args(args)
@@ -96,7 +103,9 @@ def action_cancel(args):
 
 
 @subcommand(
-    [argument("action-id", help="action_id value to release status for", nargs=1)],
+    action_scoped_args
+    + [argument("action-id", help="action_id value to release status for", nargs=1)],
+    parent=subparsers,
 )
 def action_release(args):
     ac = get_action_client_for_args(args)
@@ -112,6 +121,7 @@ def action_release(args):
             "flow-definition", help="JSON representation of the flow to deploy", nargs=1
         )
     ],
+    parent=subparsers,
 )
 def flow_deploy(args):
     fc = create_flows_client(CLIENT_ID)
@@ -120,7 +130,7 @@ def flow_deploy(args):
     return fc.deploy_flow(flow_dict)
 
 
-@subcommand([])
+@subcommand([], parent=subparsers)
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
     flows = fc.list_flows()
@@ -128,7 +138,7 @@ def flows_list(args):
 
 
 @subcommand(
-    [argument("flow-id", help="Id of flow to display", nargs=1)]
+    [argument("flow-id", help="Id of flow to display", nargs=1)], parent=subparsers
 )
 def flow_display(args):
     fc = create_flows_client(CLIENT_ID)
@@ -137,11 +147,9 @@ def flow_display(args):
 
 
 @subcommand(
-    [
-        argument("--flow-id", help="Id of flow to execute", required=True),
-        argument("--flow-scope", help="Scope of the flow to execute"),
-        argument("flow-input", help="JSON format input to the flow", nargs=1),
-    ]
+    flow_scoped_args
+    + [argument("flow-input", help="JSON format input to the flow", nargs=1)],
+    parent=subparsers,
 )
 def flow_run(args):
     fc = create_flows_client(CLIENT_ID)
@@ -153,11 +161,9 @@ def flow_run(args):
 
 
 @subcommand(
-    [
-        argument("--flow-id", help="Id of flow to execute", required=True),
-        argument("--flow-scope", help="Scope of the flow to execute"),
-        argument("action-id", help="flow execution id to return status for", nargs=1),
-    ]
+    flow_scoped_args
+    + [argument("action-id", help="flow execution id to return status for", nargs=1)],
+    parent=subparsers,
 )
 def flow_action_status(args):
     fc = create_flows_client(CLIENT_ID)
@@ -165,6 +171,41 @@ def flow_action_status(args):
     flow_scope = args.flow_scope
     action_id = vars(args)["action-id"][0]
     return fc.flow_action_status(flow_id, flow_scope, action_id)
+
+
+@subcommand(
+    flow_scoped_args
+    + [
+        argument(
+            "--reverse-order",
+            help="If present return log entries starting from most recent and proceeding in reverse time sequence",
+            dest="reverse_order",
+            action="store_true",
+        ),
+        argument(
+            "--no-reverse-order",
+            help="If present return log entries starting from the first entry and proceeding forward in time. This is the default behavior if neither --no-reverse-order nor --reverse-order are present.",
+            dest="reverse_order",
+            action="store_false",
+        ),
+        argument(
+            "--limit",
+            help="Set a maximum number of events from the log to return",
+            type=int,
+            default=10,
+        ),
+        argument("action-id", help="flow execution id to return status for", nargs=1),
+    ],
+    parent=subparsers,
+)
+def flow_action_log(args):
+    fc = create_flows_client(CLIENT_ID)
+    flow_id = args.flow_id
+    flow_scope = args.flow_scope
+    reverse_order = args.reverse_order
+    limit = args.limit
+    action_id = vars(args)["action-id"][0]
+    return fc.flow_action_log(flow_id, flow_scope, action_id, limit, reverse_order)
 
 
 def main():

@@ -83,6 +83,25 @@ class FlowsClient(BaseClient):
         self.authorizer = AccessTokenAuthorizer(flow_token)
         return self.get(f"/{flow_id}/{flow_action_id}/status", **kwargs)
 
+    def flow_action_log(
+        self,
+        flow_id: str,
+        flow_scope: str,
+        flow_action_id: str,
+        limit: int = 10,
+        reverse_order: bool = False,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        if flow_scope is None:
+            flow_defn = self.get_flow(flow_id)
+            flow_scope = flow_defn.data["scope_string"]
+        flow_token = get_access_token_for_scope(flow_scope, self.client_id)
+        self.authorizer = AccessTokenAuthorizer(flow_token)
+        params = {"reverse_order": reverse_order, "limit": limit}
+        print(f"DEBUG params := {params}")
+
+        return self.get(f"/{flow_id}/{flow_action_id}/log", params=params, **kwargs)
+
 
 def create_flows_client(client_id: str) -> FlowsClient:
     access_tokens = get_access_tokens_for_scopes(ALL_FLOW_SCOPES, client_id)
