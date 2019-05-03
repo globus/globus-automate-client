@@ -11,12 +11,14 @@ from globus_sdk.exc import GlobusAPIError
 from .action_client import ActionClient, create_action_client
 from .flows_client import create_flows_client
 from .token_management import get_access_token_for_scope
-from .helpers import subcommand, argument, clear_internal_args, json_parse_args
+from .helpers import Subcommand, argument, clear_internal_args, json_parse_args
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
-cli = ArgumentParser()
-subparsers = cli.add_subparsers(dest="subcommand")
+cli = ArgumentParser(add_help=False)
+cli.add_argument("--action-scope")
+cli.add_argument("--action-url")
+subcommand = Subcommand(cli)
 
 
 def get_action_client_for_args(args) -> Optional[ActionClient]:
@@ -44,8 +46,7 @@ def read_arg_content_from_file(arg_val: str) -> str:
             help="The base URL for the Action Provider to introspect",
             nargs=1,
         )
-    ],
-    parent=subparsers,
+    ]
 )
 def action_provider_introspect(args):
     ac = create_action_client(vars(args)["action-provider-url"][0], "NoTokenNeeded")
@@ -59,8 +60,7 @@ def action_provider_introspect(args):
             required=True,
             help="JSON Format for the body of the Action to run",
         )
-    ],
-    parent=subparsers,
+    ]
 )
 def action_run(args):
     ac = get_action_client_for_args(args)
@@ -75,7 +75,6 @@ def action_run(args):
 
 @subcommand(
     [argument("action-id", help="action_id value to return status for", nargs=1)],
-    parent=subparsers,
 )
 def action_status(args):
     ac = get_action_client_for_args(args)
@@ -87,7 +86,6 @@ def action_status(args):
 
 @subcommand(
     [argument("action-id", help="action_id value to cancel", nargs=1)],
-    parent=subparsers,
 )
 def action_cancel(args):
     ac = get_action_client_for_args(args)
@@ -99,7 +97,6 @@ def action_cancel(args):
 
 @subcommand(
     [argument("action-id", help="action_id value to release status for", nargs=1)],
-    parent=subparsers,
 )
 def action_release(args):
     ac = get_action_client_for_args(args)
@@ -115,7 +112,6 @@ def action_release(args):
             "flow-definition", help="JSON representation of the flow to deploy", nargs=1
         )
     ],
-    parent=subparsers,
 )
 def flow_deploy(args):
     fc = create_flows_client(CLIENT_ID)
@@ -124,7 +120,7 @@ def flow_deploy(args):
     return fc.deploy_flow(flow_dict)
 
 
-@subcommand([], parent=subparsers)
+@subcommand([])
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
     flows = fc.list_flows()
@@ -132,7 +128,7 @@ def flows_list(args):
 
 
 @subcommand(
-    [argument("flow-id", help="Id of flow to display", nargs=1)], parent=subparsers
+    [argument("flow-id", help="Id of flow to display", nargs=1)]
 )
 def flow_display(args):
     fc = create_flows_client(CLIENT_ID)
@@ -145,8 +141,7 @@ def flow_display(args):
         argument("--flow-id", help="Id of flow to execute", required=True),
         argument("--flow-scope", help="Scope of the flow to execute"),
         argument("flow-input", help="JSON format input to the flow", nargs=1),
-    ],
-    parent=subparsers,
+    ]
 )
 def flow_run(args):
     fc = create_flows_client(CLIENT_ID)
@@ -162,8 +157,7 @@ def flow_run(args):
         argument("--flow-id", help="Id of flow to execute", required=True),
         argument("--flow-scope", help="Scope of the flow to execute"),
         argument("action-id", help="flow execution id to return status for", nargs=1),
-    ],
-    parent=subparsers,
+    ]
 )
 def flow_action_status(args):
     fc = create_flows_client(CLIENT_ID)
@@ -174,8 +168,6 @@ def flow_action_status(args):
 
 
 def main():
-    cli.add_argument("--action-scope")
-    cli.add_argument("--action-url")
     args = cli.parse_args()
     try:
         ret = args.func(args)
