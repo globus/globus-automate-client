@@ -118,16 +118,35 @@ def action_release(args):
 @subcommand(
     [
         argument(
-            "flow-definition", help="JSON representation of the flow to deploy", nargs=1
-        )
+            "--visible-to",
+            help=(
+                "The set of principals (identities or groups) which may see the "
+                "existence of the Flow once it is deployed"
+            ),
+            nargs="*",
+        ),
+        argument(
+            "--runnable-by",
+            help=(
+                "The set of principals (identities or groups) which may see the "
+                "run the deployed Flow."
+            ),
+            nargs="*",
+        ),
+        argument(
+            "--definition",
+            help="JSON representation of the flow to deploy. May be provided as the "
+            "value or by reference to a file name with an '@' prefix.",
+            nargs=1,
+        ),
     ],
     parent=subparsers,
 )
 def flow_deploy(args):
     fc = create_flows_client(CLIENT_ID)
-    flow_defn = read_arg_content_from_file(vars(args)["flow-definition"][0])
+    flow_defn = read_arg_content_from_file(vars(args)["definition"][0])
     flow_dict = json.loads(flow_defn)
-    return fc.deploy_flow(flow_dict)
+    return fc.deploy_flow(flow_dict, args.visible_to, args.runnable_by)
 
 
 @subcommand([], parent=subparsers)

@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from globus_sdk import (
     ClientCredentialsAuthorizer,
     AccessTokenAuthorizer,
@@ -47,10 +47,18 @@ class FlowsClient(BaseClient):
         super().__init__(*args, **kwargs)
 
     def deploy_flow(
-        self, flow_definition: Dict[str, Any], **kwargs
+        self,
+        flow_definition: Dict[str, Any],
+        visible_to: List[str] = [],
+        runnable_by: List[str] = [],
+        **kwargs,
     ) -> GlobusHTTPResponse:
         self.authorizer = AccessTokenAuthorizer(self.token_map.get(MANAGE_FLOWS_SCOPE))
         req_body = {"definition": flow_definition}
+        if visible_to:
+            req_body["visible_to"] = visible_to
+        if runnable_by:
+            req_body["runnable_by"] = runnable_by
         return self.post("/", req_body, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
@@ -72,6 +80,11 @@ class FlowsClient(BaseClient):
         self.authorizer = AccessTokenAuthorizer(flow_token)
         req_body = {"body": flow_input}
         return self.post(f"/{flow_id}/run", req_body, **kwargs)
+
+    def _scope_for_flow(self, flow_id: str) -> Optional[str]:
+        flow_defn = self.get_flow(flow_id)
+        flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get(["scope_string"]))
+        return flow_scope
 
     def flow_action_status(
         self, flow_id: str, flow_scope: str, flow_action_id: str, **kwargs
@@ -98,12 +111,12 @@ class FlowsClient(BaseClient):
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         params = {"reverse_order": reverse_order, "limit": limit}
-        print(f"DEBUG params := {params}")
-
         return self.get(f"/{flow_id}/{flow_action_id}/log", params=params, **kwargs)
 
 
-def create_flows_client(client_id: str) -> FlowsClient:
+def create_flows_client(
+    client_id: str, base_url: str = "https://flows.automate.globus.org"
+) -> FlowsClient:
     access_tokens = get_access_tokens_for_scopes(ALL_FLOW_SCOPES, client_id)
     temp_access_token = access_tokens.get(MANAGE_FLOWS_SCOPE)
     authorizer = AccessTokenAuthorizer(temp_access_token)
@@ -111,7 +124,7 @@ def create_flows_client(client_id: str) -> FlowsClient:
         access_tokens,
         client_id,
         "flows_client",
-        base_url="https://flows.automate.globus.org",
+        base_url=base_url,
         app_name="flows_client",
         authorizer=authorizer,
     )
