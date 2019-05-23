@@ -111,11 +111,9 @@ def get_access_tokens_for_scopes(
     for scope in scopes:
         access_token, refresh_token = token_cache.get(scope, (None, None))
         if refresh_token is not None and access_token is None:
-            print(f"Requesting refresh on scope {scope}")
             access_token, access_token_expiration = perform_token_refresh(
                 refresh_token, native_app_client_id
             )
-            print(f"Refresh retruned {(access_token, access_token_expiration)}")
             if access_token is not None and access_token_expiration is not None:
                 update_cache(
                     scope, access_token, access_token_expiration, refresh_token
