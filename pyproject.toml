@@ -1,45 +1,30 @@
 [tool.poetry]
 name = "globus-automate-client"
 version = "0.1.0"
-description = "Globus Automate Client"
-
+description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Mattias Lidman <ml@globus.org>",
     "Jim Pruyne <pruyne@globus.org>"
 ]
 
-readme = "README.md"
-
-packages = [
-  {include = "globus"}
-]
-
-repository = "https://github.com/globusonline/globus-automate-client"
-homepage = "https://github.com/globusonline/globus-automate-client"
+readme = "README.rst"
 
 [tool.poetry.scripts]
-globus-automate = "globus.automate.client.main:main"
-flow-viz = "globus.automate.client.pseudo_flows:flow_viz_main"
-flow-runner = "globus.automate.client.pseudo_flows:flow_runner_main"
-aws-flow-runner = "globus.automate.client.aws_flows:aws_flow_runner_main"
+globus-automate = "globus_automate_client.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-globus-sdk = "^1.6"
-jupyter = "^1.0"
-graphviz = "^0.10.1"
-boto3 = "^1.9"
-jsonpath_rw = "^1.4"
+globus-sdk = "^1.7"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.8"
-flake8 = "^3.5"
-black = "^18.9b0"
-flake8-bugbear = "^18.8"
-mypy = "^0.630.0"
-python-language-server = {version = "^0.21.2", extras = ["rope", "pyflakes", "mccabe", "pycodestyle", "pydocstyle"]}
-pyls-black = "^0.2.1"
+pytest = "^3.6"
+python-language-server = {version = "^0.26.1", extras = ["rope", "pyflakes", "pycodestyle"]}
+pyls-black = "^0.4.4"
 pyls-isort = "^0.1.1"
-pyls-mypy = "^0.1.3"
-pytest-cov = "^2.6"
-pytest-xdist = "^1.23"
+pyls-mypy = "^0.1.6"
+flake8 = "^3.7"
+flake8-bugbear = "^18.8"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

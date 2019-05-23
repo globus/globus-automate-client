@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 import sys
 import uuid
 import json
-import time
 from os import path
 from typing import Any, List, Optional, Tuple, Dict
 from globus_sdk import AccessTokenAuthorizer, NativeAppAuthClient
@@ -50,7 +49,7 @@ def read_arg_content_from_file(arg_val: str) -> str:
 
 @subcommand(action_scoped_args, parent=subparsers)
 def action_provider_introspect(args):
-    ac = create_action_client(vars(args)["action-provider-url"][0], "NoTokenNeeded")
+    ac = create_action_client(args.action_url, "NoTokenNeeded")
     return ac.introspect()
 
 
