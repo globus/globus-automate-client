@@ -1,8 +1,8 @@
 # export this so that poetry finds itself in the venv and can
 # run things from there
-export VIRTUAL_ENV = .venv
+VIRTUAL_ENV = .venv
 PYTHON_VERSION ?= python3.6
-POETRY ?= $(VIRTUAL_ENV)/bin/poetry
+POETRY ?= poetry
 
 .PHONY: lock test build clean help lint develop format typecheck lint_all api-docs
 
@@ -23,37 +23,31 @@ help:
 	@echo ""
 	@echo "  clean:     Typical cleanup, also scrubs venv"
 
-poetry.lock: pyproject.toml $(VIRTUAL_ENV)
+poetry.lock: pyproject.toml
 	$(POETRY) lock
 
 lock: poetry.lock
 
-$(VIRTUAL_ENV):
-	virtualenv --python=$(PYTHON_VERSION) $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/python -m pip install poetry
-
-install: $(VIRTUAL_ENV) poetry.lock
+install: poetry.lock
 	$(POETRY) install --no-dev
 
-$(VIRTUAL_ENV)/bin/py.test: $(VIRTUAL_ENV)
+develop: poetry.lock
 	$(POETRY) install
-
-develop: $(VIRTUAL_ENV)/bin/py.test
 
 requirements.txt: poetry.lock
 	$(POETRY) run pip freeze > $@
 
 # linting is flake8
 lint: develop
-	$(POETRY) run flake8 globus
+	$(POETRY) run flake8 globus_automate_client
 
 # formatting is black
 format: develop
-	$(POETRY) run black -q globus tests
+	$(POETRY) run black -q globus_automate_client tests
 
 # typecheck with mypy
 typecheck: develop
-	$(POETRY) run mypy globus
+	$(POETRY) run mypy globus_automate_client
 
 lint_all: develop format lint typecheck
 
@@ -75,3 +69,4 @@ clean:
 	rm -rf *.egg-info
 	rm -f *.tar.gz
 	rm -rf tar-source
+	rm -rf dist
