@@ -75,7 +75,7 @@ class FlowsClient(BaseClient):
     ) -> GlobusHTTPResponse:
         if flow_scope is None:
             flow_defn = self.get_flow(flow_id)
-            flow_scope = flow_defn.data["scope_string"]
+            flow_scope = flow_defn.data["globus_auth_scope"]
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         req_body = {"body": flow_input}
@@ -83,7 +83,9 @@ class FlowsClient(BaseClient):
 
     def _scope_for_flow(self, flow_id: str) -> Optional[str]:
         flow_defn = self.get_flow(flow_id)
-        flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get(["scope_string"]))
+        flow_scope = flow_defn.get(
+            "globus_auth_scope", flow_defn.get(["globus_auth_scope"])
+        )
         return flow_scope
 
     def flow_action_status(
@@ -91,7 +93,7 @@ class FlowsClient(BaseClient):
     ) -> GlobusHTTPResponse:
         if flow_scope is None:
             flow_defn = self.get_flow(flow_id)
-            flow_scope = flow_defn.data["scope_string"]
+            flow_scope = flow_defn.data["globus_auth_scope"]
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         return self.get(f"/{flow_id}/{flow_action_id}/status", **kwargs)
@@ -107,7 +109,7 @@ class FlowsClient(BaseClient):
     ) -> GlobusHTTPResponse:
         if flow_scope is None:
             flow_defn = self.get_flow(flow_id)
-            flow_scope = flow_defn.data["scope_string"]
+            flow_scope = flow_defn.data["globus_auth_scope"]
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         params = {"reverse_order": reverse_order, "limit": limit}
