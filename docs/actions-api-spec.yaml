@@ -23,6 +23,7 @@ paths:
         - bearer_token: ['https://auth.globus.org/scopes/{provider_scope_name}']
       responses:
         '200':
+          description: Successful response containing details about this action provider.
           content:
             application/json:
               schema:
@@ -84,6 +85,13 @@ paths:
           description: 'Not authorized. The requesting user is not in the runnable_by list of the provider'
 
   /{action_id}/status:
+    parameters:
+        - name: action_id
+          required: true
+          in: path
+          description: ID of an action to check the status.
+          schema:
+            type: string
     get:
       summary: Get the status of a previously run action
       tags:
@@ -101,6 +109,13 @@ paths:
           description: 'No action with the provided action_id is known. It may never have been executed, or it may have been previously released via the /release operation or after the release timeout occurred'
 
   /{action_id}/cancel:
+    parameters:
+      - name: action_id
+        required: true
+        in: path
+        description: ID of an action to cancel.
+        schema:
+          type: string
     post:
       summary: 'Cancel a running Action'
       tags:
@@ -122,6 +137,13 @@ paths:
           description: 'The Action is in a state, including completed or already processing a previous cancellation request, that does not support a cancel operation.'
 
   /{action_id}/release:
+    parameters:
+      - name: action_id
+        required: true
+        in: path
+        description: ID of an action to release.
+        schema:
+          type: string
     post:
       summary: 'Release the provider from storing the state of a completed Action'
       tags:
@@ -279,7 +301,8 @@ components:
           items:
             $ref: '#/components/schemas/AllowedClients'
         deadline:
-          type: date-time
+          type: string
+          format: date-time
           description: 'A timestamp indicating by which time the action must complete. The request may be rejected if the Action Provider does not expect to be able to complete the action before the deadline or if it represents a time greater than the maximum_deadline specified in the Provider Description.'
         release_after:
           type: string
@@ -322,10 +345,12 @@ components:
           description: 'A list of principal URN containing identities which are allowed to manage the progress of the action using the /cancel and /release operations. When not provided, defaults to the user that initiated the action.'
           uniqueItems: true
         start_time:
-          type: date-time
+          type: string
+          format: date-time
           description: 'The time in ISO8601 format when the Action started executing (not necessarily the exact same time when the action /run operation was invoked).'
         completion_time:
-          type: date-time
+          type: string
+          format: date-time
           description: 'The time in ISO8601 format when the Action reached a terminal (SUCCEEDED or FAILED) status'
         release_after:
           type: string
@@ -351,21 +376,21 @@ components:
 
     PrincipalURN:
       type: string
-      pattern: '^urn\\:globus\\:[auth\\:identity|groups\\:id].*$'
+      pattern: '^urn:globus:(auth:identity|groups:id):([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$'
       description: 'A URN representation of an Identity in Globus either of a user from Globus Auth or a group from Globus Groups.'
 
     PrincipalURN_or_public:
       type: string
-      pattern: '^[urn\\:globus\\:[auth\\:identity|groups\\:id].*|public]$'
+      pattern: '^(urn:globus:(auth:identity|groups:id):([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}))|public$'
       description: 'A URN representation of an Identity in Globus either of a user from Globus Auth or a group from Globus Groups or the special value "public"'
 
     PrincipalURN_or_all_authenticated_users:
       type: string
-      pattern: '^[urn\\:globus\\:[auth\\:identity|groups\\:id].*|all_authenticated_users]$'
+      pattern: '^(urn:globus:(auth:identity|groups:id):([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}))|all_authenticated_users$'
       description: 'A URN representation of an Identity in Globus either of a user from Globus Auth or a group from Globus Groups or the special value "all_authenticated_users" indicating any user who presents valid credentials (bearer token)'
 
     # TO DO: This is not complete in terms of specifying individual users in the list
     AllowedClients:
       type: string
       description: ''
-      pattern: '^[public|globus|creator|.$]$'
+      pattern: '^(public|globus|creator|.$)$'
