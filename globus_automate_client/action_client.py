@@ -1,5 +1,4 @@
 import uuid
-import requests
 from typing import Any, Dict, Optional
 from globus_sdk import (
     ClientCredentialsAuthorizer,
@@ -21,9 +20,7 @@ class ActionClient(BaseClient):
         super().__init__(*args, **kwargs)
 
     def introspect(self, **kwargs) -> GlobusHTTPResponse:
-        response = requests.get(self.base_url)
-        globus_response = GlobusHTTPResponse(response)
-        return globus_response
+        return self.get(self.base_url)
 
     def run(
         self, body: Dict[str, Any], request_id: Optional[str] = None
