@@ -49,7 +49,11 @@ def read_arg_content_from_file(arg_val: str) -> str:
 
 @subcommand(action_scoped_args, parent=subparsers)
 def action_provider_introspect(args):
-    ac = create_action_client(args.action_url, "NoTokenNeeded")
+    ac = get_action_client_for_args(args)
+    if ac is None:
+        # We don't have a token, but try anyway in case this action provider
+        # is publicly visible without authentication.
+        ac = create_action_client(args.action_url, "NoTokenAvailable")
     return ac.introspect()
 
 

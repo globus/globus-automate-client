@@ -20,7 +20,7 @@ class ActionClient(BaseClient):
         super().__init__(*args, **kwargs)
 
     def introspect(self, **kwargs) -> GlobusHTTPResponse:
-        return self.get(self.base_url)
+        return self.get('/')
 
     def run(
         self, body: Dict[str, Any], request_id: Optional[str] = None
