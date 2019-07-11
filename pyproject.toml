@@ -1,11 +1,28 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.1.1"
+version = "0.2.0"
 description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Mattias Lidman <ml@globus.org>",
     "Jim Pruyne <pruyne@globus.org>"
 ]
+keywords = [
+  "globus",
+  "automation",
+  "workflow",
+  "action_provider",
+  "command line"
+  ]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: Free To Use But Restricted",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+  ]
 
 readme = "README.rst"
 
@@ -15,15 +32,18 @@ globus-automate = "globus_automate_client.main:main"
 [tool.poetry.dependencies]
 python = "^3.6"
 globus-sdk = "^1.7"
+graphviz = "^0.11"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.6"
-python-language-server = {version = "^0.26.1", extras = ["rope", "pyflakes", "pycodestyle"]}
+pytest = "^5.0"
+python-language-server = {version = "^0.27", extras = ["rope", "pyflakes", "pycodestyle"]}
 pyls-black = "^0.4.4"
 pyls-isort = "^0.1.1"
 pyls-mypy = "^0.1.6"
 flake8 = "^3.7"
 flake8-bugbear = "^18.8"
+importmagic = "^0.1.7"
+epc = "^0.0.5"
 
 [build-system]
 requires = ["poetry>=0.12"]

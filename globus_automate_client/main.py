@@ -1,16 +1,19 @@
+import tempfile
 from argparse import ArgumentParser
 import sys
 import uuid
 import json
 from os import path
 from typing import Any, List, Optional, Tuple, Dict
-from globus_sdk import AccessTokenAuthorizer, NativeAppAuthClient
+from globus_sdk import AccessTokenAuthorizer, NativeAppAuthClient, GlobusHTTPResponse
 from globus_sdk.exc import GlobusAPIError
 
 from .action_client import ActionClient, create_action_client
 from .flows_client import create_flows_client
 from .token_management import get_access_token_for_scope
 from .helpers import subcommand, argument, clear_internal_args, json_parse_args
+from .graphviz_rendering import graphviz_format, state_colors_for_log
+from graphviz import Digraph
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
@@ -27,6 +30,13 @@ flow_scoped_args = [
     argument("--flow-id", help="Id of flow to execute", required=True),
     argument("--flow-scope", help="Scope of the flow to execute"),
 ]
+
+output_format_argument = argument(
+    "--format",
+    help="Format to display output",
+    choices=["json", "graphviz", "image"],
+    default="json",
+)
 
 
 def get_action_client_for_args(args) -> Optional[ActionClient]:
@@ -152,6 +162,30 @@ def flow_deploy(args):
     return fc.deploy_flow(flow_dict, args.visible_to, args.runnable_by)
 
 
+@subcommand(
+    [
+        output_format_argument,
+        argument(
+            "flow-definition",
+            help="JSON Representation of the Flow Definition to be evaluated",
+            nargs=1,
+        ),
+    ],
+    parent=subparsers,
+    help="How do I lint",
+)
+def flow_lint(args):
+    flow_defn = read_arg_content_from_file(vars(args)["flow-definition"][0])
+    flow_dict = json.loads(flow_defn)
+    graph = graphviz_format(flow_dict)
+    if args.format == "json":
+        return json.dumps(flow_dict, indent=2)
+    elif args.format == "graphviz":
+        return graph.source
+    else:
+        return graph
+
+
 @subcommand([], parent=subparsers)
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
@@ -160,12 +194,24 @@ def flows_list(args):
 
 
 @subcommand(
-    [argument("flow-id", help="Id of flow to display", nargs=1)], parent=subparsers
+    [
+        output_format_argument,
+        argument("flow-id", help="Id of flow to display", nargs=1),
+    ],
+    parent=subparsers,
 )
 def flow_display(args):
     fc = create_flows_client(CLIENT_ID)
     flow_id = vars(args)["flow-id"][0]
-    return fc.get_flow(flow_id)
+    flow_get = fc.get_flow(flow_id)
+    if args.format == "json":
+        return flow_get
+    elif args.format in ("graphviz", "image"):
+        graphviz_out = graphviz_format(flow_get.data["definition"])
+        if args.format == "graphviz":
+            return graphviz_out.source
+        else:
+            return graphviz_out
 
 
 @subcommand(
@@ -216,6 +262,7 @@ def flow_action_status(args):
             type=int,
             default=10,
         ),
+        output_format_argument,
         argument("action-id", help="flow execution id to return status for", nargs=1),
     ],
     parent=subparsers,
@@ -227,19 +274,36 @@ def flow_action_log(args):
     reverse_order = args.reverse_order
     limit = args.limit
     action_id = vars(args)["action-id"][0]
-    return fc.flow_action_log(flow_id, flow_scope, action_id, limit, reverse_order)
+    resp = fc.flow_action_log(flow_id, flow_scope, action_id, limit, reverse_order)
+    if args.format == "json":
+        return resp
+    elif args.format in ("graphviz", "image"):
+        flow_def_resp = fc.get_flow(flow_id)
+        flow_def = flow_def_resp.data["definition"]
+        colors = state_colors_for_log(resp.data["entries"])
+        graphviz_out = graphviz_format(flow_def, colors)
+        if args.format == "graphviz":
+            return graphviz_out.source
+        else:
+            return graphviz_out
 
 
 def main():
     args = cli.parse_args()
     try:
         ret = args.func(args)
-        if ret is not None:
-            ret_string = json.dumps(ret.data, indent=2)
-            print(ret_string)
+        if isinstance(ret, GlobusHTTPResponse):
+            json_string = json.dumps(ret.data, indent=2)
+            print(json_string)
+        elif isinstance(ret, str):
+            print(ret)
+        elif isinstance(ret, Digraph):
+            ret.view(tempfile.mktemp(".png"))
     except GlobusAPIError as gae:
         print(f"Request failed due to {str(gae)}")
-    except AttributeError:
+    except AttributeError as ae:
+        print(f"DEBUG str(ae) := {str(ae)}")
+
         # Would occur if no func is provided on the invocation
         cli.print_help(sys.stderr)
 
