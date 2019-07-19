@@ -1,23 +1,23 @@
-import tempfile
-from argparse import ArgumentParser
-import sys
-import uuid
 import json
-from os import path
-from typing import Any, List, Optional, Tuple, Dict
-from globus_sdk import AccessTokenAuthorizer, NativeAppAuthClient, GlobusHTTPResponse
+import sys
+import tempfile
+import uuid
+from argparse import ArgumentParser
+from typing import Optional
+
+from globus_sdk import AccessTokenAuthorizer, GlobusHTTPResponse
 from globus_sdk.exc import GlobusAPIError
+from graphviz import Digraph
 
 from .action_client import ActionClient, create_action_client
 from .flows_client import create_flows_client
-from .token_management import get_access_token_for_scope
-from .helpers import subcommand, argument, clear_internal_args, json_parse_args
 from .graphviz_rendering import graphviz_format, state_colors_for_log
-from graphviz import Digraph
+from .helpers import argument, clear_internal_args, json_parse_args, subcommand
+from .token_management import get_access_token_for_scope
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
-cli = ArgumentParser(add_help=False)
+cli = ArgumentParser(add_help=True)
 subparsers = cli.add_subparsers(dest="subcommand")
 action_scoped_args = [
     argument("--action-scope", help="The Globus Auth scope associated with the Action"),
@@ -77,6 +77,7 @@ def action_provider_introspect(args):
         )
     ],
     parent=subparsers,
+    help=("Run an action rooted at the Action URL using the Action scope."),
 )
 def action_run(args):
     ac = get_action_client_for_args(args)
@@ -93,6 +94,9 @@ def action_run(args):
     action_scoped_args
     + [argument("action-id", help="action_id value to return status for", nargs=1)],
     parent=subparsers,
+    help=(
+        "Get the status of an action which has already been run and has not yet been released."
+    ),
 )
 def action_status(args):
     ac = get_action_client_for_args(args)
@@ -106,6 +110,9 @@ def action_status(args):
     action_scoped_args
     + [argument("action-id", help="action_id value to cancel", nargs=1)],
     parent=subparsers,
+    help=(
+        "Cancel an action which has already been run. If the action has completed, this has no effect."
+    ),
 )
 def action_cancel(args):
     ac = get_action_client_for_args(args)
@@ -119,6 +126,9 @@ def action_cancel(args):
     action_scoped_args
     + [argument("action-id", help="action_id value to release status for", nargs=1)],
     parent=subparsers,
+    help=(
+        "Inform the Action Provider that it need not retain state for the provided action id. Subsequent calls with the same action id will fail as if the action id never existed."
+    ),
 )
 def action_release(args):
     ac = get_action_client_for_args(args)
@@ -152,14 +162,52 @@ def action_release(args):
             "value or by reference to a file name with an '@' prefix.",
             nargs=1,
         ),
+        argument("--title", help="The title of the Flow", required=True),
+        argument(
+            "--subtitle",
+            help="A subtitle for the flow providing additional, brief description",
+            nargs="?",
+        ),
+        argument(
+            "--description",
+            help="A long form description of the flow's purpose or usage",
+            nargs="?",
+        ),
+        argument(
+            "--keywords",
+            help=(
+                "A list of keywords which may categorize or help discovery of the flow"
+            ),
+            nargs="*",
+        ),
+        argument(
+            "--administered_by",
+            help=(
+                "The set of principals (identities or groups) which may update "
+                "the deployed Flow."
+            ),
+            nargs="*",
+        ),
     ],
     parent=subparsers,
+    help=(
+        "Deploy a new flow to the Flows service. The returned Id field may be used for further operations on the flow."
+    ),
 )
 def flow_deploy(args):
     fc = create_flows_client(CLIENT_ID)
     flow_defn = read_arg_content_from_file(vars(args)["definition"][0])
     flow_dict = json.loads(flow_defn)
-    return fc.deploy_flow(flow_dict, args.visible_to, args.runnable_by)
+    return fc.deploy_flow(
+        flow_dict,
+        args.title,
+        args.subtitle,
+        args.description,
+        args.keywords,
+        args.visible_to,
+        args.runnable_by,
+        args.administered_by,
+    )
 
 
 @subcommand(
@@ -172,7 +220,10 @@ def flow_deploy(args):
         ),
     ],
     parent=subparsers,
-    help="How do I lint",
+    help=(
+        "Locally parse the flow definition and do rudimentry checking on its validity. "
+        "Provide output in graphviz or image format to help with visualizing the flow"
+    ),
 )
 def flow_lint(args):
     flow_defn = read_arg_content_from_file(vars(args)["flow-definition"][0])
@@ -186,7 +237,7 @@ def flow_lint(args):
         return graph
 
 
-@subcommand([], parent=subparsers)
+@subcommand([], parent=subparsers, help=("List all of the flows you have deployed."))
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
     flows = fc.list_flows()
@@ -199,6 +250,9 @@ def flows_list(args):
         argument("flow-id", help="Id of flow to display", nargs=1),
     ],
     parent=subparsers,
+    help=(
+        "Display the description of a flow based on its id. You must have either creted the flow or be present in the visible_to list of the flow to view it."
+    ),
 )
 def flow_display(args):
     fc = create_flows_client(CLIENT_ID)
@@ -218,6 +272,9 @@ def flow_display(args):
     flow_scoped_args
     + [argument("flow-input", help="JSON format input to the flow", nargs=1)],
     parent=subparsers,
+    help=(
+        "Run an instance of a flow. The argument provides the initial state of the flow."
+    ),
 )
 def flow_run(args):
     fc = create_flows_client(CLIENT_ID)
@@ -232,6 +289,9 @@ def flow_run(args):
     flow_scoped_args
     + [argument("action-id", help="flow execution id to return status for", nargs=1)],
     parent=subparsers,
+    help=(
+        "Retrieve the status of a running flow action. The most recent state executed in the flow will be displayed."
+    ),
 )
 def flow_action_status(args):
     fc = create_flows_client(CLIENT_ID)
@@ -266,6 +326,7 @@ def flow_action_status(args):
         argument("action-id", help="flow execution id to return status for", nargs=1),
     ],
     parent=subparsers,
+    help=("Get a log of the most recent steps executed by a flow action."),
 )
 def flow_action_log(args):
     fc = create_flows_client(CLIENT_ID)
@@ -305,7 +366,7 @@ def main():
         print(f"DEBUG str(ae) := {str(ae)}")
 
         # Would occur if no func is provided on the invocation
-        cli.print_help(sys.stderr)
+        # cli.print_help(sys.stderr)
 
 
 if __name__ == "__main__":

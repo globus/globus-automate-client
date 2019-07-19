@@ -49,17 +49,26 @@ class FlowsClient(BaseClient):
 
     def deploy_flow(
         self,
-        flow_definition: Dict[str, Any],
+        flow_definition: Mapping[str, Any],
+        title: str,
+        subtitle: Optional[str] = None,
+        description: Optional[str] = None,
+        keywords: List[str] = [],
         visible_to: List[str] = [],
         runnable_by: List[str] = [],
+        administered_by: List[str] = [],
         **kwargs,
     ) -> GlobusHTTPResponse:
         self.authorizer = AccessTokenAuthorizer(self.token_map.get(MANAGE_FLOWS_SCOPE))
-        req_body: Dict[str, Any] = {"definition": flow_definition}
-        if visible_to:
-            req_body["visible_to"] = visible_to
-        if runnable_by:
-            req_body["runnable_by"] = runnable_by
+        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
+        temp_body["subtitle"] = subtitle
+        temp_body["description"] = description
+        temp_body["keywords"] = keywords
+        temp_body["visible_to"] = visible_to
+        temp_body["runnable_by"] = runnable_by
+        temp_body["administered_by"] = administered_by
+        # Remove None / empty list items from the temp_body
+        req_body = {k: v for k, v in temp_body.items() if v}
         return self.post("/", req_body, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
@@ -83,9 +92,7 @@ class FlowsClient(BaseClient):
 
     def _scope_for_flow(self, flow_id: str) -> Optional[str]:
         flow_defn = self.get_flow(flow_id)
-        flow_scope = flow_defn.get(
-            "globus_auth_scope", flow_defn.get(["globus_auth_scope"])
-        )
+        flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get("scope_string"))
         return flow_scope
 
     def flow_action_status(
