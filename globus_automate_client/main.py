@@ -269,6 +269,32 @@ def flow_display(args):
 
 
 @subcommand(
+    [
+        output_format_argument,
+        argument("--flow-scope", help="Scope of the flow to execute"),
+        argument("flow-id", help="Id of flow to display", nargs=1),
+    ],
+    parent=subparsers,
+    help=(
+        "Delete a Flow. You must either have created the flow or be in the Flow's administrated_by list."
+    ),
+)
+def flow_delete(args):
+    fc = create_flows_client(CLIENT_ID)
+    flow_id = vars(args)["flow-id"][0]
+    flow_scope = args.flow_scope
+    flow_del = fc.delete_flow(flow_id, flow_scope)
+    if args.format == "json":
+        return flow_del
+    elif args.format in ("graphviz", "image"):
+        graphviz_out = graphviz_format(flow_del.data["definition"])
+        if args.format == "graphviz":
+            return graphviz_out.source
+        else:
+            return graphviz_out
+
+
+@subcommand(
     flow_scoped_args
     + [argument("flow-input", help="JSON format input to the flow", nargs=1)],
     parent=subparsers,

@@ -120,6 +120,11 @@ class FlowsClient(BaseClient):
         params = {"reverse_order": reverse_order, "limit": limit}
         return self.get(f"/{flow_id}/{flow_action_id}/log", params=params, **kwargs)
 
+    def delete_flow(self, flow_id: str, flow_scope: Optional[str], **kwargs):
+        if flow_scope is None:
+            flow_scope = self._scope_for_flow(flow_id)
+        return self.delete(f"/flows/{flow_id}", **kwargs)
+
 
 def create_flows_client(
     client_id: str, base_url: str = "https://flows.automate.globus.org"
