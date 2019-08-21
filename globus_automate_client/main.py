@@ -237,11 +237,64 @@ def flow_lint(args):
         return graph
 
 
-@subcommand([], parent=subparsers, help=("List all of the flows you have deployed."))
+@subcommand(
+    [
+        argument(
+            "--roles",
+            type=str,
+            nargs="+",
+            metavar="ROLE",
+            help=(
+                "Your flow role values to display in the list. Possible values are: "
+                "created_by, visible_to, runnable_by, administered_by"
+            ),
+        )
+    ],
+    parent=subparsers,
+    help=("List flows you have deployed or for which you have access."),
+)
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
-    flows = fc.list_flows()
+    flows = fc.list_flows(roles=args.roles)
     return flows
+
+
+@subcommand(
+    [
+        argument(
+            "--statuses",
+            type=str,
+            nargs="+",
+            metavar="STATUS",
+            help=(
+                "The Action Status values to display. Possible values are "
+                "SUCCEEDED, FAILED, ACTIVE, INACTIVE"
+            ),
+        ),
+        argument(
+            "--roles",
+            type=str,
+            nargs="+",
+            metavar="ROLE",
+            help=(
+                "Your role values to display in the list. Possible values are: "
+                "created_by, monitor_by, manage_by"
+            ),
+        ),
+        argument("--flow-scope", help="Scope of the flow to list actions"),
+        argument("flow-id", help="Id of flow to display", nargs=1),
+    ],
+    parent=subparsers,
+    help=("List flows you have deployed or for which you have access."),
+)
+def flow_actions_list(args):
+    fc = create_flows_client(CLIENT_ID)
+    flow_id = vars(args)["flow-id"][0]
+    flow_scope = args.flow_scope
+    action_list = fc.list_flow_actions(
+        flow_id, flow_scope, statuses=args.statuses, roles=args.roles
+    )
+    return action_list
 
 
 @subcommand(
