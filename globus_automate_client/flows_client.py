@@ -69,16 +69,21 @@ class FlowsClient(BaseClient):
         temp_body["administered_by"] = administered_by
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
-        return self.post("/", req_body, **kwargs)
+        return self.post("/flows", req_body, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         self.authorizer = AccessTokenAuthorizer(self.token_map.get(MANAGE_FLOWS_SCOPE))
         path = self.qjoin_path(flow_id)
         return self.get(path, **kwargs)
 
-    def list_flows(self, **kwargs) -> GlobusHTTPResponse:
+    def list_flows(
+        self, roles: Optional[List[str]] = None, **kwargs
+    ) -> GlobusHTTPResponse:
         self.authorizer = AccessTokenAuthorizer(self.token_map.get(MANAGE_FLOWS_SCOPE))
-        return self.get("/mine", **kwargs)
+        params = {}
+        if roles is not None and len(roles) > 0:
+            params.update(dict(roles=",".join(roles)))
+        return self.get("/flows", params=params, **kwargs)
 
     def run_flow(
         self, flow_id: str, flow_scope: str, flow_input: Mapping, **kwargs
@@ -88,7 +93,7 @@ class FlowsClient(BaseClient):
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         req_body = {"body": flow_input}
-        return self.post(f"/{flow_id}/run", req_body, **kwargs)
+        return self.post(f"/flows/{flow_id}/run", req_body, **kwargs)
 
     def _scope_for_flow(self, flow_id: str) -> Optional[str]:
         flow_defn = self.get_flow(flow_id)
@@ -102,7 +107,26 @@ class FlowsClient(BaseClient):
             flow_scope = self._scope_for_flow(flow_id)
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
-        return self.get(f"/{flow_id}/{flow_action_id}/status", **kwargs)
+        return self.get(f"/flows/{flow_id}/{flow_action_id}/status", **kwargs)
+
+    def list_flow_actions(
+        self,
+        flow_id: str,
+        flow_scope: Optional[str],
+        statuses: Optional[List[str]],
+        roles: Optional[List[str]] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        if flow_scope is None:
+            flow_scope = self._scope_for_flow(flow_id)
+        flow_token = get_access_token_for_scope(flow_scope, self.client_id)
+        self.authorizer = AccessTokenAuthorizer(flow_token)
+        params = {}
+        if statuses is not None and len(statuses) > 0:
+            params.update(dict(status=",".join(statuses)))
+        if roles is not None and len(roles) > 0:
+            params.update(dict(roles=",".join(roles)))
+        return self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
 
     def flow_action_log(
         self,
@@ -118,7 +142,9 @@ class FlowsClient(BaseClient):
         flow_token = get_access_token_for_scope(flow_scope, self.client_id)
         self.authorizer = AccessTokenAuthorizer(flow_token)
         params = {"reverse_order": reverse_order, "limit": limit}
-        return self.get(f"/{flow_id}/{flow_action_id}/log", params=params, **kwargs)
+        return self.get(
+            f"/flows/{flow_id}/{flow_action_id}/log", params=params, **kwargs
+        )
 
     def delete_flow(self, flow_id: str, flow_scope: Optional[str], **kwargs):
         if flow_scope is None:
