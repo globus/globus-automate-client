@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.4"
+version = "0.5"
 description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Mattias Lidman <ml@globus.org>",
@@ -32,7 +32,7 @@ globus-automate = "globus_automate_client.main:main"
 [tool.poetry.dependencies]
 python = "^3.6"
 globus-sdk = "^1.7"
-graphviz = "^0.11"
+graphviz = "^0.12"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

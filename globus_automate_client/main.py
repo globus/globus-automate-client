@@ -57,7 +57,13 @@ def read_arg_content_from_file(arg_val: str) -> str:
     return arg_val
 
 
-@subcommand(action_scoped_args, parent=subparsers)
+@subcommand(
+    action_scoped_args,
+    parent=subparsers,
+    help=(
+        "Display the descriptive information for the Action Provider including its required request input schema."
+    ),
+)
 def action_provider_introspect(args):
     ac = get_action_client_for_args(args)
     if ac is None:
@@ -442,7 +448,7 @@ def main():
     except GlobusAPIError as gae:
         print(f"Request failed due to {str(gae)}")
     except AttributeError as ae:
-        print(f"DEBUG str(ae) := {str(ae)}")
+        print(f"Request failed due to {str(ae)}")
 
         # Would occur if no func is provided on the invocation
         # cli.print_help(sys.stderr)
