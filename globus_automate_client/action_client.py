@@ -8,7 +8,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient, slash_join
+from globus_sdk.base import BaseClient
 
 
 class ActionClient(BaseClient):
@@ -40,6 +40,10 @@ class ActionClient(BaseClient):
     def status(self, action_id) -> GlobusHTTPResponse:
         path = self.qjoin_path(action_id, "status")
         return self.get(path)
+
+    def cancel(self, action_id) -> GlobusHTTPResponse:
+        path = self.qjoin_path(action_id, "cancel")
+        return self.post(path)
 
     def release(self, action_id) -> GlobusHTTPResponse:
         path = self.qjoin_path(action_id, "release")
