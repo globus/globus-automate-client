@@ -42,6 +42,8 @@ output_format_argument = argument(
 def get_action_client_for_args(args) -> Optional[ActionClient]:
     action_url = args.action_url
     action_scope = args.action_scope
+    if action_url is None or action_scope is None:
+        return None
     access_token = get_access_token_for_scope(action_scope, CLIENT_ID)
     if access_token is not None:
         ac = create_action_client(action_url, access_token)
