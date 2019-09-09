@@ -438,6 +438,9 @@ def flow_action_log(args):
 
 def main():
     args = cli.parse_args()
+    if args.subcommand is None:
+        cli.print_help(sys.stderr)
+        return
     try:
         ret = args.func(args)
         if isinstance(ret, GlobusHTTPResponse):
@@ -451,9 +454,6 @@ def main():
         print(f"Request failed due to {str(gae)}")
     except AttributeError as ae:
         print(f"Request failed due to {str(ae)}")
-
-        # Would occur if no func is provided on the invocation
-        # cli.print_help(sys.stderr)
 
 
 if __name__ == "__main__":
