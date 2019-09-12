@@ -346,6 +346,9 @@ def flow_delete(args):
     flow_scope = args.flow_scope
     flow_del = fc.delete_flow(flow_id, flow_scope)
     if args.format == "json":
+        if not flow_del.data:
+            # empty response---don't print, otherwise it shows `null`
+            return None
         return flow_del
     elif args.format in ("graphviz", "image"):
         graphviz_out = graphviz_format(flow_del.data["definition"])
