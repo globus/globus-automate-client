@@ -12,8 +12,10 @@ _SHAPE_TYPES = {
 _COLOR_PRECEDENCE = ["", "yellow", "orange", "green", "red"]
 
 
-def json_to_label_text(json_dict):
-    return json.dumps(json_dict, indent=1).replace("\n", "\\l").replace('"', '\\"')
+def json_to_label_text(json_dict: Mapping[str, Any]) -> str:
+    label_text = json.dumps(json_dict, indent=1)
+    label_text = label_text.replace("\n", '<br ALIGN="LEFT"/>')
+    return label_text
 
 
 def state_colors_for_log(flow_action_log_entries: List[Mapping]) -> Dict[str, str]:
@@ -60,23 +62,24 @@ def graphviz_format(
             parameters = state_def.get("Parameters")
             if parameters:
                 parameter_text = json_to_label_text(parameters)
-                node_params["label"] = node_params["label"] + "\\l" + parameter_text
+                node_params["label"] = node_params["label"] + "<br/>" + parameter_text
             else:
                 input_path = state_def.get("InputPath")
                 if input_path:
                     node_params["label"] = (
-                        node_params["label"] + "\\l" + f"InputPath: {input_path}"
+                        node_params["label"] + "<br/>" + f"InputPath: {input_path}"
                     )
             if state_name in state_colors:
                 node_params["fillcolor"] = state_colors[state_name]
                 node_params["style"] = "filled"
+            node_params["label"] = "<" + node_params["label"] + '<br ALIGN="LEFT"/>>'
             graph.node(state_name, **node_params)
             if next_state:
                 graph.edge(state_name, next_state)
             choices = state_def.get("Choices", [])
             for choice in choices:
                 choice_next = choice.pop("Next")
-                choice_text = json_to_label_text(choice)
+                choice_text = "<" + json_to_label_text(choice) + '<br ALIGN="LEFT"/>>'
                 graph.edge(state_name, choice_next, label=choice_text, style="dotted")
 
     return graph
