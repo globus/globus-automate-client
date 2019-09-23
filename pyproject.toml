@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.5.1"
+version = "0.5.2"
 description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Mattias Lidman <ml@globus.org>",
-    "Jim Pruyne <pruyne@globus.org>"
+    "Jim Pruyne <pruyne@globus.org>",
+    "Rudyard Richter <rudyard@globus.org>"
 ]
 keywords = [
   "globus",
