@@ -11,6 +11,7 @@ from graphviz import Digraph
 
 from .action_client import ActionClient, create_action_client
 from .flows_client import create_flows_client
+from .queues_client import create_queues_client
 from .graphviz_rendering import graphviz_format, state_colors_for_log
 from .helpers import argument, clear_internal_args, json_parse_args, subcommand
 from .token_management import get_access_token_for_scope
@@ -229,8 +230,8 @@ def flow_deploy(args):
     ],
     parent=subparsers,
     help=(
-        "Locally parse the flow definition and do rudimentry checking on its validity. "
-        "Provide output in graphviz or image format to help with visualizing the flow"
+        "Locally parse the Flow definition and do rudimentry checking on its validity. "
+        "Provide output in graphviz or image format to help with visualizing the Flow."
     ),
 )
 def flow_lint(args):
@@ -253,13 +254,13 @@ def flow_lint(args):
             nargs="+",
             metavar="ROLE",
             help=(
-                "Your flow role values to display in the list. Possible values are: "
+                "Your Flow role values to display in the list. Possible values are: "
                 "created_by, visible_to, runnable_by, administered_by"
             ),
         )
     ],
     parent=subparsers,
-    help=("List flows you have deployed or for which you have access."),
+    help=("List Flows you have deployed or for which you have access."),
 )
 def flows_list(args):
     fc = create_flows_client(CLIENT_ID)
@@ -312,7 +313,7 @@ def flow_actions_list(args):
     ],
     parent=subparsers,
     help=(
-        "Display the description of a flow based on its id. You must have either creted the flow or be present in the visible_to list of the flow to view it."
+        "Display the description of a Flow based on its id. You must have either created the Flow or be present in the visible_to list of the Flow to view it."
     ),
 )
 def flow_display(args):
@@ -337,7 +338,7 @@ def flow_display(args):
     ],
     parent=subparsers,
     help=(
-        "Delete a Flow. You must either have created the flow or be in the Flow's administrated_by list."
+        "Delete a Flow. You must either have created the Flow or be in the Flow's administrated_by list."
     ),
 )
 def flow_delete(args):
@@ -360,10 +361,10 @@ def flow_delete(args):
 
 @subcommand(
     flow_scoped_args
-    + [argument("flow-input", help="JSON format input to the flow", nargs=1)],
+    + [argument("flow-input", help="JSON format input to the Flow", nargs=1)],
     parent=subparsers,
     help=(
-        "Run an instance of a flow. The argument provides the initial state of the flow."
+        "Run an instance of a Flow. The argument provides the initial state of the Flow."
     ),
 )
 def flow_run(args):
@@ -380,7 +381,7 @@ def flow_run(args):
     + [argument("action-id", help="flow execution id to return status for", nargs=1)],
     parent=subparsers,
     help=(
-        "Retrieve the status of a running flow action. The most recent state executed in the flow will be displayed."
+        "Retrieve the status of a running Flow Action. The most recent state executed in the Flow will be displayed."
     ),
 )
 def flow_action_status(args):
@@ -416,7 +417,7 @@ def flow_action_status(args):
         argument("action-id", help="flow execution id to return status for", nargs=1),
     ],
     parent=subparsers,
-    help=("Get a log of the most recent steps executed by a flow action."),
+    help=("Get a log of the most recent steps executed by a Flow action."),
 )
 def flow_action_log(args):
     fc = create_flows_client(CLIENT_ID)
@@ -437,6 +438,191 @@ def flow_action_log(args):
             return graphviz_out.source
         else:
             return graphviz_out
+
+
+@subcommand(
+    [
+        argument(
+            "--roles",
+            type=str,
+            nargs="+",
+            metavar="ROLE",
+            help=(
+                "Your queues role values to display in the list. Possible values are: "
+                "admin, send, receive"
+            ),
+        )
+    ],
+    parent=subparsers,
+    help=("List queues you have created or for which you have access."),
+)
+def queues_list(args):
+    qc = create_queues_client(CLIENT_ID)
+    queues = qc.list_queues(roles=args.roles)
+    return queues
+
+
+@subcommand(
+    [
+        argument(
+            "--label",
+            type=str,
+            required=True,
+            help="A convenient name to identify the new Queue.",
+        ),
+        argument(
+            "--admins",
+            type=str,
+            nargs="+",
+            metavar="ADMIN_URN",
+            help=("The Principal URNs allowed to administer the Queue."),
+        ),
+        argument(
+            "--senders",
+            type=str,
+            nargs="+",
+            metavar="SENDER_URN",
+            help=("The Principal URNs allowed to send to the Queue."),
+        ),
+        argument(
+            "--receivers",
+            type=str,
+            nargs="+",
+            metavar="RECEIVER_URN",
+            help=("The Principal URNs allowed to receive from the Queue."),
+        ),
+    ],
+    parent=subparsers,
+    help=("Create a new Queue"),
+)
+def queue_create(args):
+    qc = create_queues_client(CLIENT_ID)
+    label = args.label
+    admins = args.admins
+    senders = args.senders
+    receivers = args.receivers
+
+    queues = qc.create_queue(label, admins, senders, receivers)
+    return queues
+
+
+@subcommand(
+    [
+        argument(
+            "--label",
+            type=str,
+            required=False,
+            help="A convenient name to identify the new Queue.",
+        ),
+        argument(
+            "--admins",
+            type=str,
+            nargs="*",
+            metavar="ADMIN_URN",
+            help=("The Principal URNs allowed to administer the Queue."),
+        ),
+        argument(
+            "--senders",
+            type=str,
+            nargs="*",
+            metavar="SENDER_URN",
+            help=("The Principal URNs allowed to send to the Queue."),
+        ),
+        argument(
+            "--receivers",
+            type=str,
+            nargs="*",
+            metavar="RECEIVER_URN",
+            help=("The Principal URNs allowed to receive from the Queue."),
+        ),
+        argument("--queue-id", help="Id of Queue to update", nargs=1),
+    ],
+    parent=subparsers,
+    help=("Update properties of a Queue. Requires having the admin role."),
+)
+def queue_update(args):
+    qc = create_queues_client(CLIENT_ID)
+    label = args.label
+    admins = args.admins
+    senders = args.senders
+    receivers = args.receivers
+    queue_id = args.queue_id[0]
+
+    queues = qc.update_queue(queue_id, label, admins, senders, receivers)
+    return queues
+
+
+@subcommand(
+    [argument("queue-id", help="Id of Queue to display", nargs=1)],
+    parent=subparsers,
+    help=(
+        "Display the description of a Queue based on its id. You must have either created the Queue or have a role defined on the Queue."
+    ),
+)
+def queue_display(args):
+    qc = create_queues_client(CLIENT_ID)
+    queue_id = vars(args)["queue-id"][0]
+    queue = qc.get_queue(queue_id)
+    return queue
+
+
+@subcommand(
+    [argument("queue-id", help="Id of Queue to delete", nargs=1)],
+    parent=subparsers,
+    help=(
+        "Delete a Queue based on its id. You must have either created the Queue or have a role defined on the Queue."
+    ),
+)
+def queue_delete(args):
+    qc = create_queues_client(CLIENT_ID)
+    queue_id = vars(args)["queue-id"][0]
+    queue = qc.delete_queue(queue_id)
+    return queue
+
+
+@subcommand(
+    [
+        argument(
+            "--max-messages",
+            help="The maximum number of messages to retrieve from the Queue",
+            type=int,
+            default=1,
+        ),
+        argument("queue-id", help="Id of queue to read from", nargs=1),
+    ],
+    parent=subparsers,
+    help=(
+        "Receive a message from a Queue. You must have the receive role of the Queue to be permitted to perform this action."
+    ),
+)
+def queue_receive(args):
+    qc = create_queues_client(CLIENT_ID)
+    max_messages = args.max_messages
+    queue_id = vars(args)["queue-id"][0]
+    queue = qc.receieve_messages(queue_id, max_messages=max_messages)
+    return queue
+
+
+@subcommand(
+    [
+        argument("--queue-id", help="Id of the Queue to send to", required=True),
+        argument(
+            "message",
+            help="Text of the message to send. Files may be referenced by prefixing the '@' character to the value.",
+            nargs=1,
+        ),
+    ],
+    parent=subparsers,
+    help=(
+        "Send a message to a Queue. You must have the send role of the Queue to be permitted to perform this action."
+    ),
+)
+def queue_send(args):
+    qc = create_queues_client(CLIENT_ID)
+    queue_id = args.queue_id
+    message = read_arg_content_from_file(vars(args)["message"][0])
+    message_send = qc.send_message(queue_id, message)
+    return message_send
 
 
 def main():
