@@ -79,14 +79,27 @@ class QueuesClient(BaseClient):
         senders: Optional[List[str]] = None,
         receivers: Optional[List[str]] = None,
         delivery_timeout: Optional[int] = None,
-    ) -> GlobusHTTPResponse:
-        pass
+        **kwargs,
+    ) -> Optional[GlobusHTTPResponse]:
+        body = dict(
+            label=label,
+            admins=admins,
+            senders=senders,
+            receivers=receivers,
+            delivery_timeout=delivery_timeout,
+        )
+        # Remove the missing values from the update operation
+        body = {k: v for k, v in body.items() if v is not None}
+        if body:
+            return self.put(f"/queues/{queue_id}", {"data": body}, **kwargs)
+        else:
+            return None
 
     def delete_queue(self, queue_id: str) -> str:
         try:
             delete_op_resp = self.delete(f"/queues/{queue_id}")
             return str(delete_op_resp)
-        except KeyError as e:
+        except KeyError:
             # Client lib seems to choke if there's no content-type on the response which
             # queues doesn't seem to set on delete. Catch that as best we can as a
             # KeyError then return a somewhat useful string

@@ -493,15 +493,62 @@ def queues_list(args):
         ),
     ],
     parent=subparsers,
-    help=("List queues you have created or for which you have access."),
+    help=("Create a new Queue"),
 )
 def queue_create(args):
     qc = create_queues_client(CLIENT_ID)
     label = args.label
-    admins = vars(args)["admins"]
-    senders = vars(args)["senders"]
-    receivers = vars(args)["receivers"]
+    admins = args.admins
+    senders = args.senders
+    receivers = args.receivers
+
     queues = qc.create_queue(label, admins, senders, receivers)
+    return queues
+
+
+@subcommand(
+    [
+        argument(
+            "--label",
+            type=str,
+            required=False,
+            help="A convenient name to identify the new Queue.",
+        ),
+        argument(
+            "--admins",
+            type=str,
+            nargs="*",
+            metavar="ADMIN_URN",
+            help=("The Principal URNs allowed to administer the Queue."),
+        ),
+        argument(
+            "--senders",
+            type=str,
+            nargs="*",
+            metavar="SENDER_URN",
+            help=("The Principal URNs allowed to send to the Queue."),
+        ),
+        argument(
+            "--receivers",
+            type=str,
+            nargs="*",
+            metavar="RECEIVER_URN",
+            help=("The Principal URNs allowed to receive from the Queue."),
+        ),
+        argument("--queue-id", help="Id of Queue to update", nargs=1),
+    ],
+    parent=subparsers,
+    help=("Update properties of a Queue. Requires having the admin role."),
+)
+def queue_update(args):
+    qc = create_queues_client(CLIENT_ID)
+    label = args.label
+    admins = args.admins
+    senders = args.senders
+    receivers = args.receivers
+    queue_id = args.queue_id[0]
+
+    queues = qc.update_queue(queue_id, label, admins, senders, receivers)
     return queues
 
 
