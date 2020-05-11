@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.6"
+version = "0.6.1"
 description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Mattias Lidman <ml@globus.org>",
@@ -32,20 +32,25 @@ globus-automate = "globus_automate_client.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-globus-sdk = "^1.7"
+globus-sdk = "^1.9"
 graphviz = "^0.12"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
-python-language-server = {version = "^0.27", extras = ["rope", "pyflakes", "pycodestyle"]}
-pyls-black = "^0.4.4"
-pyls-isort = "^0.1.1"
-pyls-mypy = "^0.1.6"
-flake8 = "^3.7"
-flake8-bugbear = "^18.8"
-importmagic = "^0.1.7"
-epc = "^0.0.5"
+python-language-server = {version = "^0", extras = ["rope", "pyflakes", "pycodestyle"]}
+pyls-black = "^0"
+pyls-isort = "^0"
+pyls-mypy = "^0"
+importmagic = "^0"
+epc = "^0"
 
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+combine_as_imports = true
+line_length = 88
