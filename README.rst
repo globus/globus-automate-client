@@ -78,6 +78,17 @@ Synchronous / Asynchronous: Synchronous
 
 The set permission Action Provider uses the Globus Transfer API to set permissions on a folder or file. As the Globus Transfer API returns a status directly (rather than a task identifier), the Action Provider behaves in a synchronous manner, returning the Transfer API result.
 
+Globus Transfer / ls
+--------------------------------
+
+URL: `<https://actions.globus.org/transfer/ls>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_ls``
+
+Synchronous / Asynchronous: Synchronous
+
+The Globus Transfer ls Action Provider uses the Globus Transfer API to retrieve a listing of contents from an (endpoint, path) pair.  Although providing a path is optional, the default path used depends on endpoint type and it is best to explicitly set a path. This Action Provider supports all options as defined in the List Directory Contents Transfer API documentation. 
+
 Globus Search / Ingest
 ----------------------
 
@@ -85,7 +96,7 @@ URL: `<https://actions.globus.org/search/ingest>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/search/ingest``
 
-Synchronous / Asynchronous: ASynchronous
+Synchronous / Asynchronous: Asynchronous
 
 Records may be added to an existing Globus Search index using the Search / ingest Action Provider. The input to the Action Provider includes the id of the Search index to be added to and the data, in the Search-defined ``GMetaEntry`` format. The user calling the Action Provider must have permission to write to the index referenced. Globus Search will process the ingest operation asynchronously, so this Action Provider also behaves in an asynchronous fashion: requests to update the state of an Action will reflect the result from updating the state of the ingest task in Globus Search. Since Globus Search does not support cancellation of tasks, this Action Provider also does not support cancellation of its Actions.
 
