@@ -10,7 +10,7 @@ Basic Usage
 
 Install with ``pip install globus-automate-client``
 
-This will install both a command-line tool ``globus-automate`` and a client library for interacting with Actions and FLows. Running the script without parameters will provide a summary of its functionality.
+This will install both a command-line tool ``globus-automate`` and a client library for interacting with Actions and Flows. Running the script without parameters will provide a summary of its functionality.
 
 Use of the script to invoke any services requires authentication. Upon first interaction with any Action Provider or the Flows Service, you will be prompted to proceed through an Authentication process using Globus Auth to consent for use by the CLI with the service it is interacting with. This typically only needs to be done once, the first time a service is invoked. Subsequently, the cached authentication information will be used. Authentication information is cached in the file ``$HOME/.globus_token_cache``. It is recommended that this file be protected. If re-authentication or re-consent is needed, the file may be deleted. This will remove consents to **all** Action Providers and the Flows service. The file is in JSON format with keys based on the "scope". It may be edited to remove particular scopes if done with care.
 
@@ -124,7 +124,7 @@ Synchronous / Asynchronous: Asynchronous
 
 Flows or other clients which desire to provide users a method of selecting an option from a fixed set may use the Wait for User Option Selection Action Provider. The Action Provider can operate in one of two modes.
 
-In the first mode, a list of options are created which are automatically selected by any access to a corresponding URLs. For each option, a name, a URL suffix, and a message or text which is returned in the HTTP response of the selection operation is provided. The URL suffix is registered with the Action Provider and is monitored at the URL ``https://actions.globus.org/weboption/option/<url_suffix>``. Any HTTP access to the URL is considered a selection of that option among all the options defined by the input to the Action and the Action will transition to a ``SUCCEEDED`` status. Each of the options may be protected for access only via specific Globus identities by setting values on the ``selectable_by`` list. A direct HTTP access may present a Bearer token for authorization using the same scope as used for accessing the other operations on the Action Provider. If not access token is presented, the user will be re-directed to start an OAuth Flow using Globus Auth to authenticate access to the option URL.
+In the first mode, a list of options are created which are automatically selected by any access to a corresponding URLs. For each option, a name, a URL suffix, and a message or text which is returned in the HTTP response of the selection operation is provided. The URL suffix is registered with the Action Provider and is monitored at the URL ``https://actions.globus.org/weboption/option/<url_suffix>``. Any HTTP access to the URL is considered a selection of that option among all the options defined by the input to the Action and the Action will transition to a ``SUCCEEDED`` status. Each of the options may be protected for access only via specific Globus identities by setting values on the ``selectable_by`` list. A direct HTTP access may present a Bearer token for authorization using the same scope as used for accessing the other operations on the Action Provider. If no access token is presented, the user will be re-directed to start an OAuth Flow using Globus Auth to authenticate access to the option URL.
 
 In the second mode, in addition to monitoring the provided URL suffixes, a landing page may be hosted which will present the options to a user on a simple web page. The web page may be "skinned" with options for banner text, color scheme and icon as well as introductory text presented above the options. The options are specified in the same manner as in the first mode, but the page presents links which ease selection of those options for end-users. The landing page is also given a URL suffix, and the selection page will be present at ``https://actions.globus.org/weboption/landing_page/<url_suffix>``. Selection of an option within the landing page behaves the same as direct selection of an option via its URL as described above. Similar to individual options, the landing page can be protected by setting a ``selectable_by`` list. As the landing page is intended for use via a browser, it will always start a OAuth Flow to authenticate the user. If ``selectable_by`` is set on the landing page but not on any of the individual options, the options inherit the same ``selectable_by`` value defined on the landing page for that Action.
 
@@ -192,7 +192,7 @@ Example Input
 Authoring Flows for the Globus Flows Service
 ============================================
 
-The Globus Flows Service provides users with the ability to easily define compositions, Flows, of a numerous Actions to perform a single, logical operation. Flows may be invoked as other Actions, potentially running for a long time with an API for monitoring the progress of the flow instance during its lifetime. Definition of such Flows requires an easy to read, author, and potentially visualize method of defining the Flows. For this purpose, the Flows service starts from the core of the `Amazon States Language <https://states-language.net/spec.html>`_. In particular, the general structure of a Flow matches that of a States Language State Machine in particular matching the requirements defined for `Top-Level Fields <https://states-language.net/spec.html#toplevelfields>`_ including the properties:
+The Globus Flows Service provides users with the ability to easily define compositions of Actions (henceforth referred to as Flows) to perform a single, logical operation. Flows may be invoked as other Actions, potentially running for a long time with an API for monitoring the progress of the flow instance during its lifetime. Definition of such Flows requires an easy to read, author, and potentially visualize method of defining the Flows. For this purpose, the Flows service starts from the core of the `Amazon States Language <https://states-language.net/spec.html>`_. In particular, the general structure of a Flow matches that of a States Language State Machine in particular matching the requirements defined for `Top-Level Fields <https://states-language.net/spec.html#toplevelfields>`_ including the properties:
 
 * ``States``
 
@@ -250,7 +250,7 @@ As Actions are the core building block for most concepts in Globus Automate, Act
       "End": true
     }
 
-Each of the properties on the ``Action`` state are defined as follows. In some cases, we provide additional discussion of topics raised by specific properties in further sections below this enumeratiion.
+Each of the properties on the ``Action`` state are defined as follows. In some cases, we provide additional discussion of topics raised by specific properties in further sections below this enumeration.
 
 *  ``Type`` (required): As with other States defined by the States Language, the ``Type`` indicates the type of this state. The value ``Action`` indicates that this state represents an Action invocation.
 
@@ -326,7 +326,7 @@ Action Execution Monitoring
 
 ``Action`` states will block waiting until the executed action reaches a completion state with status value either ``SUCCEEDED`` or ``FAILED`` or when the ``WaitTime`` duration is reached. Within this time interval, the Flow will periodically poll the Action to determine if it has reached a completion state. The interval between polls increases using an exponential back-off strategy (i.e. the amount of time between two polls is a multiple of the interval between the previous two polls). Thus, detection of the completion will not be instantaneous compared to when the action "actually" completes. And, the longer the wait time, the longer the interval between "actual" completion and the poll detecting completion may be. This "slop" time is related to both the total run time for the Action and the exponential back-off factor increasing the time between polls. Presently, the factor is 1.1, though this is subject to change as the system is tuned. As a result, the maximum slop time is 10% of the total time the action takes to execute. Thus, for example, an action which takes 30 hours to run might not be observed as complete until 33 hours after it starts in the absolute worst case.
 
-When using the Flows service, it is important to remember that this slop time can occur. One may observer or receive other notification (such as an email for a Globus Transfer) that an Action has completed but the Flows service may not poll to discover the same state has been reached. This is an inherent property of the system. and while the maximum slop time may, as stated, be tuned, there is presently no way to avoid it entirely.
+When using the Flows service, it is important to remember that this slop time can occur. One may observe or receive other notification (such as an email for a Globus Transfer) that an Action has completed but the Flows service may not poll to discover the same state has been reached. This is an inherent property of the system. and while the maximum slop time may, as stated, be tuned, there is presently no way to avoid it entirely.
 
 Expressions in Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -359,3 +359,36 @@ Failures of Action states in the Flow are exposed via Exceptions which, as descr
 *  ``ActionFailedException``: This indicates that the Action was able to be initiated but during execution the Action was considered to have failed. This exception will only be raised if the property ``ExceptionOnActionFailure`` is set to true. This allows the Action failure to be handled by checking the result or by causing an exception. Either approach is valid and different users and different use cases may lend themselves to either approach. In either case, the output will contain the same Action status structure a completed action will contain, but the ``status`` value will necessarily be ``FAILED``.
 
 *  Action timed out: When the running time of the Action exceeds the ``WaitTime`` value a generic exception signaling the timeout is raised. As the exception does not have a specific name, it can be caught using the value ``States.ALL`` (as defined in the States Language definition) in the ``ErrorEquals`` list for the Catch. Indeed, the ``States.ALL`` value indicates any exception condition, so if handling all of the above exception conditions in the same manner is desired, then simply one handler with the ``States.ALL`` value can be used.
+
+
+Pre-Populated Run-time State
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When a Flow begins execution, basic information about the flow's state and the user invoking the Flow is pre-populated into the Flow run-time state. This allows the Flow to use these values as necessary for passing into Actions as parameters or simply to help when introspecting Flow executions to keep track of the environment when the Flow was run. The reference path to the structure containing the information is ``_context`` and the contents
+are as follows:
+
++---------------+-------------------------------------------------------------------------------------+
+| Property name | Description                                                                         |
++===============+=====================================================================================+
+| flow_id       | The id of the Flow that is executing                                                |
++---------------+-------------------------------------------------------------------------------------+
+| action_id     | The id assigned to this execution of the Flow                                       |
++---------------+-------------------------------------------------------------------------------------+
+| username      | The Globus Auth username for the user invoking the Flow                             |
++---------------+-------------------------------------------------------------------------------------+
+| email         | The email address for the user invoking the Flow                                    |
++---------------+-------------------------------------------------------------------------------------+
+| user_id       | The Globus Auth user id for the user invoking the Flow (in URN format)              |
++---------------+-------------------------------------------------------------------------------------+
+| identities    | A list of all identities associated with the user invoking the Flow (in URN format) |
++---------------+-------------------------------------------------------------------------------------+
+| token_info    | A child object containing the fields exp, iat, and nbf (described below)            |
++---------------+-------------------------------------------------------------------------------------+
+
+The ``token_info`` fields are defined as follow:
+
+*  ``exp``: Timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token will expire.
+
+*  ``iat``: Timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token was originally issued.
+
+*  ``nbf``: Timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token is not to be used before.
