@@ -35,7 +35,7 @@ develop: poetry.lock
 	$(POETRY) install
 
 requirements.txt: poetry.lock
-	$(POETRY) run pip freeze > $@
+	 $(POETRY export -f requirements.txt -o $@
 
 # linting is flake8
 lint: develop
