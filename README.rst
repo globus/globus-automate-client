@@ -370,9 +370,9 @@ are as follows:
 +---------------+-------------------------------------------------------------------------------------+
 | Property name | Description                                                                         |
 +===============+=====================================================================================+
-| flow_id       | The id of the Flow that is executing                                                |
+| flow_id       | The id of the deployed Flow that is executing                                       |
 +---------------+-------------------------------------------------------------------------------------+
-| action_id     | The id assigned to this execution of the Flow                                       |
+| action_id     | The unique id assigned to **this execution** of the Flow                            |
 +---------------+-------------------------------------------------------------------------------------+
 | username      | The Globus Auth username for the user invoking the Flow                             |
 +---------------+-------------------------------------------------------------------------------------+
