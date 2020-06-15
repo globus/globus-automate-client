@@ -11,7 +11,7 @@ from globus_sdk.base import BaseClient
 
 from .token_management import get_access_token_for_scope, get_access_tokens_for_scopes
 
-_prod_flows_base_url = "https://flows.automate.globus.org"
+PROD_FLOWS_BASE_URL = "https://flows.automate.globus.org"
 
 MANAGE_FLOWS_SCOPE = (
     "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
@@ -153,7 +153,7 @@ class FlowsClient(BaseClient):
 
 
 def create_flows_client(
-    client_id: str, base_url: str = "https://flows.automate.globus.org"
+    client_id: str, base_url: str = PROD_FLOWS_BASE_URL
 ) -> FlowsClient:
     access_tokens = get_access_tokens_for_scopes(ALL_FLOW_SCOPES, client_id)
     temp_access_token = access_tokens.get(MANAGE_FLOWS_SCOPE)

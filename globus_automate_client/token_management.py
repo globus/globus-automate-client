@@ -1,9 +1,9 @@
-from time import time
-from globus_sdk import NativeAppAuthClient
 import json
 from os import path
+from time import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from globus_sdk import NativeAppAuthClient
 
 # python2/3 safe simple input reading
 get_input = getattr(__builtins__, "raw_input", input)
@@ -33,7 +33,7 @@ def _load_cache() -> Dict[Any, Any]:
 
 
 def get_cached_tokens(
-    scopes: List[str]
+    scopes: List[str],
 ) -> Dict[str, Tuple[Optional[str], Optional[str]]]:
     token_cache = _load_cache()
     access_token = None
