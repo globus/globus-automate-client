@@ -8,6 +8,7 @@ from typing import Optional
 
 from globus_sdk import GlobusHTTPResponse
 from globus_sdk.exc import GlobusAPIError
+
 from graphviz import Digraph
 
 from .action_client import ActionClient, create_action_client
@@ -17,11 +18,19 @@ from .helpers import argument, subcommand
 from .queues_client import create_queues_client
 from .token_management import get_access_token_for_scope
 
-_flows_base_url = os.environ.get("FLOWS_ENDPOINT_URL", PROD_FLOWS_BASE_URL)
+_FLOWS_ENDPOINT_URL_ENV_VAR = "FLOWS_ENDPOINT_URL"
+
+_flows_base_url = os.environ.get(_FLOWS_ENDPOINT_URL_ENV_VAR, PROD_FLOWS_BASE_URL)
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
-cli = ArgumentParser(add_help=True)
+cli = ArgumentParser(
+    add_help=True,
+    epilog=(
+        f"Setting environment variable {_FLOWS_ENDPOINT_URL_ENV_VAR} changes how "
+        f"the Flows service is invoked. Default is {PROD_FLOWS_BASE_URL}."
+    ),
+)
 subparsers = cli.add_subparsers(dest="subcommand")
 action_scoped_args = [
     argument("--action-scope", help="The Globus Auth scope associated with the Action"),
