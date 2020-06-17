@@ -1,24 +1,36 @@
 import json
+import os
 import sys
 import tempfile
 import uuid
 from argparse import ArgumentParser
 from typing import Optional
 
-from globus_sdk import AccessTokenAuthorizer, GlobusHTTPResponse
+from globus_sdk import GlobusHTTPResponse
 from globus_sdk.exc import GlobusAPIError
+
 from graphviz import Digraph
 
 from .action_client import ActionClient, create_action_client
-from .flows_client import create_flows_client
-from .queues_client import create_queues_client
+from .flows_client import PROD_FLOWS_BASE_URL, create_flows_client
 from .graphviz_rendering import graphviz_format, state_colors_for_log
-from .helpers import argument, clear_internal_args, json_parse_args, subcommand
+from .helpers import argument, subcommand
+from .queues_client import create_queues_client
 from .token_management import get_access_token_for_scope
+
+_FLOWS_ENDPOINT_URL_ENV_VAR = "FLOWS_ENDPOINT_URL"
+
+_flows_base_url = os.environ.get(_FLOWS_ENDPOINT_URL_ENV_VAR, PROD_FLOWS_BASE_URL)
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 
-cli = ArgumentParser(add_help=True)
+cli = ArgumentParser(
+    add_help=True,
+    epilog=(
+        f"Setting environment variable {_FLOWS_ENDPOINT_URL_ENV_VAR} changes how "
+        f"the Flows service is invoked. Default is {PROD_FLOWS_BASE_URL}."
+    ),
+)
 subparsers = cli.add_subparsers(dest="subcommand")
 action_scoped_args = [
     argument("--action-scope", help="The Globus Auth scope associated with the Action"),
@@ -204,7 +216,7 @@ def action_release(args):
     ),
 )
 def flow_deploy(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_defn = read_arg_content_from_file(vars(args)["definition"][0])
     flow_dict = json.loads(flow_defn)
     return fc.deploy_flow(
@@ -263,7 +275,7 @@ def flow_lint(args):
     help=("List Flows you have deployed or for which you have access."),
 )
 def flows_list(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flows = fc.list_flows(roles=args.roles)
     return flows
 
@@ -297,7 +309,7 @@ def flows_list(args):
     help=("List flows you have deployed or for which you have access."),
 )
 def flow_actions_list(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_id = vars(args)["flow-id"][0]
     flow_scope = args.flow_scope
     action_list = fc.list_flow_actions(
@@ -317,7 +329,7 @@ def flow_actions_list(args):
     ),
 )
 def flow_display(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_id = vars(args)["flow-id"][0]
     flow_get = fc.get_flow(flow_id)
     if args.format == "json":
@@ -342,7 +354,7 @@ def flow_display(args):
     ),
 )
 def flow_delete(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_id = vars(args)["flow-id"][0]
     flow_scope = args.flow_scope
     flow_del = fc.delete_flow(flow_id, flow_scope)
@@ -368,7 +380,7 @@ def flow_delete(args):
     ),
 )
 def flow_run(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_input = read_arg_content_from_file(vars(args)["flow-input"][0])
     flow_input_dict = json.loads(flow_input)
     flow_id = args.flow_id
@@ -385,7 +397,7 @@ def flow_run(args):
     ),
 )
 def flow_action_status(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_id = args.flow_id
     flow_scope = args.flow_scope
     action_id = vars(args)["action-id"][0]
@@ -420,7 +432,7 @@ def flow_action_status(args):
     help=("Get a log of the most recent steps executed by a Flow action."),
 )
 def flow_action_log(args):
-    fc = create_flows_client(CLIENT_ID)
+    fc = create_flows_client(CLIENT_ID, _flows_base_url)
     flow_id = args.flow_id
     flow_scope = args.flow_scope
     reverse_order = args.reverse_order
