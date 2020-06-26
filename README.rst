@@ -37,7 +37,7 @@ HelloWorld
 
 URL: `<https://actions.globus.org/hello_world>`_
 
-Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/hello_world``
+Scope: ``https://auth.globus.org/scopes/actions.globus.org/hello_world``
 
 Synchronous / Asynchronous: Either
 
@@ -50,7 +50,7 @@ Globus Transfer / transfer data
 
 URL: `<https://actions.globus.org/transfer/transfer>`_
 
-Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer/transfer``
+Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
 Synchronous / Asynchronous: Either
 
@@ -61,7 +61,7 @@ Globus Transfer / delete data
 
 URL: `<https://actions.globus.org/transfer/delete>`_
 
-Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer/delete``
+Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/delete``
 
 Synchronous / Asynchronous: Asynchronous
 
@@ -72,7 +72,7 @@ Globus Transfer / set permission
 
 URL: `<https://actions.globus.org/transfer/set_permission>`_
 
-Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer/set_permission``
+Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permission``
 
 Synchronous / Asynchronous: Synchronous
 
@@ -94,7 +94,7 @@ Globus Search / Ingest
 
 URL: `<https://actions.globus.org/search/ingest>`_
 
-Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/search/ingest``
+Scope: ``https://auth.globus.org/scopes/actions.globus.org/search/ingest``
 
 Synchronous / Asynchronous: Asynchronous
 
@@ -364,8 +364,7 @@ Failures of Action states in the Flow are exposed via Exceptions which, as descr
 Pre-Populated Run-time State
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When a Flow begins execution, basic information about the flow's state and the user invoking the Flow is pre-populated into the Flow run-time state. This allows the Flow to use these values as necessary for passing into Actions as parameters or simply to help when introspecting Flow executions to keep track of the environment when the Flow was run. The reference path to the structure containing the information is ``_context`` and the contents
-are as follows:
+Basic information about the flow's state and the user invoking the Flow is provided through a "virtual", read-only property available at the JSONPath ``$._context``. This path may be used in a path for a ``Parameters`` value on an Action or Pass state type, or in expressions which are evaluated when generating ``Parameters`` values as described above. This allows the Flow to use these values as necessary for passing into Actions as parameters. As this is a read-only value, the ``_context`` cannot be overwritten by using the path in a ``ResultPath`` on any state. The ``_context`` value is itself an object containing the following properties:
 
 +---------------+-------------------------------------------------------------------------------------+
 | Property name | Description                                                                         |
