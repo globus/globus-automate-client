@@ -1,4 +1,3 @@
-import uuid
 from typing import Any, Dict, List, Mapping, Optional
 
 from globus_sdk import (
@@ -11,7 +10,7 @@ from globus_sdk.base import BaseClient
 
 from .token_management import get_access_token_for_scope, get_access_tokens_for_scopes
 
-PROD_FLOWS_BASE_URL = "https://flows.automate.globus.org"
+PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
 MANAGE_FLOWS_SCOPE = (
     "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
