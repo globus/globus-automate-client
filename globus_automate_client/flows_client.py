@@ -145,9 +145,7 @@ class FlowsClient(BaseClient):
             f"/flows/{flow_id}/{flow_action_id}/log", params=params, **kwargs
         )
 
-    def delete_flow(self, flow_id: str, flow_scope: Optional[str], **kwargs):
-        if flow_scope is None:
-            flow_scope = self._scope_for_flow(flow_id)
+    def delete_flow(self, flow_id: str, **kwargs):
         return self.delete(f"/flows/{flow_id}", **kwargs)
 
 

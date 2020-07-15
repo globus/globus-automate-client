@@ -43,7 +43,10 @@ def get_action_client_for_args(
     return None
 
 
-def format_and_echo(result: Union[GlobusHTTPResponse, str]) -> None:
+def format_and_echo(result: Union[GlobusHTTPResponse, str], verbose=False) -> None:
+    if verbose and isinstance(result, GlobusHTTPResponse):
+        display_http_details(result)
+
     if isinstance(result, GlobusHTTPResponse):
         if 200 <= result.http_status < 300:
             color = typer.colors.GREEN

@@ -4,12 +4,7 @@ import uuid
 import typer
 
 from .callbacks import json_validator_callback, url_validator_callback
-from .helpers import (
-    display_http_details,
-    format_and_echo,
-    get_action_client_for_args,
-    verbosity_option,
-)
+from .helpers import format_and_echo, get_action_client_for_args, verbosity_option
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
 
@@ -35,9 +30,7 @@ def action_introspect(
     ac = get_action_client_for_args(action_url, action_scope)
     if ac is not None:
         result = ac.introspect()
-        if verbose:
-            display_http_details(result)
-        format_and_echo(result)
+        format_and_echo(result, verbose=verbose)
     return None
 
 
@@ -65,6 +58,9 @@ def action_run(
         prompt=True,
         callback=json_validator_callback,
     ),
+    request_id: str = typer.Option(
+        None, help=("An identifier to associate with this Action invocation request"),
+    ),
     verbose: bool = verbosity_option,
 ):
     """
@@ -74,12 +70,9 @@ def action_run(
     if ac is None:
         typer.echo("Failed to get credentials. Was the scope provided?")
     else:
-        req_id = str(uuid.uuid4())
         body = json.loads(body)
-        result = ac.run(body, req_id)
-        if verbose:
-            display_http_details(result)
-        format_and_echo(result)
+        result = ac.run(body, request_id)
+        format_and_echo(result, verbose=verbose)
     return None
 
 
@@ -107,9 +100,7 @@ def action_status(
         typer.echo("Failed to get credentials. Was the scope provided?")
     else:
         result = ac.status(action_id)
-        if verbose:
-            display_http_details(result)
-        format_and_echo(result)
+        format_and_echo(result, verbose=verbose)
     return None
 
 
@@ -137,9 +128,7 @@ def action_cancel(
         typer.echo("Failed to get credentials. Was the scope provided?")
     else:
         result = ac.cancel(action_id)
-        if verbose:
-            display_http_details(result)
-        format_and_echo(result)
+        format_and_echo(result, verbose=verbose)
     return None
 
 
@@ -167,9 +156,7 @@ def action_release(
         typer.echo("Failed to get credentials. Was the scope provided?")
     else:
         result = ac.release(action_id)
-        if verbose:
-            display_http_details(result)
-        format_and_echo(result)
+        format_and_echo(result, verbose=verbose)
     return None
 
 

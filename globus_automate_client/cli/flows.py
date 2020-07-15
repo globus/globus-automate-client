@@ -3,6 +3,7 @@ from enum import Enum
 from typing import List
 
 import typer
+from globus_sdk import GlobusHTTPResponse
 
 from globus_automate_client.flows_client import PROD_FLOWS_BASE_URL, create_flows_client
 from globus_automate_client.graphviz_rendering import (
@@ -116,9 +117,7 @@ def flow_deploy(
         runnable_by,
         administered_by,
     )
-    if verbose:
-        display_http_details(result)
-    format_and_echo(result)
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("lint")
@@ -174,9 +173,7 @@ def flow_list(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flows = fc.list_flows(roles=[r.value for r in roles])
-    if verbose:
-        display_http_details(flows)
-    format_and_echo(flows)
+    format_and_echo(flows, verbose=verbose)
 
 
 @app.command("display")
@@ -201,27 +198,12 @@ def flow_display(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_get = fc.get_flow(flow_id)
-    if verbose:
-        display_http_details(flow_get)
-
-    if output_format == FlowDisplayFormat.json:
-        format_and_echo(flow_get)
-    elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
-        graphviz_out = graphviz_format(flow_get.data["definition"])
-        if output_format == FlowDisplayFormat.graphviz:
-            typer.echo(graphviz_out.source)
-        else:
-            graphviz_out.render(f"flows-output/graph", view=True, cleanup=True)
+    _format_and_display_flow(flow_get, output_format, verbose=verbose)
 
 
 @app.command("delete")
 def flow_delete(
     flow_id: str = typer.Argument(...),
-    flow_scope: str = typer.Option(
-        None,
-        help="The scope this Flow uses to authenticate requests.",
-        callback=url_validator_callback,
-    ),
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
         "--format",
@@ -240,19 +222,8 @@ def flow_delete(
     or be in the Flow's "administered_by" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_del = fc.delete_flow(flow_id, flow_scope)
-
-    if verbose:
-        display_http_details(flow_del)
-
-    if output_format == FlowDisplayFormat.json:
-        format_and_echo(flow_del)
-    elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
-        graphviz_out = graphviz_format(flow_del.data["definition"])
-        if output_format == FlowDisplayFormat.graphviz:
-            typer.echo(graphviz_out.source)
-        else:
-            graphviz_out.render(f"flows-output/graph", view=True, cleanup=True)
+    flow_del = fc.delete_flow(flow_id)
+    _format_and_display_flow(flow_del, output_format, verbose=verbose)
 
 
 @app.command("run")
@@ -283,9 +254,7 @@ def flow_run(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = json.loads(flow_input)
     response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
-    if verbose:
-        display_http_details(response)
-    format_and_echo(response)
+    format_and_echo(response, verbose=verbose)
 
 
 @app.command("action-list")
@@ -328,9 +297,7 @@ def flow_actions_list(
     action_list = fc.list_flow_actions(
         flow_id, flow_scope, statuses=statuses_str, roles=roles_str
     )
-    if verbose:
-        display_http_details(action_list)
-    format_and_echo(action_list)
+    format_and_echo(action_list, verbose=verbose)
 
 
 @app.command("action-status")
@@ -354,9 +321,7 @@ def flow_action_status(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     response = fc.flow_action_status(flow_id, flow_scope, action_id)
-    if verbose:
-        display_http_details(response)
-    format_and_echo(response)
+    format_and_echo(response, verbose=verbose)
 
 
 @app.command("action-log")
@@ -409,6 +374,25 @@ def flow_action_log(
         colors = state_colors_for_log(resp.data["entries"])
         graphviz_out = graphviz_format(flow_def, colors)
 
+        if output_format == FlowDisplayFormat.graphviz:
+            typer.echo(graphviz_out.source)
+        else:
+            graphviz_out.render(f"flows-output/graph", view=True, cleanup=True)
+
+
+def _format_and_display_flow(
+    flow_resp: GlobusHTTPResponse, output_format: FlowDisplayFormat, verbose=False
+):
+    """
+    Diplays a flow as either JSON, graphviz, or an image
+    """
+    if verbose:
+        display_http_details(flow_resp)
+
+    if output_format == FlowDisplayFormat.json:
+        format_and_echo(flow_resp)
+    elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
+        graphviz_out = graphviz_format(flow_resp.data["definition"])
         if output_format == FlowDisplayFormat.graphviz:
             typer.echo(graphviz_out.source)
         else:

@@ -8,7 +8,7 @@ from uuid import UUID
 import typer
 
 
-def url_validator_callback(url: str):
+def url_validator_callback(url: str) -> str:
     """
     Validates that a user provided string "looks" like a URL aka contains at
     least a valid scheme and netloc [www.example.org].
@@ -20,15 +20,14 @@ def url_validator_callback(url: str):
     url = url.strip()
     try:
         result = urlparse(url)
+        if result.scheme and result.netloc:
+            return url
     except:
-        raise typer.BadParameter("Please supply a valid url")
-    else:
-        if not all([result.scheme, result.netloc]):
-            raise typer.BadParameter("Please supply a valid url")
-        return url
+        pass
+    raise typer.BadParameter("Please supply a valid url")
 
 
-def json_validator_callback(body: str):
+def json_validator_callback(body: str) -> str:
     """
     A user supplied body can be a properly formatted JSON string or a the name
     of a file that contains valid JSON.  This validator ensures the user
@@ -50,6 +49,8 @@ def json_validator_callback(body: str):
                 raise typer.BadParameter(f"Invalid JSON: {e}")
             else:
                 body = json.dumps(json_body)
+    elif body_path.exists() and body_path.is_dir():
+        raise typer.BadParameter(f"Expected file, received directory")
     else:
         try:
             json.loads(body)
@@ -58,7 +59,7 @@ def json_validator_callback(body: str):
     return body
 
 
-def text_validator_callback(message: str):
+def text_validator_callback(message: str) -> str:
     """
     A user may supply a message directly on the command line or by referencing a
     file whose contents should be interpreted as the message. This validator
@@ -79,7 +80,7 @@ def text_validator_callback(message: str):
     return message
 
 
-def principal_validator_callback(principals: List[str]):
+def principal_validator_callback(principals: List[str]) -> List[str]:
     """
     A principal ID needs to be a valid UUID. This validator ensures the
     principal IDs are valid UUIDs.
@@ -88,24 +89,19 @@ def principal_validator_callback(principals: List[str]):
     auth_beginning = "urn:globus:auth:identity:"
 
     for p in principals:
-        if p.startswith(groups_beginning):
-            uuid = p[len(groups_beginning) :]
-            try:
-                UUID(uuid, version=4)
-            except ValueError as e:
-                raise typer.BadParameter(
-                    f"Principal could not be parsed as a valid identifier: {p}"
-                )
-
-        elif p.startswith(auth_beginning):
-            uuid = p[len(auth_beginning) :]
-            try:
-                UUID(uuid, version=4)
-            except ValueError:
-                raise typer.BadParameter(
-                    f"Principal could not be parsed as a valid identifier: {p}"
-                )
-        else:
+        valid_beggining = False
+        for beggining in [groups_beginning, auth_beginning]:
+            if p.startswith(beggining):
+                uuid = p[len(beggining) :]
+                try:
+                    UUID(uuid, version=4)
+                except ValueError:
+                    raise typer.BadParameter(
+                        f"Principal could not be parsed as a valid identifier: {p}"
+                    )
+                else:
+                    valid_beggining = True
+        if not valid_beggining:
             raise typer.BadParameter(
                 f"Principal could not be parsed as a valid identifier: {p}"
             )
@@ -113,7 +109,7 @@ def principal_validator_callback(principals: List[str]):
     return principals
 
 
-def flows_endpoint_envvar_callback(default_value) -> str:
+def flows_endpoint_envvar_callback(default_value: str) -> str:
     """
     This callback searches the caller's environment for an environment variable
     defining the target Flow endpoint.

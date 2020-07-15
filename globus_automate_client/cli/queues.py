@@ -6,7 +6,7 @@ import typer
 from globus_automate_client.queues_client import create_queues_client
 
 from .callbacks import principal_validator_callback, text_validator_callback
-from .helpers import CLIENT_ID, display_http_details, format_and_echo, verbosity_option
+from .helpers import CLIENT_ID, format_and_echo, verbosity_option
 
 
 class QueueRole(str, Enum):
@@ -35,9 +35,7 @@ def queue_list(
     """
     qc = create_queues_client(CLIENT_ID)
     queues = qc.list_queues(roles=[r.value for r in roles])
-    if verbose:
-        display_http_details(queues)
-    format_and_echo(queues)
+    format_and_echo(queues, verbose=verbose)
 
 
 @app.command("create")
@@ -68,9 +66,7 @@ def queue_create(
     """
     qc = create_queues_client(CLIENT_ID)
     queues = qc.create_queue(label, admins, senders, receivers)
-    if verbose:
-        display_http_details(queues)
-    format_and_echo(queues)
+    format_and_echo(queues, verbose=verbose)
 
 
 @app.command("update")
@@ -104,9 +100,7 @@ def queue_update(
     """
     qc = create_queues_client(CLIENT_ID)
     queues = qc.update_queue(queue_id, label, admins, senders, receivers)
-    if verbose:
-        display_http_details(queues)
-    format_and_echo(queues)
+    format_and_echo(queues, verbose=verbose)
 
 
 @app.command("display")
@@ -118,9 +112,7 @@ def queue_display(
     """
     qc = create_queues_client(CLIENT_ID)
     queue = qc.get_queue(queue_id)
-    if verbose:
-        display_http_details(queue)
-    format_and_echo(queue)
+    format_and_echo(queue, verbose=verbose)
 
 
 @app.command("delete")
@@ -133,9 +125,7 @@ def queue_delete(
     """
     qc = create_queues_client(CLIENT_ID)
     queue = qc.delete_queue(queue_id)
-    if verbose:
-        display_http_details(queue)
-    format_and_echo(queue)
+    format_and_echo(queue, verbose=verbose)
 
 
 @app.command("receive")
@@ -152,9 +142,7 @@ def queue_receive(
     """
     qc = create_queues_client(CLIENT_ID)
     queue = qc.receieve_messages(queue_id, max_messages=max_messages)
-    if verbose:
-        display_http_details(queue)
-    format_and_echo(queue)
+    format_and_echo(queue, verbose=verbose)
 
 
 @app.command("send")
@@ -176,6 +164,4 @@ def queue_send(
     """
     qc = create_queues_client(CLIENT_ID)
     message_send = qc.send_message(queue_id, message)
-    if verbose:
-        display_http_details(message_send)
-    format_and_echo(message_send)
+    format_and_echo(message_send, verbose=verbose)
