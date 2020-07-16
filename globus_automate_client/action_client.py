@@ -10,6 +10,8 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 
+CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
+
 
 class ActionClient(BaseClient):
     allowed_authorizer_types = (
@@ -20,6 +22,13 @@ class ActionClient(BaseClient):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+
+    @property
+    def action_scope(self) -> str:
+        if not hasattr(self, "_action_scope"):
+            resp = self.introspect()
+            self._action_scope = resp.data.get("globus_auth_scope", "")
+        return self._action_scope
 
     def introspect(self, **kwargs) -> GlobusHTTPResponse:
         headers: Dict = {}

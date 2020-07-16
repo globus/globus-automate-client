@@ -28,12 +28,13 @@ classifiers = [
 readme = "README.rst"
 
 [tool.poetry.scripts]
-globus-automate = "globus_automate_client.main:main"
+globus-automate = "globus_automate_client.cli.main:app"
 
 [tool.poetry.dependencies]
 python = "^3.6"
 globus-sdk = "^1.9"
 graphviz = "^0.12"
+typer = {extras = ["all"], version = "^0.3.0"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
@@ -44,13 +45,13 @@ pyls-mypy = "^0"
 importmagic = "^0"
 epc = "^0"
 
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
-
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
