@@ -3,6 +3,8 @@ from .flows_client import FlowsClient, create_flows_client
 from .graphviz_rendering import graphviz_format, state_colors_for_log
 from .token_management import get_access_token_for_scope, get_access_tokens_for_scopes
 
+__version__ = "0.7.0"
+
 __all__ = (
     "ActionClient",
     "create_action_client",
