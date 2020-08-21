@@ -60,7 +60,7 @@ html_theme_options = {
     "color_primary": "blue",
     "color_accent": "light-blue",
     # Set the repo location to get a badge with stats
-    "repo_url": "https://github.com/globusonline/globus-automate-client",
+    "repo_url": "https://github.com/globus/globus-automate-client",
     "repo_name": "Globus Automate Client",
     # Visible levels of the global TOC; -1 means unlimited
     "globaltoc_depth": 1,
