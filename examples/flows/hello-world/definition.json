@@ -1,0 +1,19 @@
+{
+    "Comment": "Run the Hello World Action as the Flow's identity",
+    "StartAt": "RunHelloWorld",
+    "States": {
+        "RunHelloWorld": {
+            "RunAs": "Flow",
+            "Comment": "Say Hello World",
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/hello_world",
+            "Parameters": {
+                "echo_string.$": "$.input.echo_string",
+                "sleep.$": "$.input.sleep"
+            },
+            "ResultPath": "$.HelloResult",
+            "End": true
+        }
+    }
+}

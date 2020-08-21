@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  title: Globus Flows API
+  description: 'The API for creating and managing Flows in the Globus Flows Service'
+  version: 2018-12-05.1
+  contact:
+    name: Globus Support
+    url: 'https://support.globus.org/hc/en-us/requests/new'
+    email: 'support@globus.org'
+  termsOfService: 'https://www.globus.org/legal/terms'
+
+servers:
+  - url: 'https://flows.automate.globus.org/'
+    description: production
+
+paths:
+  /:
+    post:
+      summary: 'Create a new Flow'
+      tags:
+        - /
+      security:
+        - bearer_token: ['https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows']
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowDefinition'
+      responses:
+        '201':
+          description: 'Flow created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowDeployedResponse'
+        '400':
+          description: 'Input is not a properly formed Flow definition'
+  /{flow_id}:
+    get:
+      tags:
+        - /{flow_id}
+      security:
+        - bearer_token: ['https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows']
+      summary: 'Retrieve the definition for a deployed Flow'
+      responses:
+        '200':
+          description: 'Flow definition lookup successful'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlowDeployedResponse'
+        '404':
+          description: 'Flow with provided `flow_id` is not found'
+  /{flow_id}/run:
+    post:
+      tags:
+        - /{flow_id}/run
+      security:
+        - bearer_token: ['https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/flow_{flow_scope_id}']
+      summary: 'Begin an instance of the Flow running'
+      description: 'Running a flow is the same as running an Action, so the behavior of `/{flow_id}/run` is the same as the `/run` operation in the Action API'
+  /{flow_id}/{flow_action_id}/status:
+    get:
+      tags:
+        - /{flow_id}/{flow_action_id}/status
+      security:
+        - bearer_token: ['https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/flow_{flow_scope_id}']
+      summary: 'Get the status of a running Flow'
+      description: 'Running Flows behave the same as Actions, so `/{flow_id}/{flow_action_id}/status` behaves the same as the `/status` operation in the Action API'
+
+
+security:
+  - bearer_token: []
+
+components:
+  securitySchemes:
+    bearer_token:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://auth.globus.org/v2/oauth2/token'
+          scopes:
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows: Manage Flow Creation and Properties
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/view_flows: Introspect Flow details
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/flow_{flow_scope_id}: Run and status of Flow execution
+        authorizationCode:
+          authorizationUrl: 'https://auth.globus.org/v2/oauth2/authorize'
+          tokenUrl: 'https://auth.globus.org/v2/oauth2/token'
+          refreshUrl: 'https://auth.globus.org/v2/oauth2/token'
+          scopes:
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows: Manage Flow Creation and Properties
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/view_flows: Introspect Flow details
+            https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/flow_{flow_scope_id}: Run and status of Flow execution
+
+  schemas:
+    FlowDefinition:
+      type: object
+      required: [definition]
+      properties:
+        definition:
+          description: 'A complete flow definition per Guidelines for Creating Flows'
+          type: object
+          required: ['StartAt', 'States']
+          properties:
+            Comment:
+              type: string
+              description: 'Optional comment describing the Flow'
+            StartAt:
+              type: string
+              description: 'The name of the first State to execute in the Flow'
+            States:
+              type: array
+              description: 'A list of states making up the Flow. Each state is an Object keyed by the state name referencing an Object containing the state definition'
+              items:
+                type: object
+      example:
+        definition:
+          Comment: 'A useful Flow for people to use'
+          StartAt: 'InitialState'
+          States: [ ... ]
+
+    FlowDeployedResponse:
+      type: object
+      required: [id, scope_string, definition]
+      properties:
+        id:
+          type: string
+        scope_string:
+          type: string
+          format: uri
+          description: 'The value of the Globus Auth scope which must be presented to perform operations on the flow, including the run operation to start a flow instance running'
+        definition:
+          type: object
+          schema:
+            $ref: '#/components/schemas/FlowDefinition'
+      example:
+        id: <uuid>
+        scope_string: 'https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/flow_<scope_id>'
+        definition:
+          Comment: 'A useful Flow for people to use'
+          StartAt: 'InitialState'
+          States: [ ... ]

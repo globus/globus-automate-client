@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "globus-automate-client"
+version = "0.7.0"
+description = "Experimental client for the in-development Globus Automate services"
+authors = [
+    "Mattias Lidman <ml@globus.org>",
+    "Jim Pruyne <pruyne@globus.org>",
+    "Rudyard Richter <rudyard@globus.org>",
+    "Uriel Mandujano <uriel@globus.org>"
+]
+keywords = [
+  "globus",
+  "automation",
+  "workflow",
+  "action_provider",
+  "command line"
+  ]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: Free To Use But Restricted",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+  ]
+
+readme = "README.rst"
+
+[tool.poetry.scripts]
+globus-automate = "globus_automate_client.cli.main:app"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+globus-sdk = "^1.9"
+graphviz = "^0.12"
+typer = {extras = ["all"], version = "^0.3.0"}
+fair-research-login = "^0.1.5"
+jsonschema = "^3.2.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.0"
+python-language-server = {version = "^0", extras = ["rope", "pyflakes", "pycodestyle"]}
+pyls-black = "^0"
+pyls-isort = "^0"
+pyls-mypy = "^0"
+importmagic = "^0"
+epc = "^0"
+jupyter = "^1.0.0"
+sphinx = "^3.2.1"
+rstcheck = "^3.3.1"
+sphinx_material = "^0.0.30"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+combine_as_imports = true
+line_length = 88
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

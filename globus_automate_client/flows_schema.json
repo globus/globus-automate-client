@@ -1,0 +1,792 @@
+{
+  "$id": "https://globus.org/schemas/flow_schama.json",
+  "schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "required": [
+    "StartAt",
+    "States"
+  ],
+  "properties": {
+    "Comment": {
+      "type": "string"
+    },
+    "StartAt": {
+      "type": "string"
+    },
+    "States": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "Type"
+        ],
+        "properties": {
+          "Type": {
+            "type": "string",
+            "enum": [
+              "Pass",
+              "Action",
+              "Wait",
+              "Choice",
+              "ExpressionEval"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "Type": {
+                  "const": "Pass"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/Pass"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "Type": {
+                  "const": "Action"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/Action"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "Type": {
+                  "const": "ExpressionEval"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/ExpressionEval"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "Type": {
+                  "const": "Wait"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/Wait"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "Type": {
+                  "const": "Choice"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/Choice"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "JsonPathPattern": {
+      "type": "string",
+      "pattern": "^\\$\\..*"
+    },
+    "JsonPathReferencePattern": {
+      "type": "string",
+      "pattern": "^\\$\\..*"
+    },
+    "NextOrEnd": {
+      "oneOf": [
+        {
+          "required": [
+            "Next"
+          ]
+        },
+        {
+          "required": [
+            "End"
+          ]
+        }
+      ],
+      "properties": {
+        "Next": {
+          "type": "string"
+        },
+        "End": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Parameters": {
+      "properties": {
+        "Parameters": {
+          "type": "object",
+          "patternProperties": {
+            ".*\\.\\$": {
+              "$ref": "#/definitions/JsonPathPattern"
+            }
+          }
+        }
+      }
+    },
+    "InputPath": {
+      "properties": {
+        "InputPath": {
+          "$ref": "#/definitions/JsonPathReferencePattern"
+        }
+      }
+    },
+    "ResultPath": {
+      "properties": {
+        "ResultPath": {
+          "$ref": "#/definitions/JsonPathReferencePattern"
+        }
+      }
+    },
+    "ParametersOrInputPath": {
+      "oneOf": [
+        {
+          "required": [
+            "Parameters"
+          ]
+        },
+        {
+          "required": [
+            "InputPath"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Parameters"
+        },
+        {
+          "$ref": "#/definitions/InputPath"
+        }
+      ]
+    },
+    "Pass": {
+      "allOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "Result": {
+              "type": "object"
+            },
+            "Type": {},
+            "Comment": {},
+            "Next": {},
+            "End": {},
+            "InputPath": {},
+            "Parameters": {},
+            "ResultPath": {}
+          }
+        },
+        {
+          "$ref": "#/definitions/NextOrEnd"
+        },
+        {
+          "$ref": "#/definitions/ParametersOrInputPath"
+        },
+        {
+          "$ref": "#/definitions/ResultPath"
+        }
+      ]
+    },
+    "Catch": {
+      "properties": {
+        "Catch": {
+          "type": "object",
+          "allOf": [
+            {
+              "additionalProperties": false,
+              "required": [
+                "ErrorEquals",
+                "Next"
+              ],
+              "properties": {
+                "ErrorEquals": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "Next": {
+                  "type": "string"
+                },
+                "ResultPath": {}
+              }
+            },
+            {
+              "$ref": "#/definitions/ResultPath"
+            }
+          ]
+        }
+      }
+    },
+    "Action": {
+      "allOf": [
+        {
+          "additionalProperties": false,
+          "required": [
+            "Type",
+            "ActionUrl"
+          ],
+          "properties": {
+            "ActionUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "ActionScope": {
+              "type": "string",
+              "format": "uri"
+            },
+            "RunAs": {
+              "type": "string"
+            },
+            "ExceptionOnActionFailure": {
+              "type": "boolean",
+              "default": false
+            },
+            "WaitTime": {
+              "type": "integer"
+            },
+            "Type": {},
+            "Comment": {},
+            "Next": {},
+            "End": {},
+            "InputPath": {},
+            "Parameters": {},
+            "ResultPath": {},
+            "Catch": {}
+          }
+        },
+        {
+          "$ref": "#/definitions/NextOrEnd"
+        },
+        {
+          "$ref": "#/definitions/ParametersOrInputPath"
+        },
+        {
+          "$ref": "#/definitions/ResultPath"
+        },
+        {
+          "$ref": "#/definitions/Catch"
+        }
+      ]
+    },
+    "ExpressionEval": {
+      "allOf": [
+        {
+          "additionalProperties": false,
+          "required": [
+            "Next",
+            "Parameters",
+            "ResultPath"
+          ],
+          "properties": {
+            "Type": {},
+            "Comment": {},
+            "Parameters": {},
+            "ResultPath": {},
+            "Next": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "$ref": "#/definitions/Parameters"
+        },
+        {
+          "$ref": "#/definitions/ResultPath"
+        }
+      ]
+    },
+    "Wait": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "Seconds"
+          ]
+        },
+        {
+          "required": [
+            "SecondsPath"
+          ]
+        },
+        {
+          "required": [
+            "Timestamp"
+          ]
+        },
+        {
+          "required": [
+            "TimestampPath"
+          ]
+        }
+      ],
+      "properties": {
+        "Type": {},
+        "Comment": {},
+        "Next": {
+          "type": "string"
+        },
+        "Seconds": {
+          "type": "integer",
+          "maximum": 31536000
+        },
+        "SecondsPath": {
+          "$ref": "#/definitions/JsonPathPattern"
+        },
+        "Timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampPath": {
+          "$ref": "#/definitions/JsonPathPattern"
+        }
+      }
+    },
+    "ChoiceRule": {
+      "oneOf": [
+        {
+          "required": [
+            "And"
+          ]
+        },
+        {
+          "required": [
+            "Or"
+          ]
+        },
+        {
+          "required": [
+            "Not"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringLessThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringLessThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringGreaterThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringGreaterThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringLessThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringLessThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringGreaterThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringGreaterThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "StringMatches"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericLessThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericLessThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericGreaterThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericGreaterThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericLessThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericLessThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericGreaterThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "NumericGreaterThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "BooleanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "BooleanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampLessThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampLessThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampGreaterThan"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampGreaterThanPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampLessThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampLessThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampGreaterThanEquals"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "TimestampGreaterThanEqualsPath"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsNull"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsPresent"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsNumeric"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsString"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsBoolean"
+          ]
+        },
+        {
+          "required": [
+            "Variable",
+            "IsTimestamp"
+          ]
+        }
+      ],
+      "properties": {
+        "And": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChoiceRule"
+          }
+        },
+        "Or": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChoiceRule"
+          }
+        },
+        "Not": {
+          "$ref": "#/definitions/ChoiceRule"
+        },
+        "Variable": {
+          "type": "string"
+        },
+        "StringEquals": {
+          "type": "string"
+        },
+        "StringEqualsPath": {
+          "type": "string"
+        },
+        "StringLessThan": {
+          "type": "string"
+        },
+        "StringLessThanPath": {
+          "type": "string"
+        },
+        "StringGreaterThan": {
+          "type": "string"
+        },
+        "StringGreaterThanPath": {
+          "type": "string"
+        },
+        "StringLessThanEquals": {
+          "type": "string"
+        },
+        "StringLessThanEqualsPath": {
+          "type": "string"
+        },
+        "StringGreaterThanEquals": {
+          "type": "string"
+        },
+        "StringGreaterThanEqualsPath": {
+          "type": "string"
+        },
+        "StringMatches": {
+          "type": "string"
+        },
+        "NumericEquals": {
+          "type": "number"
+        },
+        "NumericEqualsPath": {
+          "type": "string"
+        },
+        "NumericLessThan": {
+          "type": "number"
+        },
+        "NumericLessThanPath": {
+          "type": "string"
+        },
+        "NumericGreaterThan": {
+          "type": "number"
+        },
+        "NumericGreaterThanPath": {
+          "type": "string"
+        },
+        "NumericLessThanEquals": {
+          "type": "number"
+        },
+        "NumericLessThanEqualsPath": {
+          "type": "string"
+        },
+        "NumericGreaterThanEquals": {
+          "type": "number"
+        },
+        "NumericGreaterThanEqualsPath": {
+          "type": "string"
+        },
+        "BooleanEquals": {
+          "type": "boolean"
+        },
+        "BooleanEqualsPath": {
+          "type": "string"
+        },
+        "TimestampEquals": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampEqualsPath": {
+          "type": "string"
+        },
+        "TimestampLessThan": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampLessThanPath": {
+          "type": "string"
+        },
+        "TimestampGreaterThan": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampGreaterThanPath": {
+          "type": "string"
+        },
+        "TimestampLessThanEquals": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampLessThanEqualsPath": {
+          "type": "string"
+        },
+        "TimestampGreaterThanEquals": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "TimestampGreaterThanEqualsPath": {
+          "type": "string"
+        },
+        "IsNull": {
+          "type": "boolean"
+        },
+        "IsPresent": {
+          "type": "boolean"
+        },
+        "IsNumeric": {
+          "type": "boolean"
+        },
+        "IsString": {
+          "type": "boolean"
+        },
+        "IsBoolean": {
+          "type": "boolean"
+        },
+        "IsTimestamp": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Choice": {
+      "additionalProperties": false,
+      "required": [
+        "Choices"
+      ],
+      "properties": {
+        "Type": {},
+        "Comment": {},
+        "Default": {
+          "type": "string"
+        },
+        "Choices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "allOf": [
+              {
+                "properties": {
+                  "Next": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "$ref": "#/definitions/ChoiceRule"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

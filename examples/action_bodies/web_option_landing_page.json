@@ -1,0 +1,24 @@
+{
+    "landing_page": {
+        "url_suffix": "landing_page",
+        "header_background": "darkred",
+        "header_icon_link": "http://example.com",
+        "header_text": "Hey, Make a choice",
+        "page_title": "Look at my title",
+        "preamble_text": "Please make a very careful decision"
+    },
+    "options": [
+        {
+            "name": "b",
+            "description": "This is option b",
+            "url_suffix": "option_b_new",
+            "completed_message": "Thank you for selecting 'b'"
+        },
+        {
+            "name": "default",
+            "description": "This is the default option",
+            "url_suffix": "option_a_new",
+            "completed_message": "Thank you for selecting the default option"
+        }
+    ]
+}
