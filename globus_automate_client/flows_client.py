@@ -136,7 +136,7 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
-    def __init__(self, client_id, *args, **kwargs) -> None:
+    def __init__(self, client_id: str, *args, **kwargs) -> None:
         self.client_id = client_id
         super().__init__(*args, **kwargs)
 
@@ -159,36 +159,37 @@ class FlowsClient(BaseClient):
         Deploys a Flow definition to the Flows service, making the Flow
         available for execution on the Globus Automate Flows Service.
 
-        **Parameters**
-            ``flow_definition`` (*Mapping[str, Any*)
-            A mapping corresponding to a Globus Flows defintion.
+        :param flow_definition: A mapping corresponding to a Globus Flows
+            defintion.
 
-            ``title`` (*str*)
-            A simple, human readable title for the deployed Flow
+        :param title: A simple, human readable title for the deployed Flow
 
-            ``subtitle`` (*str*)
-            A longer, more verbose title for the deployed Flow
+        :param subtitle: A longer, more verbose title for the deployed Flow
 
-            ``description`` (*str*)
-            A long form explanation of the Flow's purpose or usage
+        :param description: A long form explanation of the Flow's purpose or
+            usage
 
-            ``keywords`` (*List[str]*)
-            A series of words which may help categorize or make the Flow
-            discoverable
+        :param keywords: A series of words which may help categorize or make the
+            Flow discoverable
 
-            ``visible_to`` (*List[str]*)
-            A series of Globus identities which may discover and view the Flow
-            definition
+        :param visible_to: A series of Globus identities which may discover and
+            view the Flow definition
 
-            ``runnable_by`` (*List[str]*)
-            A series of Globus identities which may run an instance of this Flow
+        :param runnable_by: A series of Globus identities which may run an
+            instance of this Flow
 
-            ``administered_by`` (*List[str]*)
-            A series of Globus identities which may update this Flow's defintion
+        :param administered_by: A series of Globus identities which may update
+            this Flow's defintion
 
-            ``input_schema`` (*Mapping[str, Any]*)
-            A mapping representing the JSONSchema used to validate input to this
-            Flow. If not supplied, no validation will be done on input to this Flow.
+        :param input_schema: A mapping representing the JSONSchema used to
+            validate input to this Flow. If not supplied, no validation will be
+            done on input to this Flow.
+
+        :param validate_definition: Set to ``True`` to validate the provided
+            ``flow_definition`` before attempting to deploy the Flow.
+
+        :param validate_input_schema: Set to ``True`` to validate the provided
+            ``input_schema`` before attempting to deploy the Flow.
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
@@ -226,39 +227,39 @@ class FlowsClient(BaseClient):
         preserve the existing Flow's values for fields which are not
         submitted as part of the update.
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID for the Flow that will be updated
+        :param flow_id: The UUID for the Flow that will be updated
 
-            ``flow_definition`` (*Mapping[str, Any*)
-            A mapping corresponding to a Globus Flows defintion
-
-            ``title`` (*str*)
-            A simple, human readable title for the deployed Flow
-
-            ``subtitle`` (*str*)
-            A longer, more verbose title for the deployed Flow
-
-            ``description`` (*str*)
-            A long form explanation of the Flow's purpose or usage
-
-            ``keywords`` (*List[str]*)
-            A series of words which may help categorize or make the Flow
-            discoverable
-
-            ``visible_to`` (*List[str]*)
-            A series of Globus identities which may discover and view the Flow
+        :param flow_definition: A mapping corresponding to a Globus Flows
             definition
 
-            ``runnable_by`` (*List[str]*)
-            A series of Globus identities which may run an instance of this Flow
+        :param title: A simple, human readable title for the deployed Flow
 
-            ``administered_by`` (*List[str]*)
-            A series of Globus identities which may update this Flow's defintion
+        :param subtitle: A longer, more verbose title for the deployed Flow
 
-            ``input_schema`` (*Mapping[str, Any]*)
-            A mapping representing the JSONSchema used to validate input to this
-            Flow. If not supplied, no validation will be done on input to this Flow.
+        :param description: A long form explanation of the Flow's purpose or
+            usage
+
+        :param keywords: A series of words which may help categorize or make the
+            Flow discoverable
+
+        :param visible_to: A series of Globus identities which may discover and
+            view the Flow definition
+
+        :param runnable_by: A series of Globus identities which may run an
+            instance of this Flow
+
+        :param administered_by: A series of Globus identities which may update
+            this Flow's defintion
+
+        :param input_schema: A mapping representing the JSONSchema used to
+            validate input to this Flow. If not supplied, no validation will be
+            done on input to this Flow.
+
+        :param validate_definition: Set to ``True`` to validate the provided
+            ``flow_definition`` before attempting to update the Flow.
+
+        :param validate_input_schema: Set to ``True`` to validate the provided
+            ``input_schema`` before attempting to update the Flow.
         """
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
@@ -282,9 +283,8 @@ class FlowsClient(BaseClient):
         """
         Retrieve a deployed Flow's definition and metadata
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow for which to retrieve details
+        :param flow_id: The UUID identifying the Flow for which to retrieve
+            details
         """
 
         self.authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, self.client_id)
@@ -297,15 +297,14 @@ class FlowsClient(BaseClient):
         """
         Display all deployed Flows for which you have the selected role(s)
 
-        **Parameters**
-            ``roles`` (*List[str]*)
-            A list of roles specifying the level of access you have for a Flow.
-            Valid values are:
+        :param roles:
+            A list of roles specifying the level of access you have
+            for a Flow. Valid values are:
 
-                - created_by
-                - visible_to
-                - runnable_by
-                - administered_by
+            - created_by
+            - visible_to
+            - runnable_by
+            - administered_by
 
             Each value in the ``roles`` list is Or-ed to retrieve a listing of Flows
             where the retrieving identity has at least one of the listed roles on
@@ -340,17 +339,14 @@ class FlowsClient(BaseClient):
         """
         Run an instance of a deployed Flow with the given input.
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow to run
+        :param flow_id: The UUID identifying the Flow to run
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope:  The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``flow_input`` (*Mapping*)
-            A Flow-specific dictionary specifying the input required for the Flow to run.
+        :param flow_input: A Flow-specific dictionary specifying the input
+            required for the Flow to run.
         """
         ac = self._action_client_for_flow(flow_id, flow_scope)
         return ac.run(flow_input, **kwargs)
@@ -361,17 +357,14 @@ class FlowsClient(BaseClient):
         """
         Determine the status for an Action that was launched by a Flow
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow which triggered the Action
+        :param flow_id: The UUID identifying the Flow which triggered the Action
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``flow_action_id`` (*str*)
-            The ID specifying the Action for which's status we want to query
+        :param flow_action_id: The ID specifying the Action for which's status
+            we want to query
         """
         ac = self._action_client_for_flow(flow_id, flow_scope)
         return ac.status(flow_action_id)
@@ -382,17 +375,13 @@ class FlowsClient(BaseClient):
         """
         Remove the execution history for an Action that was launched by a Flow
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow which launched the Action
+        :param flow_id: The UUID identifying the Flow which launched the Action
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``flow_action_id`` (*str*)
-            The ID specifying the Action to release
+        :param flow_action_id: The ID specifying the Action to release
         """
         ac = self._action_client_for_flow(flow_id, flow_scope)
         return ac.release(flow_action_id)
@@ -403,17 +392,13 @@ class FlowsClient(BaseClient):
         """
         Cancel the excution of an Action that was launched by a Flow
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow which launched the Action
+        :param flow_id: The UUID identifying the Flow which launched the Action
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``flow_action_id`` (*str*)
-            The ID specifying the Action we want to cancel
+        :param flow_action_id: The ID specifying the Action we want to cancel
         """
 
         ac = self._action_client_for_flow(flow_id, flow_scope)
@@ -430,35 +415,29 @@ class FlowsClient(BaseClient):
         """
         List all Actions that were launched as part of a Flow's run
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow which launched the Action
+        :param flow_id: The UUID identifying the Flow which launched the Action
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``statuses`` (*List[str]*)
-            A list of statuses used to filter the Actions that are returned by the
-            listing. Returned Actions are guaranteed to have one of the specified
-            ``statuses``. Valid values are:
+        :param statuses: A list of statuses used to filter the Actions that are
+            returned by the listing. Returned Actions are guaranteed to have one
+            of the specified ``statuses``. Valid values are:
 
-                - SUCCEEDED
-                - FAILED
-                - ACTIVE
-                - INACTIVE
+            - SUCCEEDED
+            - FAILED
+            - ACTIVE
+            - INACTIVE
 
-            ``roles`` (*List[str]*)
-            A list of roles used to filter the Actions that are returned by the listing.
-            Returned Actions are guaranteed to have the callers identity in the specified
-            role. Valid values are:
+        :param roles: A list of roles used to filter the Actions that are
+            returned by the listing. Returned Actions are guaranteed to have the
+            callers identity in the specified role. Valid values are:
 
-                - created_by
-                - visible_to
-                - runnable_by
-                - administered_by
-
+            - created_by
+            - visible_to
+            - runnable_by
+            - administered_by
         """
         if flow_scope is None:
             flow_scope = self._scope_for_flow(flow_id)
@@ -483,25 +462,20 @@ class FlowsClient(BaseClient):
         Retrieve an Action's execution log history for an Action that was launched by a
         specific Flow.
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow which launched the Action
+        :param flow_id:  The UUID identifying the Flow which launched the Action
 
-            ``flow_scope`` (*str*)
-            The scope associated with the Flow ``flow_id``. If not provided, the SDK
-            will attempt to perform an introspection on the Flow to pull its scope
-            automatically
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to pull its scope automatically
 
-            ``flow_action_id`` (*str*)
-            The ID specifying the Action for which's history to query
+        :param flow_action_id: The ID specifying the Action for which's history
+            to query
 
-            ``limit`` (*int*)
-            An integer specifying the maximum number of records for the Action's
-            execution history to return.
+        :param limit: An integer specifying the maximum number of records for
+            the Action's execution history to return.
 
-            ``reverse_order`` (*bool*)
-            An indicator for whether to retrieve the records in reverse-chronological
-            order.
+        :param reverse_order: An indicator for whether to retrieve the records
+            in reverse-chronological order.
         """
         if flow_scope is None:
             flow_scope = self._scope_for_flow(flow_id)
@@ -515,9 +489,7 @@ class FlowsClient(BaseClient):
         """
         Remove a Flow defintion and its metadata from the Flows service
 
-        **Parameters**
-            ``flow_id`` (*str*)
-            The UUID identifying the Flow to cancel
+        :param flow_id: The UUID identifying the Flow to delete
         """
         return self.delete(f"/flows/{flow_id}", **kwargs)
 
@@ -537,6 +509,11 @@ def create_flows_client(
     cannot be loaded, an interactive login Flow will be triggered. Once tokens
     have been loaded, an Authorizer is created and used to instantiate the
     ``FlowsClient``.
+
+    :param client_id: The Globus ID to associate with this instance of the
+        FlowsClient
+    :param base_url: The URL at which the Globus Automate Flows service is
+        located
     """
     authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, client_id)
     return FlowsClient(
