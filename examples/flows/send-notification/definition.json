@@ -1,0 +1,33 @@
+{
+    "Comment": "Use the Notification Action to send an Email",
+    "StartAt": "EmailNotificationAction",
+    "States": {
+        "EmailNotificationAction": {
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/notification/notify",
+            "ActionScope": "https://auth.globus.org/scopes/helloworld.actions.automate.globus.org/notification_notify",
+            "Parameters": {
+                "notification_method": "email",
+                "sender": "globus.automate.notifications@gmail.com",
+                "destination.$": "$.EmailNotificationInput.destination",
+                "subject.$": "$.EmailNotificationInput.subject",
+                "body_template.$": "$.EmailNotificationInput.body_template",
+                "body_variables.$": "$.EmailNotificationInput.body_variables",
+                "body_mimetype": "text/html",
+                "send_credentials": [
+                    {
+                        "credential_type": "smtp",
+                        "credential_method": "email",
+                        "credential_value": {
+                            "hostname": "smtp.gmail.com",
+                            "username": "globus.automate.notifications@gmail.com",
+                            "password": "password"
+                        }
+                    }
+                ]
+            },
+            "ResultPath": "$.EmailNotificationResult",
+            "End": true
+        }
+    }
+}

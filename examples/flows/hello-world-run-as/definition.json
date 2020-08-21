@@ -1,0 +1,18 @@
+{
+    "Comment": "Run the Hello World Action with an identity",
+    "StartAt": "RunHelloWorld",
+    "States": {
+        "RunHelloWorld": {
+            "Comment": "Say Hello World",
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/hello_world",
+            "RunAs": "pruyne",
+            "Parameters": {
+                "echo_string": "Run As Pruyne"
+            },
+            "ResultPath": "$.HelloResult",
+            "End": true
+        }
+    }
+}

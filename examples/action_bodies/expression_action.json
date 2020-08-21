@@ -1,0 +1,7 @@
+{
+    "expression": "x + 5",
+    "arguments": {
+        "x": 6
+    },
+    "result_path": "$.sum_value.should_be_11"
+}

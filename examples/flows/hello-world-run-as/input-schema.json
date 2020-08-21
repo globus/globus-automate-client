@@ -1,0 +1,8 @@
+{
+    "$id": "https://automate.globus.org/flows/hello_world_flow.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schema for the self-contained Hello World flow",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+}

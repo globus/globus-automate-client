@@ -1,0 +1,18 @@
+[flake8]
+max-line-length = 88
+select = C,E,F,W,B,B950
+ignore = W503,W504,E501
+exclude =
+    .git,
+    __pycache__,
+    .eggs,
+    dist,
+    venv,
+    .venv,
+    venv27,
+    venv3,
+    virtualenv,
+    docs,
+    docs-source,
+    build,
+    migrations

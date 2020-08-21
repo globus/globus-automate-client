@@ -1,0 +1,61 @@
+{
+    "Comment": "Run Hello World in a loop over the input list Hellos",
+    "StartAt": "RunHelloWorld",
+    "States": {
+        "RunHelloWorld": {
+            "Comment": "Run The Hello World Action Async with values from Hellos list",
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/hello_world",
+            "Parameters": {
+                "echo_string.$": "$.input.Hellos[0]",
+                "sleep_time": 3
+            },
+            "ResultPath": "$.HelloOutput",
+            "Next": "SliceHellos"
+        },
+        "SliceHellos": {
+            "Comment": "Remove the first element from the Hellos list",
+            "Type": "Pass",
+            "Parameters": {
+                "Hellos.$": "$.input.Hellos[1:]"
+            },
+            "ResultPath": "$.input",
+            "Next": "ComputeCompletion"
+        },
+        "ComputeCompletion": {
+            "Comment": "Evaluate an expression to determine if there's more work to do",
+            "Type": "Action",
+            "ActionUrl": "https://actions.globus.org/expression_eval",
+            "ActionScope": "https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/expression",
+            "Parameters": {
+                "arguments": {
+                    "Hellos.$": "$.input.Hellos"
+                },
+                "expression": "Hellos == Hellos[0:0]",
+                "result_path": "loop_done"
+            },
+            "ResultPath": "$.ComputeCompletionOut",
+            "Next": "CheckCompletion"
+        },
+        "CheckCompletion": {
+            "Type": "Choice",
+            "Default": "Done",
+            "Choices": [
+                {
+                    "Variable": "$.ComputeCompletionOut.details.loop_done",
+                    "BooleanEquals": false,
+                    "Next": "RunHelloWorld"
+                }
+            ]
+        },
+        "Done": {
+            "Type": "Pass",
+            "Parameters": {
+                "Completed": "Successfully"
+            },
+            "ResultPath": "$.FinalPass",
+            "End": true
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "Comment": "Use the Web Option Action to wait for a URL to be selected",
+    "StartAt": "WebOptionAction",
+    "States": {
+        "WebOptionAction": {
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/weboption/wait_for_option",
+            "ActionScope": "https://auth.globus.org/scopes/helloworld.actions.automate.globus.org/weboption_wait_for_option",
+            "Parameters": {
+                "options.$": "$.options"
+            },
+            "ResultPath": "$.WebOptionResult",
+            "WaitTime": 7200,
+            "End": true
+        }
+    }
+}

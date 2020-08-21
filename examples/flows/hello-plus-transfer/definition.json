@@ -1,0 +1,33 @@
+{
+    "StartAt": "HelloState",
+    "States": {
+        "HelloState": {
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/hello_world",
+            "Parameters": {
+                "echo_string.$": "$.HelloInput.echo_string"
+            },
+            "Next": "TransferState",
+            "ResultPath": "$.HelloOutput",
+            "Type": "Action"
+        },
+        "TransferState": {
+            "ActionUrl": "https://actions.automate.globus.org/transfer/transfer",
+            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/transfer/transfer",
+            "Parameters": {
+                "source_endpoint_id.$": "$.TransferInput.source_endpoint_id",
+                "destination_endpoint_id.$": "$.TransferInput.destination_endpoint_id",
+                "transfer_items": [
+                    {
+                        "source_path.$": "$.TransferInput.source_path",
+                        "destination_path.$": "$.TransferInput.destination_path",
+                        "recursive.$": "$.TransferInput.recursive"
+                    }
+                ]
+            },
+            "ResultPath": "$.TransferOutput",
+            "Type": "Action",
+            "End": true
+        }
+    }
+}
