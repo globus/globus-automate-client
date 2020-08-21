@@ -57,13 +57,10 @@ class ActionClient(BaseClient):
         Invoke the Action Provider to execute an Action with the given
         parameters.
 
-        **Parameters**
-            ``body`` (*Dict[str, Any]*)
-            The Action Provider specific input required to execute an Action
-
-            ``request_id`` (*str*)
-            An optional identifier that serves to de-deplicate requests to
-            the Action Provider
+        :param body: The Action Provider specific input required to execute an
+            Action payload
+        :param request_id: An optional identifier that serves to de-deplicate
+            requests to the Action Provider
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
@@ -71,38 +68,32 @@ class ActionClient(BaseClient):
         body = {"request_id": str(request_id), "body": body}
         return self.post(path, body)
 
-    def status(self, action_id) -> GlobusHTTPResponse:
+    def status(self, action_id: str) -> GlobusHTTPResponse:
         """
         Query the Action Provider for the status of executed Action
 
-        **Parameters**
-            ``action_id`` (*str*)
-            An identifier that uniquely identifies an Action executed on this
-            Action Provider.
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
         """
         path = self.qjoin_path(action_id, "status")
         return self.get(path)
 
-    def cancel(self, action_id) -> GlobusHTTPResponse:
+    def cancel(self, action_id: str) -> GlobusHTTPResponse:
         """
         Cancel a currently executing Action on an Action Provider
 
-        **Parameters**
-            ``action_id`` (*str*)
-            An identifier that uniquely identifies an Action executed on this
-            Action Provider.
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
         """
         path = self.qjoin_path(action_id, "cancel")
         return self.post(path)
 
-    def release(self, action_id) -> GlobusHTTPResponse:
+    def release(self, action_id: str) -> GlobusHTTPResponse:
         """
         Remove the history of an Action's execution from an Action Provider
 
-        **Parameters**
-            ``action_id`` (*str*)
-            An identifier that uniquely identifies an Action executed on this
-            Action Provider.
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
         """
         path = self.qjoin_path(action_id, "release")
         return self.post(path)
@@ -130,6 +121,11 @@ def create_action_client(
     tokens have been loaded, an Authorizer is created and used to instantiate
     the ``ActionClient`` which can be used for operations against that Action
     Provider.
+
+    :param action_url: The URL address at which the target Action Provider
+        exists
+    :param action_scope: The target Action Provider's Globus Auth Scope used
+        for authenticating access to it
     """
     if action_scope is None:
         # We don't know the scope which makes it impossible to get a token,

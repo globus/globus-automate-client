@@ -1,3 +1,5 @@
+.. module:: globus_automate_client
+
 Python SDK
 ==========
 
