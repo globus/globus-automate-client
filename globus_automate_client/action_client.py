@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Mapping
 
 import requests
 from globus_sdk import (
@@ -51,7 +51,7 @@ class ActionClient(BaseClient):
         return self.default_response_class(resp, client=self)
 
     def run(
-        self, body: Dict[str, Any], request_id: Optional[str] = None
+        self, body: Mapping[str, Any], request_id: Optional[str] = None
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given

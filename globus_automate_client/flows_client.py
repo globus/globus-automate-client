@@ -160,7 +160,7 @@ class FlowsClient(BaseClient):
         available for execution on the Globus Automate Flows Service.
 
         :param flow_definition: A mapping corresponding to a Globus Flows
-            defintion.
+            definition.
 
         :param title: A simple, human readable title for the deployed Flow
 
@@ -179,7 +179,7 @@ class FlowsClient(BaseClient):
             instance of this Flow
 
         :param administered_by: A series of Globus identities which may update
-            this Flow's defintion
+            this Flow's definition
 
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be

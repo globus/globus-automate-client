@@ -59,15 +59,17 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
 Synchronous / Asynchronous: Either
 
-The Action Provider "transfer/transfer" uses the Globus Transfer API to perform
-a transfer of data from one Globus Collection to another. The input includes
-both the source and destination collection ids and file paths within the
-collection where the source file or folder is located and the destination folder
-where the transfer should be placed. It also supports indicating that transfers
-should be performed recursively to traverse the entire source file system tree
-and allows labeling the transfer should it be viewed directly in the Globus
-WebApp or via the Globus API or CLI. The body of the action status directly
-reflects the information returned when monitoring the transfer task using the
+The Action Provider "transfer/transfer" uses the `Globus Transfer API
+<https://docs.globus.org/api/transfer/task_submit/>`_ to perform a
+transfer of data from one Globus Collection to another. The input
+includes both the source and destination collection ids and file paths
+within the collection where the source file or folder is located and
+the destination folder where the transfer should be placed. It also
+supports indicating that transfers should be performed recursively to
+traverse the entire source file system tree and allows labeling the
+transfer should it be viewed directly in the Globus WebApp or via the
+Globus API or CLI. The body of the action status directly reflects the
+information returned when monitoring the transfer task using the
 Globus Transfer API.
 
 Globus Transfer - Delete Data
@@ -79,10 +81,12 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/delete``
 
 Synchronous / Asynchronous: Asynchronous
 
-Globus Transfer / delete data works much like the "Transfer / transfer"
-provider. It takes a source collection and path as inputs and uses the Globus
-Transfer API to intiate an asynchronous delete operation. Also like the transfer
-operation, labels and recursive options may be set. The status body comes
+Globus Transfer / delete data works much like the "Transfer /
+transfer" provider. It takes a source collection and path as inputs
+and uses the `Globus Transfer API
+<https://docs.globus.org/api/transfer/task_submit/>`_ to intiate an
+asynchronous delete operation. Also like the transfer operation,
+labels and recursive options may be set. The status body comes
 directly from the Task status in the Globus Transfer API.
 
 Globus Transfer - Set Permission
@@ -94,9 +98,10 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permissi
 
 Synchronous / Asynchronous: Synchronous
 
-The set permission Action Provider uses the Globus Transfer API to set
-permissions on a folder or file. As the Globus Transfer API returns a status
-directly (rather than a task identifier), the Action Provider behaves in a
+The set permission Action Provider uses the `Globus Transfer API
+<https://docs.globus.org/api/transfer/acl/>`_ to set permissions on a
+folder or file. As the Globus Transfer API returns a status directly
+(rather than a task identifier), the Action Provider behaves in a
 synchronous manner, returning the Transfer API result.
 
 Globus Transfer - List Directory Contents
@@ -108,11 +113,13 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 
 Synchronous / Asynchronous: Synchronous
 
-The Globus Transfer ls Action Provider uses the Globus Transfer API to retrieve
-a listing of contents from an (endpoint, path) pair.  Although providing a path
-is optional, the default path used depends on endpoint type and it is best to
-explicitly set a path. This Action Provider supports all options as defined in
-the List Directory Contents Transfer API documentation.
+The Globus Transfer ls Action Provider uses the `Globus Transfer API
+<https://docs.globus.org/api/transfer/file_operations/#list_directory_contents>`_
+to retrieve a listing of contents from an (endpoint, path) pair.
+Although providing a path is optional, the default path used depends
+on endpoint type and it is best to explicitly set a path. This Action
+Provider supports all options as defined in the List Directory
+Contents Transfer API documentation.
 
 Globus Search - Ingest
 ----------------------
@@ -123,16 +130,18 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/search/ingest``
 
 Synchronous / Asynchronous: Asynchronous
 
-Records may be added to an existing Globus Search index using the Search /
-ingest Action Provider. The input to the Action Provider includes the id of the
-Search index to be added to and the data, in the Search-defined ``GMetaEntry``
-format. The user calling the Action Provider must have permission to write to
-the index referenced. Globus Search will process the ingest operation
-asynchronously, so this Action Provider also behaves in an asynchronous fashion:
-requests to update the state of an Action will reflect the result from updating
-the state of the ingest task in Globus Search. Since Globus Search does not
-support cancellation of tasks, this Action Provider also does not support
-cancellation of its Actions.
+Records may be added to an existing `Globus Search
+<https://docs.globus.org/api/search/>`_ index using the Search /
+ingest Action Provider. The input to the Action Provider includes the
+id of the Search index to be added to and the data, in the
+Search-defined ``GMetaEntry`` format. The user calling the Action
+Provider must have permission to write to the index referenced. Globus
+Search will process the ingest operation asynchronously, so this
+Action Provider also behaves in an asynchronous fashion: requests to
+update the state of an Action will reflect the result from updating
+the state of the ingest task in Globus Search. Since Globus Search
+does not support cancellation of tasks, this Action Provider also does
+not support cancellation of its Actions.
 
 Send Notification - Email
 -------------------------
@@ -144,8 +153,8 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/not
 Synchronous / Asynchronous: Synchronous
 
 The Send notification / email Action Provider presently supports sending of
-email messages to a single email address. The request to send the email
-contains the standard components of an email: sender, receiver, subject and
+email messages to a set of email addresses. The request to send the email
+contains the standard components of an email: sender, receiver(s), subject and
 body. The mimetype of the body may be specified so that either HTML or text
 formatted messages may be sent. The body also supports the notion of variable
 substitution or "templating." Values in the body may be specified with a dollar
@@ -210,7 +219,7 @@ but not on any of the individual options, the options inherit the same
 ``selectable_by`` value defined on the landing page for that Action.
 
 In either mode, once an option has been selected, none of the url suffixes, nor
-the landing page if configured, in the initial request will be responded to by
+the landing page if configured, in the initial request, will be responded to by
 the Action Provider: they will return the HTTP not found (error) status 404.
 Upon completion, the body of the status will include the name and the url suffix
 for the selected option. The body may also include input on the HTTP data passed
@@ -223,7 +232,7 @@ Simple Expression Evaluation
 
 .. note::
     Expression Evaluation has been integrated with Action definitions directly
-    (see section on Action definitions below). Thus, for most use cases, the
+    (see section :ref:`flow_action_expressions`). Thus, for most use cases, the
     Simple Expression Evaluation Action Provider described here is not needed
     and expressions defined on Action definitions within a Flow are preferred.
 
@@ -274,7 +283,7 @@ Synchronous / Asynchronous: Synchronous
 
 The Datacite DOI Minting action provider uses the `Datacite JSON API
 <https://support.datacite.org/docs/api-create-dois>`_ to mint DOIs. The main
-part of the body input  is as specified in that API. The additional fields
+part of the body input is as specified in that API. The additional fields
 provide the username and password (the "Basic Auth" credentials which is part of
 the name of the URL and scope string) as well as a flag indicating whether it
 should be used in the Datacite test service or the production service.
