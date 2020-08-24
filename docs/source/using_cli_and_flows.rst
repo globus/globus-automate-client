@@ -34,7 +34,9 @@ Tips on using the CLI tool
 Working with Actions
 --------------------
 
-As Actions are the most basic unit of work, the CLI provides a means of accessing each of the Actions operations, however in many cases, the fine grain nature of the Actions means they are not often used directly. All of the operations on Actions start with a "base URL", specified using the ``--action-url <base_url>`` option to the action commands. Typically, the base URL will be provided by the operator of the Action to inform users how to interact with the Action. In the case of Actions operated by the Globus team, the description is provided in the section :ref:`globus_action_providers` along with tips on using the CLI for interactions with these Actions directly. As an example, we will work through the operations on the simple *Hello World* Action which has the base URL ``https://actions.globus.org/hello_world``.
+As Actions are the most basic unit of work, the CLI provides a means of accessing each of the Actions operations, however in many cases, the fine grain nature of the Actions means they are not often used directly. All of the operations on Actions start with a "base URL", specified using the ``--action-url <base_url>`` option to the action commands. Typically, the base URL will be provided by the operator of the Action to inform users how to interact with the Action. Where ever an ``--action-url`` option is present, an ``--action-scope <scope string>`` may also be used. The *scope string* is the Globus Auth scope registered for interacting with this Action. The scope is published as part of the Action's description (see introspection below), and the ``globus-automate`` tool will automatically retrieve this value when it is not specified by the user. In some cases, even retrieving this descriptive information may require authentication, and in these cases, retrieving the description is not possible without providing the ``--action-scope`` option.
+
+All of the Actions operated by the Globus team, are described in the section :ref:`globus_action_providers` including their base URL and tips on using the CLI for interactions with these Actions directly. As these Actions are publicly viewable, there is no need to provide an ``action-scope`` when working with them from the CLI. As an example, we will work through the operations on the simple *Hello World* Action which has the base URL ``https://actions.globus.org/hello_world``.
 
 Introspection
 ^^^^^^^^^^^^^
@@ -75,7 +77,7 @@ The output is a description of the Action. We provide a subset of the complete r
 
 The first three elements ``admin_contact``, ``title`` and ``subtitle`` provide descriptive and contact information related to the Action. The next two properties, ``visible_to`` and ``runnable_by``, define the identities which are allowed to see this introspection output, and then execute the action respectively. In this example, as in all the Globus operated Actions, the special values ``public`` and ``all_authenticated_users`` as described in :ref:`auth` are used allowing all users to see and make use of the Action.
 
-The most important information for our next step is the ``input_schema`` element as it provides a description of the input we need to form for running the Action. This schema defines two properties: ``echo_string`` and ``sleep_time`` which we will use in the next section to form the input for running the Action.
+The most important information for our next step is the ``input_schema`` element as it provides a description of the input we need to form for running the Action. The ``input_schema`` element is in `JSON Schema <https://https://json-schema.org/>`_ format. This schema defines two properties: ``echo_string`` and ``sleep_time`` which we will use in the next section to form the input for running the Action.
 
 Running
 ^^^^^^^
@@ -120,13 +122,13 @@ The ``status`` value of ``ACTIVE`` indicates that the Action is still considered
 
 *  ``ACTIVE``: The Action is still running and making progress towards completion.
 
-*  ``INACTIVE``: The Action has not yet completed, but it is not making progress. Commonly, so intervention is necessary to help it continue to make progress. The ``details`` may provide additional information on what is necessary for it to continue.
+*  ``INACTIVE``: The Action has not yet completed, but it is not making progress. Commonly, some intervention is necessary to help it continue to make progress. The ``details`` may provide additional information on what is necessary for it to continue.
 
 *  ``SUCCEEDED``: The Action is complete, and the completion was considered to be normal or desirable.
 
 *  ``FAILED``: The Action has stopped running due to some error condition. It cannot make progress towards a successful completion.
 
-Because we specified a ``sleep_time`` value of 60, it will remain in this state for 60 seconds. The ``details`` portion will be specific to every Action and is the output or result of running the Action. This Action always includes the value ``"Hello": "World"`` and the property ``hello`` with the value passed in the ``echo_string``.  The ``release_after`` value provides the number of seconds, after the Action has completed, that the result from the Action will automatically be removed. Up until that amount of time, we can continue to retrieve the result of the Action as we show in the next section.
+Because we specified a ``sleep_time`` value of 60 in our example input, the Action will remain in this state for 60 seconds. The ``details`` portion will be specific to every Action and is the output or result of running the Action. This Action always includes the value ``"Hello": "World"`` and the property ``hello`` with the value passed in the ``echo_string``.  The ``release_after`` value provides the number of seconds, after the Action has completed, that the result from the Action will automatically be removed. Until that amount of time has elapsed after the Action completes, we can continue to retrieve the result of the Action as we show in the next section.
 
 Retrieving Status
 ^^^^^^^^^^^^^^^^^
@@ -137,7 +139,7 @@ Once an Action has been run, we can monitor or retrieve its status as follows:
 
     globus-automate action status --action-url https://actions.globus.org/hello_world <action_id>
 
-where the ``action_id`` is the value returned from the ``action run`` command from above. The output will be similar to the output from the ``action run`` as well. If at least 60 seconds have passed since the Action was started in our example, the ``status`` field will have the value ``SUCCEEDED``. When it is done, a ``completion_time`` field will be present indicating when the Action reached its final state. The request for status may be repeated as often as you wish until the Action's status has been "released" as described below.
+where the ``action_id`` is the value returned from the ``action run`` command from above. The output will be an Action status, similar to the output from the ``action run``. If at least 60 seconds have passed since the Action was started in our example, the ``status`` field will have the value ``SUCCEEDED``. When it is done, a ``completion_time`` field will be present indicating when the Action reached its final state. The request for status may be repeated as often as you wish until the Action's status has been "released" as described below.
 
 
 Canceling and Releasing
@@ -170,13 +172,13 @@ As described in the section on :ref:`flows_concept`, a Flow is a combination of 
 Finding and displaying Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following command will list the already available flows you may use:
+The following command will list the flows available for your use:
 
 .. code-block:: BASH
 
     globus-automate flow list
 
-This outputs a list of flows, where the description of each flow carries the same fields as the output from ``globus-automate action introspect`` described above. This emphasizes again the similarity between Flows and Actions. The ``title`` and ``description`` fields may be helpful in determining what a Flow does and what its purpose is. Like Actions, the ``input_schema`` may define what is required of the input when running the flow however, not all Flows are required to define an ``input_status`` as a convenience to Flow authors who may not be familiar with JSON Schema. Importantly, each entry in the list of Flows will also contain a value for ``id`` which we refer to as the "Flow id" and denote as ``flow_id`` below. This value will be used for further interacting with a particular Flow. For example, to displaying the information about a single Flow can be done as follows:
+This outputs a list of flows, where the description of each flow carries the same fields as the output from ``globus-automate action introspect`` described above. This emphasizes again the similarity between Flows and Actions. The ``title`` and ``description`` fields may be helpful in determining what a Flow does and what its purpose is. Like Actions, the ``input_schema`` may define what is required of the input when running the flow. However, not all Flows are required to define an ``input_status`` as a convenience to Flow authors who may not be familiar with creating JSON Schema specifications. Importantly, each entry in the list of Flows will also contain a value for ``id`` which we refer to as the "Flow id" and denote as ``flow_id`` below. This value will be used for further interacting with a particular Flow. For example, to display information about a single Flow you may use:
 
 .. code-block:: BASH
 
@@ -213,11 +215,12 @@ For each of these, the ``details`` provides information about the most recent, p
 
     globus-automate flow action-log --flow-id <flow_id> <action_id>
 
+The log may have a large number of entries. You can request more entries be returned using the option ``-limit N`` where ``N`` is the number of log entries to return. The default value is 10.
 
 Creating and managing Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Many users will use Flows created by others, so they may not necessarily need to understand how to create Flows. For those that are creating new Flows, the primary command is for Flow deployment:
+Many users will only ever use Flows created by others, so they may not necessarily need to understand how to create Flows including the commands listed in this section. For those that are creating new Flows, the first step is to deploy a Flow as follows:
 
 .. code-block:: BASH
 
