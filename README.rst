@@ -41,5 +41,4 @@ Links
 -----
 | Full Documentation: https://globus-automate-client.readthedocs.io
 | Source Code: https://github.com/globus/globus-automate-client
-| Release History + Changelog:
-https://github.com/globus/globus-automate-client/releases
+| Release History + Changelog: https://github.com/globus/globus-automate-client/releases
