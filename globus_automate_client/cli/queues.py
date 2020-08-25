@@ -75,26 +75,34 @@ def queue_create(
 @app.command("update")
 def queue_update(
     queue_id: str = typer.Argument(...),
-    label: str = typer.Option(
-        None, help="A convenient name to identify the new Queue."
-    ),
+    label: str = typer.Option(..., help="A convenient name to identify the new Queue."),
     admins: List[str] = typer.Option(
-        None,
+        ...,
         "--admin",
         help="The Principal URNs allowed to administer the Queue. [repeatable]",
         callback=principal_validator_callback,
     ),
     senders: List[str] = typer.Option(
-        None,
+        ...,
         "--sender",
         help="The Principal URNs allowed to send to the Queue. [repeatable]",
         callback=principal_validator_callback,
     ),
     receivers: List[str] = typer.Option(
-        None,
+        ...,
         "--receiver",
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
         callback=principal_validator_callback,
+    ),
+    delivery_timeout: int = typer.Option(
+        ...,
+        help=(
+            "The minimum amount of time (in seconds) that the Queue Service should "
+            "attempt to retry delivery of messages to the receiver_url if delivery "
+            "is not initially successful"
+        ),
+        min=60,
+        max=1209600,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -102,7 +110,9 @@ def queue_update(
     Update a Queue's properties. Requires the admin role on the Queue.
     """
     qc = create_queues_client(CLIENT_ID)
-    queues = qc.update_queue(queue_id, label, admins, senders, receivers)
+    queues = qc.update_queue(
+        queue_id, label, admins, senders, receivers, delivery_timeout
+    )
     format_and_echo(queues, verbose=verbose)
 
 
