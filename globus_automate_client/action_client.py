@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Optional, Mapping
+from typing import Any, Dict, Iterable, Mapping, Optional
 
 import requests
 from globus_sdk import (
@@ -51,7 +51,11 @@ class ActionClient(BaseClient):
         return self.default_response_class(resp, client=self)
 
     def run(
-        self, body: Mapping[str, Any], request_id: Optional[str] = None
+        self,
+        body: Mapping[str, Any],
+        request_id: Optional[str] = None,
+        manage_by: Optional[Iterable[str]] = None,
+        monitor_by: Optional[Iterable[str]] = None,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -61,11 +65,25 @@ class ActionClient(BaseClient):
             Action payload
         :param request_id: An optional identifier that serves to de-deplicate
             requests to the Action Provider
+        :param manage_by: A series of Globus identities which may alter
+            this Action's execution
+        :param monitor_by: A series of Globus identities which may
+            view the state of this Action
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
+        if manage_by is not None:
+            manage_by = list(set(manage_by))
+        if monitor_by is not None:
+            monitor_by = list(set(monitor_by))
+
         path = self.qjoin_path("run")
-        body = {"request_id": str(request_id), "body": body}
+        body = {
+            "request_id": str(request_id),
+            "body": body,
+            "monitor_by": monitor_by,
+            "manage_by": manage_by,
+        }
         return self.post(path, body)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:

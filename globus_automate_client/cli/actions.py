@@ -1,11 +1,13 @@
 import json
 import uuid
+from typing import List
 
 import typer
 
 from globus_automate_client.action_client import create_action_client
 from globus_automate_client.cli.callbacks import (
     json_validator_callback,
+    principal_validator_callback,
     url_validator_callback,
 )
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
@@ -65,6 +67,16 @@ def action_run(
     request_id: str = typer.Option(
         None, help=("An identifier to associate with this Action invocation request"),
     ),
+    manage_by: List[str] = typer.Option(
+        None,
+        help="A principal which may change the execution of the Action. [repeatable]",
+        callback=principal_validator_callback,
+    ),
+    monitor_by: List[str] = typer.Option(
+        None,
+        help="A principal which may view the state of the Action. [repeatable]",
+        callback=principal_validator_callback,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
@@ -73,7 +85,7 @@ def action_run(
     ac = create_action_client(action_url, action_scope)
     if ac:
         parsed_body = json.loads(body)
-        result = ac.run(parsed_body, request_id)
+        result = ac.run(parsed_body, request_id, manage_by, monitor_by)
         format_and_echo(result, verbose=verbose)
     return None
 
