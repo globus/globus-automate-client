@@ -81,6 +81,7 @@ class QueuesClient(BaseClient):
         **kwargs,
     ) -> Optional[GlobusHTTPResponse]:
         body = dict(
+            id=queue_id,
             label=label,
             admins=admins,
             senders=senders,
