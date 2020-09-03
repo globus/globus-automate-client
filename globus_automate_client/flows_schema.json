@@ -207,33 +207,37 @@
     "Catch": {
       "properties": {
         "Catch": {
-          "type": "object",
-          "allOf": [
-            {
-              "additionalProperties": false,
-              "required": [
-                "ErrorEquals",
-                "Next"
-              ],
-              "properties": {
-                "ErrorEquals": {
-                  "type": "array",
-                  "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "allOf": [
+              {
+                "additionalProperties": false,
+                "required": [
+                  "ErrorEquals",
+                  "Next"
+                ],
+                "properties": {
+                  "ErrorEquals": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  },
+                  "Next": {
                     "type": "string"
                   },
-                  "minItems": 1,
-                  "uniqueItems": true
-                },
-                "Next": {
-                  "type": "string"
-                },
-                "ResultPath": {}
+                  "ResultPath": {}
+                }
+              },
+              {
+                "$ref": "#/definitions/ResultPath"
               }
-            },
-            {
-              "$ref": "#/definitions/ResultPath"
-            }
-          ]
+            ]
+          }
         }
       }
     },
