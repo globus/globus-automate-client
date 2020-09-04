@@ -63,7 +63,7 @@ def _all_vals_for_keys(
             )
         elif isinstance(v, list):
             for val in v:
-                if isinstance(val, str):
+                if k in key_name_set and isinstance(v, str):
                     val_set.add(val)
                 elif isinstance(val, dict):
                     val_set.update(
@@ -106,6 +106,7 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
         flow_definition,
         stop_traverse_key_set={"Parameters"},
     )
+
     unreferenced = state_names - flow_state_refs
     not_present = flow_state_refs - state_names
     if len(unreferenced) > 0:
