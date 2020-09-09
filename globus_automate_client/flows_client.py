@@ -250,7 +250,7 @@ class FlowsClient(BaseClient):
             instance of this Flow
 
         :param administered_by: A series of Globus identities which may update
-            this Flow's defintion
+            this Flow's definition
 
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
@@ -488,7 +488,7 @@ class FlowsClient(BaseClient):
 
     def delete_flow(self, flow_id: str, **kwargs):
         """
-        Remove a Flow defintion and its metadata from the Flows service
+        Remove a Flow definition and its metadata from the Flows service
 
         :param flow_id: The UUID identifying the Flow to delete
         """

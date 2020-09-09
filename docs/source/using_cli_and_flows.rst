@@ -105,7 +105,7 @@ If the command is formatted properly, the resulting output will look like the fo
 
   {
     "action_id": "<An id>",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
     "creator_id": "<your globus id>",
     "details": {
         "Hello": "World",

@@ -81,7 +81,8 @@ def flow_deploy(
         callback=json_validator_callback,
     ),
     subtitle: str = typer.Option(
-        None, help="A subtitle for the Flow providing additional, brief description.",
+        None,
+        help="A subtitle for the Flow providing additional, brief description.",
     ),
     description: str = typer.Option(
         None, help="A long form description of the Flow's purpose or usage."
@@ -123,7 +124,9 @@ def flow_deploy(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -164,7 +167,8 @@ def flow_update(
         callback=json_validator_callback,
     ),
     subtitle: str = typer.Option(
-        None, help="A subtitle for the Flow providing additional, brief description.",
+        None,
+        help="A subtitle for the Flow providing additional, brief description.",
     ),
     description: str = typer.Option(
         None, help="A long form description of the Flow's purpose or usage."
@@ -206,7 +210,9 @@ def flow_update(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -294,7 +300,9 @@ def flow_list(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -318,7 +326,9 @@ def flow_display(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -343,7 +353,9 @@ def flow_delete(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -373,7 +385,9 @@ def flow_run(
         callback=url_validator_callback,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -392,7 +406,9 @@ def flow_run(
 @app.command("action-list")
 def flow_actions_list(
     flow_id: str = typer.Option(
-        ..., help="The ID for the Flow which triggered the Action.", prompt=True,
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -405,15 +421,19 @@ def flow_actions_list(
         help="Display Actions where you have the selected role. [repeatable]",
     ),
     statuses: List[ActionStatus] = typer.Option(
-        None, "--status", help="Display Actions with the selected status. [repeatable]",
+        None,
+        "--status",
+        help="Display Actions with the selected status. [repeatable]",
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
     """
-    List the Actions associated with a Flow.
+    List a Flow definition's discrete invocations.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
 
@@ -436,7 +456,9 @@ def flow_actions_list(
 def flow_action_status(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
-        ..., help="The ID for the Flow which triggered the Action.", prompt=True,
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -444,12 +466,14 @@ def flow_action_status(
         callback=url_validator_callback,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
     """
-    Retrieve a Flow's Action's status.
+    Display the status for a Flow definition's particular invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     response = fc.flow_action_status(flow_id, flow_scope, action_id)
@@ -460,7 +484,9 @@ def flow_action_status(
 def flow_action_release(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
-        ..., help="The ID for the Flow which triggered the Action.", prompt=True,
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -468,12 +494,14 @@ def flow_action_release(
         callback=url_validator_callback,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
     """
-    Retrieve a Flow's Action's status.
+    Remove execution history for a particular Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     response = fc.flow_action_release(flow_id, flow_scope, action_id)
@@ -484,7 +512,9 @@ def flow_action_release(
 def flow_action_cancel(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
-        ..., help="The ID for the Flow which triggered the Action.", prompt=True,
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -492,12 +522,14 @@ def flow_action_cancel(
         callback=url_validator_callback,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
     """
-    Retrieve a Flow's Action's status.
+    Cancel an active execution for a particular Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     response = fc.flow_action_cancel(flow_id, flow_scope, action_id)
@@ -508,7 +540,9 @@ def flow_action_cancel(
 def flow_action_log(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
-        ..., help="The ID for the Flow which triggered the Action.", prompt=True,
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -522,7 +556,9 @@ def flow_action_log(
         help="Display logs starting from most recent and proceeding in reverse chronological order",
     ),
     limit: int = typer.Option(
-        None, help="Set a maximum number of events from the log to return", min=0,
+        None,
+        help="Set a maximum number of events from the log to return",
+        min=0,
     ),
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
@@ -533,12 +569,14 @@ def flow_action_log(
         show_default=True,
     ),
     flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL, hidden=True, callback=flows_endpoint_envvar_callback,
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
 ):
     """
-    Get a log of the steps executed by a Flow's Action.
+    Get a log of the steps executed by a Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     resp = fc.flow_action_log(flow_id, flow_scope, action_id, limit, reverse)
