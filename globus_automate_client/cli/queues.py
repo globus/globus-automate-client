@@ -4,7 +4,7 @@ from typing import List
 import typer
 
 from globus_automate_client.cli.callbacks import (
-    principal_validator_callback,
+    principal_validator,
     text_validator_callback,
 )
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
@@ -48,19 +48,19 @@ def queue_create(
         ...,
         "--admin",
         help="The Principal URNs allowed to administer the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     senders: List[str] = typer.Option(
         ...,
         "--sender",
         help="The Principal URNs allowed to send to the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     receivers: List[str] = typer.Option(
         ...,
         "--receiver",
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     verbose: bool = verbosity_option,
 ):
@@ -80,19 +80,19 @@ def queue_update(
         ...,
         "--admin",
         help="The Principal URNs allowed to administer the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     senders: List[str] = typer.Option(
         ...,
         "--sender",
         help="The Principal URNs allowed to send to the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     receivers: List[str] = typer.Option(
         ...,
         "--receiver",
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     delivery_timeout: int = typer.Option(
         ...,

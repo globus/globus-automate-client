@@ -7,7 +7,7 @@ import typer
 from globus_automate_client.action_client import create_action_client
 from globus_automate_client.cli.callbacks import (
     json_validator_callback,
-    principal_validator_callback,
+    principal_validator,
     url_validator_callback,
 )
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
@@ -70,12 +70,12 @@ def action_run(
     manage_by: List[str] = typer.Option(
         None,
         help="A principal which may change the execution of the Action. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     monitor_by: List[str] = typer.Option(
         None,
         help="A principal which may view the state of the Action. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     verbose: bool = verbosity_option,
 ):

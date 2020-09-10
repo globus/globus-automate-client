@@ -85,7 +85,7 @@ def text_validator_callback(message: str) -> str:
     return message
 
 
-def principal_validator_callback(principals: List[str]) -> List[str]:
+def principal_validator(principals: List[str]) -> List[str]:
     """
     A principal ID needs to be a valid UUID. This validator ensures the
     principal IDs are valid UUIDs.
@@ -111,6 +111,38 @@ def principal_validator_callback(principals: List[str]) -> List[str]:
                 f"Principal could not be parsed as a valid identifier: {p}"
             )
 
+    return principals
+
+
+def principal_or_all_authenticated_users_validator(principals: List[str]) -> List[str]:
+    """
+    Certain fields expect values to be a valid Globus Auth UUID or one of a set
+    of special strings that are meaningful in the context of authentication.
+    This callback is a specialized form of the principal_validator where the
+    special value of 'all_authenticated_users' is accepted.
+    """
+    special_vals = {"all_authenticated_users"}
+
+    for p in principals:
+        if p in special_vals:
+            continue
+        principal_validator([p])
+    return principals
+
+
+def principal_or_public_validator(principals: List[str]) -> List[str]:
+    """
+    Certain fields expect values to be a valid Globus Auth UUID or one of a set
+    of special strings that are meaningful in the context of authentication.
+    This callback is a specialized form of the principal_validator where the
+    special value of 'public' is accepted.
+    """
+    special_vals = {"public"}
+
+    for p in principals:
+        if p in special_vals:
+            continue
+        principal_validator([p])
     return principals
 
 
