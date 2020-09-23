@@ -1,0 +1,18 @@
+{
+    "delete_by": "query",
+    "search_index": "00000000-0000-0000-0000-000000000000",
+    "q": "a search with filtering and faceting",
+    "filters": [
+        {
+            "type": "range",
+            "field_name": "path.to.date",
+            "values": [
+                {
+                    "from": "*",
+                    "to": "2014-11-07"
+                }
+            ]
+        }
+    ],
+    "query_template": "some_query_template"
+}
