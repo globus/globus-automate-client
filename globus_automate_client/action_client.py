@@ -84,6 +84,8 @@ class ActionClient(BaseClient):
             "monitor_by": monitor_by,
             "manage_by": manage_by,
         }
+        # Remove None / empty list items from the temp_body
+        body = {k: v for k, v in body.items() if v}
         return self.post(path, body)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:
@@ -150,7 +152,9 @@ def create_action_client(
         # but create a client anyways in case this action provider is publicly
         # visible without authentication.
         temp_client = ActionClient(
-            "temp_client", base_url=action_url, app_name="tmp_client",
+            "temp_client",
+            base_url=action_url,
+            app_name="tmp_client",
         )
         action_scope = temp_client.action_scope
 
