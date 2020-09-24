@@ -62,13 +62,28 @@ def queue_create(
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
         callback=principal_validator,
     ),
+    delivery_timeout: int = typer.Option(
+        60,  # TODO Update this default timeout once Queue's default is updated
+        help=(
+            "The minimum amount of time (in seconds) that the Queue Service should "
+            "wait for a message-delete request after delivering a message before "
+            "making the message visible for receiving by other consumers once "
+            "again. If used in conjunction with 'receiver_url' this value "
+            "represents the minimum amount of time (in seconds) that the Queue "
+            "Service should attempt to retry delivery of messages to the "
+            "'receiver_url' if delivery is not initially successful"
+        ),
+        min=1,
+        max=1209600,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Create a new Queue.
     """
     qc = create_queues_client(CLIENT_ID)
-    queues = qc.create_queue(label, admins, senders, receivers)
+    queues = qc.create_queue(label, admins, senders, receivers, delivery_timeout)
     format_and_echo(queues, verbose=verbose)
 
 
@@ -98,10 +113,14 @@ def queue_update(
         ...,
         help=(
             "The minimum amount of time (in seconds) that the Queue Service should "
-            "attempt to retry delivery of messages to the receiver_url if delivery "
-            "is not initially successful"
+            "wait for a message-delete request after delivering a message before "
+            "making the message visible for receiving by other consumers once "
+            "again. If used in conjunction with 'receiver_url' this value "
+            "represents the minimum amount of time (in seconds) that the Queue "
+            "Service should attempt to retry delivery of messages to the "
+            "'receiver_url' if delivery is not initially successful"
         ),
-        min=60,
+        min=1,
         max=1209600,
     ),
     verbose: bool = verbosity_option,
@@ -118,7 +137,8 @@ def queue_update(
 
 @app.command("display")
 def queue_display(
-    queue_id: str = typer.Argument(...), verbose: bool = verbosity_option,
+    queue_id: str = typer.Argument(...),
+    verbose: bool = verbosity_option,
 ):
     """
     Display the description of a Queue based on its id.
@@ -130,7 +150,8 @@ def queue_display(
 
 @app.command("delete")
 def queue_delete(
-    queue_id: str = typer.Argument(...), verbose: bool = verbosity_option,
+    queue_id: str = typer.Argument(...),
+    verbose: bool = verbosity_option,
 ):
     """
     Delete a Queue based on its id. You must have either
@@ -178,3 +199,23 @@ def queue_send(
     qc = create_queues_client(CLIENT_ID)
     message_send = qc.send_message(queue_id, message)
     format_and_echo(message_send, verbose=verbose)
+
+
+@app.command("delete-message")
+def queue_delete_message(
+    queue_id: str = typer.Argument(...),
+    receipt_handle: List[str] = typer.Option(
+        ...,
+        help=(
+            "A receipt_handle value returned by a previous call to "
+            "receive message. [repeatable]"
+        ),
+    ),
+    verbose: bool = verbosity_option,
+):
+    """
+    Notify a Queue that a message has been processed.
+    """
+    qc = create_queues_client(CLIENT_ID)
+    message_delete = qc.delete_messages(queue_id, receipt_handle)
+    format_and_echo(message_delete, verbose=verbose)
