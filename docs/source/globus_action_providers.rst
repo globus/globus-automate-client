@@ -89,8 +89,8 @@ asynchronous delete operation. Also like the transfer operation,
 labels and recursive options may be set. The status body comes
 directly from the Task status in the Globus Transfer API.
 
-Globus Transfer - Set Permission
---------------------------------
+Globus Transfer - Set/Manage Permissions
+----------------------------------------
 
 URL: `<https://actions.globus.org/transfer/set_permission>`_
 
@@ -99,10 +99,12 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permissi
 Synchronous / Asynchronous: Synchronous
 
 The set permission Action Provider uses the `Globus Transfer API
-<https://docs.globus.org/api/transfer/acl/>`_ to set permissions on a
-folder or file. As the Globus Transfer API returns a status directly
-(rather than a task identifier), the Action Provider behaves in a
-synchronous manner, returning the Transfer API result.
+<https://docs.globus.org/api/transfer/acl/>`_ to set or manage permissions on a
+folder or file. The body of the request indicates whether the permission rule is to be created, updated or deleted using the ``operation`` property. For update or delete, the ``rule_id`` of a previously created permission rule must also be provided.
+
+As the Globus Transfer API returns a status directly (rather than a
+task identifier), the Action Provider behaves in a synchronous manner,
+returning the Transfer API result.
 
 Globus Transfer - List Directory Contents
 -----------------------------------------
