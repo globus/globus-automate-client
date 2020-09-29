@@ -1,7 +1,7 @@
 import json
 import os
 import pathlib
-from typing import List, Optional
+from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -86,7 +86,7 @@ def text_validator_callback(message: str) -> str:
 
 
 def _base_principal_validator(
-    principals: List[str], *, special_vals=set()
+    principals: List[str], *, special_vals: AbstractSet[str] = frozenset()
 ) -> List[str]:
     """
     This validator ensures the principal IDs are valid UUIDs prefixed with valid
@@ -124,7 +124,7 @@ def principal_validator(principals: List[str]) -> List[str]:
     """
     A principal ID needs to be a valid UUID.
     """
-    return _base_principal_validator(principals, special_vals=None)
+    return _base_principal_validator(principals)
 
 
 def principal_or_all_authenticated_users_validator(principals: List[str]) -> List[str]:
