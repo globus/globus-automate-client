@@ -143,6 +143,32 @@ the state of the ingest task in Globus Search. Since Globus Search
 does not support cancellation of tasks, this Action Provider also does
 not support cancellation of its Actions.
 
+Globus Search - Delete
+----------------------
+
+URL: `<https://actions.globus.org/search/delete>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/search_delete``
+
+Synchronous / Asynchronous: Asynchronous
+
+Subjects or entries may be removed from an existing `Globus Search
+<https://docs.globus.org/api/search/>`_ index using the Search
+Delete Action Provider. The input to the Action Provider includes the
+Search index id to delete the data from. The body also specifies the type of
+delete operation to execute via the ``delete_by`` parameter. It's value may be
+``entry`` to delete a single entry, ``subject`` to delete a subject, or
+``query`` to remove data matching a `Search query
+<https://docs.globus.org/api/search/entry_and_subject_ops/#delete_by_query>`_.
+
+The user calling the Action Provider must have permission to write to the index
+referenced. Globus Search will process the delete operation asynchronously, so
+this Action Provider also behaves in an asynchronous fashion. Requests for the
+state of an Action will lookup the state of the ``task_id`` in Globus Search,
+ensuring the status remains up-to-date. Since Globus Search does not support
+cancellation of tasks, this Action Provider also does not support cancellation
+of its Actions.
+
 Send Notification - Email
 -------------------------
 
