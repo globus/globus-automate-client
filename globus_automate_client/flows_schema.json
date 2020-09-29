@@ -154,6 +154,16 @@
         }
       }
     },
+    "ParametersOrInputPathNotRequired": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Parameters"
+        },
+        {
+          "$ref": "#/definitions/InputPath"
+        }
+      ]
+    },
     "ParametersOrInputPath": {
       "oneOf": [
         {
@@ -197,7 +207,7 @@
           "$ref": "#/definitions/NextOrEnd"
         },
         {
-          "$ref": "#/definitions/ParametersOrInputPath"
+          "$ref": "#/definitions/ParametersOrInputPathNotRequired"
         },
         {
           "$ref": "#/definitions/ResultPath"
