@@ -10,7 +10,7 @@
             "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/hello_world",
             "Parameters": {
                 "echo_string.$": "$.input.echo_string",
-                "sleep.$": "$.input.sleep"
+                "sleep_time.$": "$.input.sleep"
             },
             "ResultPath": "$.HelloResult",
             "End": true
