@@ -1,7 +1,7 @@
 import json
 import os
 import pathlib
-from typing import List, Optional
+from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -85,15 +85,21 @@ def text_validator_callback(message: str) -> str:
     return message
 
 
-def principal_validator_callback(principals: List[str]) -> List[str]:
+def _base_principal_validator(
+    principals: List[str], *, special_vals: AbstractSet[str] = frozenset()
+) -> List[str]:
     """
-    A principal ID needs to be a valid UUID. This validator ensures the
-    principal IDs are valid UUIDs.
+    This validator ensures the principal IDs are valid UUIDs prefixed with valid
+    Globus ID beginnings. It will optionally determine if a provided principal
+    exists in a set of "special" values.
     """
     groups_beginning = "urn:globus:groups:id:"
     auth_beginning = "urn:globus:auth:identity:"
 
     for p in principals:
+        if special_vals and p in special_vals:
+            continue
+
         valid_beggining = False
         for beggining in [groups_beginning, auth_beginning]:
             if p.startswith(beggining):
@@ -112,6 +118,35 @@ def principal_validator_callback(principals: List[str]) -> List[str]:
             )
 
     return principals
+
+
+def principal_validator(principals: List[str]) -> List[str]:
+    """
+    A principal ID needs to be a valid UUID.
+    """
+    return _base_principal_validator(principals)
+
+
+def principal_or_all_authenticated_users_validator(principals: List[str]) -> List[str]:
+    """
+    Certain fields expect values to be a valid Globus Auth UUID or one of a set
+    of special strings that are meaningful in the context of authentication.
+    This callback is a specialized form of the principal_validator where the
+    special value of 'all_authenticated_users' is accepted.
+    """
+    return _base_principal_validator(
+        principals, special_vals={"all_authenticated_users"}
+    )
+
+
+def principal_or_public_validator(principals: List[str]) -> List[str]:
+    """
+    Certain fields expect values to be a valid Globus Auth UUID or one of a set
+    of special strings that are meaningful in the context of authentication.
+    This callback is a specialized form of the principal_validator where the
+    special value of 'public' is accepted.
+    """
+    return _base_principal_validator(principals, special_vals={"public"})
 
 
 def flows_endpoint_envvar_callback(default_value: str) -> str:

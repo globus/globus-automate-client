@@ -8,7 +8,9 @@ from globus_sdk import GlobusHTTPResponse
 from globus_automate_client.cli.callbacks import (
     flows_endpoint_envvar_callback,
     json_validator_callback,
-    principal_validator_callback,
+    principal_or_all_authenticated_users_validator,
+    principal_or_public_validator,
+    principal_validator,
     url_validator_callback,
 )
 from globus_automate_client.cli.helpers import (
@@ -104,18 +106,26 @@ def flow_deploy(
     ),
     visible_to: List[str] = typer.Option(
         None,
-        help="A principal which may see the existence of deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        help=(
+            "A principal which may see the existence of the deployed Flow. The "
+            'special value of "public" may be used to control which users can '
+            "discover this flow. [repeatable]"
+        ),
+        callback=principal_or_public_validator,
     ),
     administered_by: List[str] = typer.Option(
         None,
         help="A principal which may update the deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     runnable_by: List[str] = typer.Option(
         None,
-        help="A principal which may run an instance of the deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        help=(
+            "A principal which may run an instance of the deployed Flow. The special "
+            'value of "all_authenticated_users" may be used to control which users '
+            "can invoke this flow. [repeatable]"
+        ),
+        callback=principal_or_all_authenticated_users_validator,
     ),
     validate: bool = typer.Option(
         True,
@@ -190,18 +200,26 @@ def flow_update(
     ),
     visible_to: List[str] = typer.Option(
         None,
-        help="A principal which may see the existence of deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        help=(
+            "A principal which may see the existence of the deployed Flow. The "
+            'special value of "public" may be used to control which users can '
+            "discover this flow. [repeatable]"
+        ),
+        callback=principal_or_public_validator,
     ),
     administered_by: List[str] = typer.Option(
         None,
         help="A principal which may update the deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        callback=principal_validator,
     ),
     runnable_by: List[str] = typer.Option(
         None,
-        help="A principal which may run an instance of the deployed Flow. [repeatable]",
-        callback=principal_validator_callback,
+        help=(
+            "A principal which may run an instance of the deployed Flow. The special "
+            'value of "all_authenticated_users" may be used to control which users '
+            "can invoke this flow. [repeatable]"
+        ),
+        callback=principal_or_all_authenticated_users_validator,
     ),
     validate: bool = typer.Option(
         True,
