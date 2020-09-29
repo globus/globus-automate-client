@@ -65,7 +65,8 @@ def action_run(
         callback=json_validator_callback,
     ),
     request_id: str = typer.Option(
-        None, help=("An identifier to associate with this Action invocation request"),
+        None,
+        help=("An identifier to associate with this Action invocation request"),
     ),
     manage_by: List[str] = typer.Option(
         None,
