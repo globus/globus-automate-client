@@ -84,6 +84,8 @@ class ActionClient(BaseClient):
             "monitor_by": monitor_by,
             "manage_by": manage_by,
         }
+        # Remove None items from the temp_body
+        body = {k: v for k, v in body.items() if v is not None}
         return self.post(path, body)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:
