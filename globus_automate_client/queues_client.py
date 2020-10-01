@@ -43,7 +43,7 @@ class QueuesClient(BaseClient):
         admins: List[str],
         senders: List[str],
         receivers: List[str],
-        delivery_timeout: int = 86400,
+        delivery_timeout: int = 60,
         **kwargs,
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_ADMIN_SCOPE)
@@ -129,6 +129,17 @@ class QueuesClient(BaseClient):
         if receive_request_attempt_id is not None:
             params["receive_request_attempt_id"] = receive_request_attempt_id
         return self.get(f"/queues/{queue_id}/messages", params=params)
+
+    def delete_messages(
+        self, queue_id: str, receipt_handles: List[str]
+    ) -> GlobusHTTPResponse:
+        self.authorizer = get_authorizer_for_scope(QUEUES_RECEIVE_SCOPE)
+        body = {"data": [{"receipt_handle": rh} for rh in receipt_handles]}
+        return self._request(
+            "DELETE",
+            f"/queues/{queue_id}/messages",
+            json_body=body,
+        )
 
 
 def create_queues_client(
