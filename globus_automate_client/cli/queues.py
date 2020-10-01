@@ -162,7 +162,7 @@ def queue_delete(
     format_and_echo(queue, verbose=verbose)
 
 
-@app.command("receive")
+@app.command("message-receive")
 def queue_receive(
     queue_id: str = typer.Argument(...),
     max_messages: int = typer.Option(
@@ -179,7 +179,7 @@ def queue_receive(
     format_and_echo(queue, verbose=verbose)
 
 
-@app.command("send")
+@app.command("message-send")
 def queue_send(
     queue_id: str = typer.Argument(...),
     message: str = typer.Option(
@@ -201,7 +201,7 @@ def queue_send(
     format_and_echo(message_send, verbose=verbose)
 
 
-@app.command("delete-message")
+@app.command("message-delete")
 def queue_delete_message(
     queue_id: str = typer.Argument(...),
     receipt_handle: List[str] = typer.Option(
