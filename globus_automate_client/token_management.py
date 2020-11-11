@@ -1,7 +1,7 @@
 import os
 
 from fair_research_login import ConfigParserTokenStorage, NativeClient
-from fair_research_login.exc import LocalServerError
+from fair_research_login.exc import AuthFailure, LocalServerError
 from globus_sdk import AccessTokenAuthorizer
 from globus_sdk.exc import AuthAPIError
 
@@ -26,20 +26,17 @@ def get_authorizer_for_scope(
     scope: str, client_id: str = CLIENT_ID
 ) -> AccessTokenAuthorizer:
     client = NativeClient(
-        client_id=CLIENT_ID,
+        client_id=client_id,
         app_name="globus-automate CLI",
         token_storage=MultiScopeTokenStorage(scope),
-        default_scopes=scope,
+        default_scopes=[scope],
     )
-    ssh_active = "SSH_CLIENT" in os.environ or "SSH_CONNECTION" in os.environ
     try:
         client.login(
             requested_scopes=[scope],
             refresh_tokens=True,
-            no_browser=ssh_active,
-            no_local_server=ssh_active,
         )
-    except (LocalServerError, AuthAPIError) as e:
+    except (LocalServerError, AuthAPIError, AuthFailure) as e:
         print(f"Login Unsuccessful: {str(e)}")
         raise SystemExit
 
