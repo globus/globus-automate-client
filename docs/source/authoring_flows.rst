@@ -140,7 +140,7 @@ both cases.
 
 For ``Parameters``, a list with special property name ``__Private_Parameters``
 may be placed in the ``Parameters`` object indicating which other Parameters
-should be protected. For simplicity, the values in the ``__Private_Properties``
+should be protected. For simplicity, the values in the ``__Private_Parameters``
 list may include the "simple" name even when the parameter name is a Reference
 or Expression. For example, if a parameter value has the form ``"SecretValue.$":
 "$.Path.To.Secret"`` the value in the ``__Private_Parameters`` list may be
