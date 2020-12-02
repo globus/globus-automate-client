@@ -8,11 +8,11 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
+from globus_sdk.authorizers.base import GlobusAuthorizer
 from globus_sdk.base import BaseClient
 from jsonschema import Draft7Validator
 
-from globus_automate_client.action_client import ActionClient, create_action_client
-from globus_automate_client.token_management import get_authorizer_for_scope
+from globus_automate_client import ActionClient
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -41,7 +41,7 @@ ALL_FLOW_SCOPES = (
 class FlowValidationError(Exception):
     def __init__(self, errors: Iterable[str], **kwargs):
         message = "; ".join(errors)
-        super().__init__(message, **kwargs)
+        super().__init__(message)
 
 
 def _all_vals_for_keys(
@@ -137,9 +137,14 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
-    def __init__(self, client_id: str, *args, **kwargs) -> None:
-        self.client_id = client_id
+    # TODO add callback type hint
+    def __init__(
+        self, client_id: str, get_authorizer_callback, *args, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
+        self.client_id = client_id
+        self.flow_management_authorizer: GlobusAuthorizer = self.authorizer
+        self.get_authorizer_callback = get_authorizer_callback
 
     def deploy_flow(
         self,
@@ -194,7 +199,7 @@ class FlowsClient(BaseClient):
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
-        self.authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, self.client_id)
+        self.authorizer = self.flow_management_authorizer
         temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
         temp_body["subtitle"] = subtitle
         temp_body["description"] = description
@@ -264,7 +269,7 @@ class FlowsClient(BaseClient):
         """
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
-        self.authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, self.client_id)
+        self.authorizer = self.flow_management_authorizer
         temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
         temp_body["subtitle"] = subtitle
         temp_body["description"] = description
@@ -287,8 +292,7 @@ class FlowsClient(BaseClient):
         :param flow_id: The UUID identifying the Flow for which to retrieve
             details
         """
-
-        self.authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, self.client_id)
+        self.authorizer = self.flow_management_authorizer
         path = self.qjoin_path(flow_id)
         return self.get(path, **kwargs)
 
@@ -311,28 +315,55 @@ class FlowsClient(BaseClient):
             where the retrieving identity has at least one of the listed roles on
             each Flow
         """
-        self.authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, self.client_id)
+        self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
             params.update(dict(roles=",".join(roles)))
         return self.get("/flows", params=params, **kwargs)
 
-    def _scope_for_flow(self, flow_id: str) -> str:
-        flow_defn = self.get_flow(flow_id)
-        flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get("scope_string"))
-        return flow_scope
+    def delete_flow(self, flow_id: str, **kwargs):
+        """
+        Remove a Flow definition and its metadata from the Flows service
 
-    def _action_client_for_flow(
-        self, flow_id: str, flow_scope: Optional[str] = None
-    ) -> ActionClient:
+        :param flow_id: The UUID identifying the Flow to delete
+        """
+        self.authorizer = self.flow_management_authorizer
+        return self.delete(f"/flows/{flow_id}", **kwargs)
+
+    def scope_for_flow(self, flow_id: str) -> str:
+        """
+        Returns the scope associated with a particular Flow
+
+        :param flow_id: The UUID identifying the Flow's scope to lookup
+        """
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        return ActionClient.new_client(
+            flow_url, authorizer=self.flow_management_authorizer
+        ).action_scope
+        # flow_defn = self.get_flow(flow_id)
+        # flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get("scope_string"))
+        # return flow_scope
+
+    #####################################################################################
+
+    # def _action_client_for_flow(
+    #    self, flow_id: str, flow_scope: Optional[str] = None
+    # ) -> ActionClient:
+    #    authorizer = get_cli_authorizer(flow_url, flow_scope)
+    #    return ActionClient.new_client(flow_url, authorizer)
+
+    def _get_authorizer_for_flow(
+        self, flow_id: str, flow_scope: Optional[str]
+    ) -> GlobusAuthorizer:
         if flow_scope is None:
-            ac = create_action_client(
-                f"{self.base_url}/flows/{flow_id}", VIEW_FLOWS_SCOPE
-            )
-            flow_scope = ac.action_scope
+            flow_scope = self.scope_for_flow(flow_id)
 
-        ac = create_action_client(f"{self.base_url}/flows/{flow_id}", flow_scope)
-        return ac
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        return self.get_authorizer_callback(
+            flow_url=flow_url,
+            flow_scope=flow_scope,
+            client_id=self.client_id,
+        )
 
     def run_flow(
         self, flow_id: str, flow_scope: Optional[str], flow_input: Mapping, **kwargs
@@ -349,7 +380,13 @@ class FlowsClient(BaseClient):
         :param flow_input: A Flow-specific dictionary specifying the input
             required for the Flow to run.
         """
-        ac = self._action_client_for_flow(flow_id, flow_scope)
+        if "authorizer" in kwargs:
+            authorizer = kwargs.pop("authorizer")
+        else:
+            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
         return ac.run(flow_input, **kwargs)
 
     def flow_action_status(
@@ -367,7 +404,13 @@ class FlowsClient(BaseClient):
         :param flow_action_id: The ID specifying the Action for which's status
             we want to query
         """
-        ac = self._action_client_for_flow(flow_id, flow_scope)
+        if "authorizer" in kwargs:
+            authorizer = kwargs.pop("authorizer")
+        else:
+            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
         return ac.status(flow_action_id)
 
     def flow_action_release(
@@ -384,7 +427,13 @@ class FlowsClient(BaseClient):
 
         :param flow_action_id: The ID specifying the Action to release
         """
-        ac = self._action_client_for_flow(flow_id, flow_scope)
+        if "authorizer" in kwargs:
+            authorizer = kwargs.pop("authorizer")
+        else:
+            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
         return ac.release(flow_action_id)
 
     def flow_action_cancel(
@@ -401,8 +450,13 @@ class FlowsClient(BaseClient):
 
         :param flow_action_id: The ID specifying the Action we want to cancel
         """
+        if "authorizer" in kwargs:
+            authorizer = kwargs.pop("authorizer")
+        else:
+            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
-        ac = self._action_client_for_flow(flow_id, flow_scope)
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
         return ac.cancel(flow_action_id)
 
     def list_flow_actions(
@@ -440,9 +494,11 @@ class FlowsClient(BaseClient):
             - runnable_by
             - administered_by
         """
-        if flow_scope is None:
-            flow_scope = self._scope_for_flow(flow_id)
-        self.authorizer = get_authorizer_for_scope(flow_scope, self.client_id)
+        if "authorizer" in kwargs:
+            self.authorizer = kwargs.pop("authorizer")
+        else:
+            self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+
         params = {}
         if statuses is not None and len(statuses) > 0:
             params.update(dict(status=",".join(statuses)))
@@ -478,49 +534,29 @@ class FlowsClient(BaseClient):
         :param reverse_order: An indicator for whether to retrieve the records
             in reverse-chronological order.
         """
-        if flow_scope is None:
-            flow_scope = self._scope_for_flow(flow_id)
-        self.authorizer = get_authorizer_for_scope(flow_scope, self.client_id)
+        if "authorizer" in kwargs:
+            self.authorizer = kwargs.pop("authorizer")
+        else:
+            self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+
         params = {"reverse_order": reverse_order, "limit": limit}
         return self.get(
             f"/flows/{flow_id}/{flow_action_id}/log", params=params, **kwargs
         )
 
-    def delete_flow(self, flow_id: str, **kwargs):
-        """
-        Remove a Flow definition and its metadata from the Flows service
-
-        :param flow_id: The UUID identifying the Flow to delete
-        """
-        return self.delete(f"/flows/{flow_id}", **kwargs)
-
-
-def create_flows_client(
-    client_id: str, base_url: str = PROD_FLOWS_BASE_URL
-) -> FlowsClient:
-    """
-    A helper function to handle creating a properly authenticated
-    ``FlowsClient`` which can operate against the Globus Automate Flows service.
-
-    If necessary, it's possible to supply a custom ``base_url`` to indicate the
-    address at which the Flows Service is located.
-
-    This function will attempt to load tokens for the MANAGE_FLOWS_SCOPE using
-    the fair_research_login library. In the event that tokens for the scope
-    cannot be loaded, an interactive login Flow will be triggered. Once tokens
-    have been loaded, an Authorizer is created and used to instantiate the
-    ``FlowsClient``.
-
-    :param client_id: The Globus ID to associate with this instance of the
-        FlowsClient
-    :param base_url: The URL at which the Globus Automate Flows service is
-        located
-    """
-    authorizer = get_authorizer_for_scope(MANAGE_FLOWS_SCOPE, client_id)
-    return FlowsClient(
-        client_id,
-        "flows_client",
-        base_url=base_url,
-        app_name="flows_client",
-        authorizer=authorizer,
-    )
+    @classmethod
+    def new_client(
+        cls,
+        client_id: str,
+        authorizer_callback,
+        authorizer: GlobusAuthorizer,
+        base_url: str = PROD_FLOWS_BASE_URL,
+    ):
+        return cls(
+            client_id,
+            authorizer_callback,
+            "flows_client",
+            app_name="Globus Automate SDK FlowsClient",
+            base_url=base_url,
+            authorizer=authorizer,
+        )

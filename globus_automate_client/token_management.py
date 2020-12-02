@@ -1,9 +1,12 @@
 import os
+from typing import Optional
 
 from fair_research_login import ConfigParserTokenStorage, NativeClient
 from fair_research_login.exc import LocalServerError
 from globus_sdk import AccessTokenAuthorizer
 from globus_sdk.exc import AuthAPIError
+
+from globus_automate_client.action_client import ActionClient
 
 CLIENT_ID = "e6c75d97-532a-4c88-b031-8584a319fa3e"
 CONFIG_PATH = "~/.globus-automate.cfg"
@@ -45,3 +48,23 @@ def get_authorizer_for_scope(
 
     authorizers = client.get_authorizers_by_scope(requested_scopes=[scope])
     return authorizers[scope]
+
+
+def get_cli_authorizer(
+    action_url: str,
+    action_scope: Optional[str],
+    client_id: str = CLIENT_ID,
+):
+    if action_scope is None:
+        # We don't know the scope which makes it impossible to get a token,
+        # but create a client anyways in case this Action Provider is publicly
+        # visible and we can introspect its scope
+        action_scope = ActionClient.new_client(action_url, None).action_scope
+
+    if action_scope:
+        authorizer = get_authorizer_for_scope(action_scope, client_id)
+    else:
+        # Any attempts to use this authorizer will fail but there's nothing we
+        # can do without a scope.
+        authorizer = None
+    return authorizer
