@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -8,7 +8,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.authorizers.base import GlobusAuthorizer
+from globus_sdk.authorizers import GlobusAuthorizer
 from globus_sdk.base import BaseClient
 from jsonschema import Draft7Validator
 
@@ -36,6 +36,8 @@ ALL_FLOW_SCOPES = (
     RUN_FLOWS_SCOPE,
     RUN_STATUS_SCOPE,
 )
+
+AUTHORIZER_CALLBACK_TYPE = Callable[[Tuple[str, str, str]], GlobusAuthorizer]
 
 
 class FlowValidationError(Exception):
@@ -137,9 +139,12 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
-    # TODO add callback type hint
     def __init__(
-        self, client_id: str, get_authorizer_callback, *args, **kwargs
+        self,
+        client_id: str,
+        get_authorizer_callback: AUTHORIZER_CALLBACK_TYPE,
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.client_id = client_id
@@ -548,10 +553,46 @@ class FlowsClient(BaseClient):
     def new_client(
         cls,
         client_id: str,
-        authorizer_callback,
+        authorizer_callback: AUTHORIZER_CALLBACK_TYPE,
         authorizer: GlobusAuthorizer,
         base_url: str = PROD_FLOWS_BASE_URL,
-    ):
+    ) -> "FlowsClient":
+        """
+        Classmethod to simplify creating an FlowsClient. Use this method when
+        attemping to create a FlowsClient with pre-existing credentials or
+        authorizers. This method is useful when creating a FlowClient for
+        interacting with a Flow without wanting to launch an interactive login
+        process.
+
+        :param client_id: The client_id to associate with this FlowsClient.
+
+        :param authorizer_callback: A callable which is capable of returning an
+            authorizer for a particular Flow. The callback should accept three keyword-args: flow_url, flow_scope, client_id. Using
+            some, all, or none of these args, the callback should return a
+            GlobusAuthorizer which provides access to the targetted Flow.
+
+        :param authorizer: The authorizer to use for validating requests to the
+            Flows service. This authorizer is used when interacting with the
+            Flow's service, it is not used for interactive with a particular
+            flow. Therefore, this authorizer should grant consent to the
+            MANAGE_FLOWS_SCOPE. For interacting with a particular flow, set the
+            authorizer_callback parameter.
+
+        :param base_url: The url at which the target Action Provider is
+            located.
+
+        **Examples**
+            >>> def cli_authorizer_callback(**kwargs):
+                    flow_url = kwargs["flow_url"]
+                    flow_scope = kwargs["flow_scope"]
+                    client_id = kwargs["client_id"]
+                    return get_cli_authorizer(flow_url, flow_scope, client_id)
+            >>> action_url = "https://actions.globus.org/hello_world"
+            >>> client_id = "00000000-0000-0000-0000-000000000000"
+            >>> auth = ...
+            >>> fc = FlowsClient.new_client(client_id, cli_authorizer_callback, auth)
+            >>> print(fc.list_flows())
+        """
         return cls(
             client_id,
             authorizer_callback,

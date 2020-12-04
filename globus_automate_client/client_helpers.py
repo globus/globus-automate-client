@@ -19,7 +19,7 @@ def create_action_client(
     optionally triggering a log-in flow if the requested tokens are not found
     locally. To create an ActionClient without referencing local storage or
     triggering a login flow, instantiate an authorizer directly and use the
-    ActionClient.new_client classmethod.
+    ``ActionClient.new_client`` classmethod.
 
     Given the ``action_url`` for a specific ActionProvider, this function will
     attempt to create a valid ``ActionClient`` for interacting with that
@@ -64,7 +64,7 @@ def create_flows_client(
     tokens have been loaded, an Authorizer is created and used to instantiate
     the ``FlowsClient``. To create a FlowsClient without referencing local
     storage or triggering a login flow, instantiate an authorizer directly and
-    use the FlowsClient.new_client classmethod.
+    use the ``FlowsClient.new_client`` classmethod.
 
     :param client_id: The Globus ID to associate with this instance of the
         FlowsClient

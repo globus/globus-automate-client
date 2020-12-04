@@ -7,7 +7,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.authorizers.base import GlobusAuthorizer
+from globus_sdk.authorizers import GlobusAuthorizer
 from globus_sdk.base import BaseClient
 
 
@@ -113,7 +113,26 @@ class ActionClient(BaseClient):
         return self.post(path)
 
     @classmethod
-    def new_client(cls, action_url: str, authorizer: GlobusAuthorizer):
+    def new_client(
+        cls, action_url: str, authorizer: GlobusAuthorizer
+    ) -> "ActionClient":
+        """
+        Classmethod to simplify creating an ActionClient. Use this method when
+        attemping to create an ActionClient with pre-existing credentials or
+        authorizers.
+
+        :param action_url: The url at which the target Action Provider is
+            located.
+
+        :param authorizer: The authorizer to use for validating requests to the
+            Action Provider.
+
+        **Examples**
+            >>> authorizer = ...
+            >>> action_url = "https://actions.globus.org/hello_world"
+            >>> ac = ActionClient.new_client(action_url, authorizer)
+            >>> print(ac.run({"echo_string": "Hello from SDK"}))
+        """
         return cls(
             "action_client",
             app_name="Globus Automate SDK - ActionClient",
