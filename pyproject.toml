@@ -35,7 +35,7 @@ python = "^3.6"
 globus-sdk = "^1.9"
 graphviz = "^0.12"
 typer = {extras = ["all"], version = "^0.3.0"}
-fair-research-login = "^0.1.5"
+fair-research-login = {version = "^0.2.0"}
 jsonschema = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
