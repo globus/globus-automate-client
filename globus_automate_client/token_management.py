@@ -29,7 +29,7 @@ def get_authorizer_for_scope(
     scope: str, client_id: str = CLIENT_ID
 ) -> AccessTokenAuthorizer:
     client = NativeClient(
-        client_id=CLIENT_ID,
+        client_id=client_id,
         app_name="globus-automate CLI",
         token_storage=MultiScopeTokenStorage(scope),
         default_scopes=scope,

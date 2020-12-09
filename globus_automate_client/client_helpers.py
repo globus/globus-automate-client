@@ -6,11 +6,13 @@ from globus_automate_client.flows_client import (
     PROD_FLOWS_BASE_URL,
     FlowsClient,
 )
-from globus_automate_client.token_management import get_cli_authorizer
+from globus_automate_client.token_management import CLIENT_ID, get_cli_authorizer
 
 
 def create_action_client(
-    action_url: str, action_scope: Optional[str] = None
+    action_url: str,
+    action_scope: Optional[str] = None,
+    client_id: str = CLIENT_ID,
 ) -> ActionClient:
     """
     A helper function to handle creating a properly authenticated ``ActionClient``
@@ -40,8 +42,12 @@ def create_action_client(
         exists
     :param action_scope: The target Action Provider's Globus Auth Scope used
         for authenticating access to it
+    :param client_id: The ID for the Native App Auth Client which will be
+        triggering the login flow for this ActionClient
     """
-    authorizer = get_cli_authorizer(action_url=action_url, action_scope=action_scope)
+    authorizer = get_cli_authorizer(
+        action_url=action_url, action_scope=action_scope, client_id=client_id
+    )
     return ActionClient.new_client(action_url=action_url, authorizer=authorizer)
 
 

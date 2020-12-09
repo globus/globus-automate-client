@@ -1,6 +1,19 @@
 import json
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -8,7 +21,6 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.authorizers import GlobusAuthorizer
 from globus_sdk.base import BaseClient
 from jsonschema import Draft7Validator
 
@@ -37,7 +49,11 @@ ALL_FLOW_SCOPES = (
     RUN_STATUS_SCOPE,
 )
 
-AUTHORIZER_CALLBACK_TYPE = Callable[[Tuple[str, str, str]], GlobusAuthorizer]
+_FlowsClient = TypeVar("_FlowsClient", bound="FlowsClient")
+AllowedAuthorizersType = Union[
+    AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
+]
+AuthorizerCallbackType = Callable[..., AllowedAuthorizersType]
 
 
 class FlowValidationError(Exception):
@@ -142,13 +158,13 @@ class FlowsClient(BaseClient):
     def __init__(
         self,
         client_id: str,
-        get_authorizer_callback: AUTHORIZER_CALLBACK_TYPE,
+        get_authorizer_callback: AuthorizerCallbackType,
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.client_id = client_id
-        self.flow_management_authorizer: GlobusAuthorizer = self.authorizer
+        self.flow_management_authorizer: AllowedAuthorizersType = self.authorizer
         self.get_authorizer_callback = get_authorizer_callback
 
     def deploy_flow(
@@ -343,23 +359,15 @@ class FlowsClient(BaseClient):
         """
         flow_url = f"{self.base_url}/flows/{flow_id}"
         return ActionClient.new_client(
-            flow_url, authorizer=self.flow_management_authorizer
+            flow_url, authorizer=self.authorizer
         ).action_scope
-        # flow_defn = self.get_flow(flow_id)
-        # flow_scope = flow_defn.get("globus_auth_scope", flow_defn.get("scope_string"))
-        # return flow_scope
-
-    #####################################################################################
-
-    # def _action_client_for_flow(
-    #    self, flow_id: str, flow_scope: Optional[str] = None
-    # ) -> ActionClient:
-    #    authorizer = get_cli_authorizer(flow_url, flow_scope)
-    #    return ActionClient.new_client(flow_url, authorizer)
 
     def _get_authorizer_for_flow(
-        self, flow_id: str, flow_scope: Optional[str]
-    ) -> GlobusAuthorizer:
+        self, flow_id: str, flow_scope: Optional[str], extras: Dict[str, Any]
+    ) -> AllowedAuthorizersType:
+        if "authorizer" in extras:
+            return extras.pop("authorizer")
+
         if flow_scope is None:
             flow_scope = self.scope_for_flow(flow_id)
 
@@ -384,12 +392,13 @@ class FlowsClient(BaseClient):
 
         :param flow_input: A Flow-specific dictionary specifying the input
             required for the Flow to run.
-        """
-        if "authorizer" in kwargs:
-            authorizer = kwargs.pop("authorizer")
-        else:
-            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.run(flow_input, **kwargs)
@@ -408,12 +417,13 @@ class FlowsClient(BaseClient):
 
         :param flow_action_id: The ID specifying the Action for which's status
             we want to query
-        """
-        if "authorizer" in kwargs:
-            authorizer = kwargs.pop("authorizer")
-        else:
-            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.status(flow_action_id)
@@ -431,12 +441,13 @@ class FlowsClient(BaseClient):
             the Flow to pull its scope automatically
 
         :param flow_action_id: The ID specifying the Action to release
-        """
-        if "authorizer" in kwargs:
-            authorizer = kwargs.pop("authorizer")
-        else:
-            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.release(flow_action_id)
@@ -454,12 +465,13 @@ class FlowsClient(BaseClient):
             the Flow to pull its scope automatically
 
         :param flow_action_id: The ID specifying the Action we want to cancel
-        """
-        if "authorizer" in kwargs:
-            authorizer = kwargs.pop("authorizer")
-        else:
-            authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.cancel(flow_action_id)
@@ -498,11 +510,13 @@ class FlowsClient(BaseClient):
             - visible_to
             - runnable_by
             - administered_by
+
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
         """
-        if "authorizer" in kwargs:
-            self.authorizer = kwargs.pop("authorizer")
-        else:
-            self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
+        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
 
         params = {}
         if statuses is not None and len(statuses) > 0:
@@ -538,25 +552,25 @@ class FlowsClient(BaseClient):
 
         :param reverse_order: An indicator for whether to retrieve the records
             in reverse-chronological order.
-        """
-        if "authorizer" in kwargs:
-            self.authorizer = kwargs.pop("authorizer")
-        else:
-            self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope)
 
-        params = {"reverse_order": reverse_order, "limit": limit}
-        return self.get(
-            f"/flows/{flow_id}/{flow_action_id}/log", params=params, **kwargs
-        )
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
+        return ac.log(flow_action_id, limit, reverse_order)
 
     @classmethod
     def new_client(
-        cls,
+        cls: Type[_FlowsClient],
         client_id: str,
-        authorizer_callback: AUTHORIZER_CALLBACK_TYPE,
-        authorizer: GlobusAuthorizer,
+        authorizer_callback: AuthorizerCallbackType,
+        authorizer: AllowedAuthorizersType,
         base_url: str = PROD_FLOWS_BASE_URL,
-    ) -> "FlowsClient":
+    ) -> _FlowsClient:
         """
         Classmethod to simplify creating an FlowsClient. Use this method when
         attemping to create a FlowsClient with pre-existing credentials or
@@ -567,9 +581,10 @@ class FlowsClient(BaseClient):
         :param client_id: The client_id to associate with this FlowsClient.
 
         :param authorizer_callback: A callable which is capable of returning an
-            authorizer for a particular Flow. The callback should accept three keyword-args: flow_url, flow_scope, client_id. Using
-            some, all, or none of these args, the callback should return a
-            GlobusAuthorizer which provides access to the targetted Flow.
+            authorizer for a particular Flow. The callback should accept three
+            keyword-args: flow_url, flow_scope, client_id. Using some, all, or
+            none of these args, the callback should return a GlobusAuthorizer
+            which provides access to the targetted Flow.
 
         :param authorizer: The authorizer to use for validating requests to the
             Flows service. This authorizer is used when interacting with the

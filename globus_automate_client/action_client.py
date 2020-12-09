@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any, Iterable, Mapping, Optional, Type, TypeVar, Union
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -7,8 +7,9 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.authorizers import GlobusAuthorizer
 from globus_sdk.base import BaseClient
+
+_ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
 class ActionClient(BaseClient):
@@ -17,6 +18,10 @@ class ActionClient(BaseClient):
         RefreshTokenAuthorizer,
         ClientCredentialsAuthorizer,
     )
+
+    AllowedAuthorizersType = Union[
+        AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
+    ]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -112,10 +117,26 @@ class ActionClient(BaseClient):
         path = self.qjoin_path(action_id, "release")
         return self.post(path)
 
+    def log(
+        self, action_id: str, limit: int = 10, reverse_order: bool = False
+    ) -> GlobusHTTPResponse:
+        """
+        Retrieve an Action's execution log history.
+
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
+        :param limit: A integer specifying how many log records to return
+        :param reverse_order: Display the Action states in reverse-
+            chronological order
+        """
+        params = {"reverse_order": reverse_order, "limit": limit}
+        path = self.qjoin_path(action_id, "log")
+        return self.get(path, params=params)
+
     @classmethod
     def new_client(
-        cls, action_url: str, authorizer: GlobusAuthorizer
-    ) -> "ActionClient":
+        cls: Type[_ActionClient], action_url: str, authorizer: AllowedAuthorizersType
+    ) -> _ActionClient:
         """
         Classmethod to simplify creating an ActionClient. Use this method when
         attemping to create an ActionClient with pre-existing credentials or
