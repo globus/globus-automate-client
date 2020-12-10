@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Iterable, Mapping, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -118,7 +118,12 @@ class ActionClient(BaseClient):
         return self.post(path)
 
     def log(
-        self, action_id: str, limit: int = 10, reverse_order: bool = False
+        self,
+        action_id: str,
+        limit: int = 10,
+        reverse_order: bool = False,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
     ) -> GlobusHTTPResponse:
         """
         Retrieve an Action's execution log history.
@@ -129,7 +134,14 @@ class ActionClient(BaseClient):
         :param reverse_order: Display the Action states in reverse-
             chronological order
         """
-        params = {"reverse_order": reverse_order, "limit": limit}
+        params: Dict[str, Union[int, str]] = {
+            "reverse_order": reverse_order,
+            "limit": limit,
+        }
+        if marker is not None:
+            params["pagination_token"] = marker
+        if per_page is not None and marker is None:
+            params["per_page"] = per_page
         path = self.qjoin_path(action_id, "log")
         return self.get(path, params=params)
 
