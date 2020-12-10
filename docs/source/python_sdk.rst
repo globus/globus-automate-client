@@ -18,14 +18,14 @@ Actions
 Helper
 ------
 
-.. autofunction:: globus_automate_client.action_client.create_action_client
+.. autofunction:: globus_automate_client.create_action_client
 
 Example
 -------
 
 .. code-block:: python
 
-    from globus_automate_client.action_client import create_action_client
+    from globus_automate_client import create_action_client
 
     ac = create_action_client("https://actions.globus.org/hello_world")
 
@@ -45,14 +45,14 @@ Flows
 Helper
 ------
 
-.. autofunction:: globus_automate_client.flows_client.create_flows_client
+.. autofunction:: globus_automate_client.create_flows_client
 
 Example
 -------
 
 .. code-block:: python
 
-    from globus_automate_client.flows_client import create_flows_client
+    from globus_automate_client import create_flows_client
     from globus_automate_client.token_management import CLIENT_ID
 
     fc = create_flows_client(CLIENT_ID)

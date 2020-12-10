@@ -18,10 +18,10 @@ from globus_automate_client.cli.helpers import (
     format_and_echo,
     verbosity_option,
 )
+from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
     PROD_FLOWS_BASE_URL,
     FlowValidationError,
-    create_flows_client,
     validate_flow_definition,
 )
 from globus_automate_client.graphviz_rendering import (

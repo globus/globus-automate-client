@@ -1,16 +1,15 @@
 import json
-import uuid
 from typing import List
 
 import typer
 
-from globus_automate_client.action_client import create_action_client
 from globus_automate_client.cli.callbacks import (
     json_validator_callback,
     principal_validator,
     url_validator_callback,
 )
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
+from globus_automate_client.client_helpers import create_action_client
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
 

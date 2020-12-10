@@ -14,7 +14,7 @@ You can then import Globus Automate client classes and other helpers from
 
 .. code-block:: python
 
-    from globus_automate_client.action_client import create_action_client
+    from globus_automate_client import create_action_client
 
     ac = create_action_client("https://actions.globus.org/hello_world")
 

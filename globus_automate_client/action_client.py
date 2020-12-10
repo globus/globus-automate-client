@@ -1,7 +1,6 @@
 import uuid
-from typing import Any, Dict, Iterable, Mapping, Optional
+from typing import Any, Iterable, Mapping, Optional, Type, TypeVar, Union
 
-import requests
 from globus_sdk import (
     AccessTokenAuthorizer,
     ClientCredentialsAuthorizer,
@@ -10,7 +9,7 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 
-from globus_automate_client.token_management import get_authorizer_for_scope
+_ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
 class ActionClient(BaseClient):
@@ -19,6 +18,10 @@ class ActionClient(BaseClient):
         RefreshTokenAuthorizer,
         ClientCredentialsAuthorizer,
     )
+
+    AllowedAuthorizersType = Union[
+        AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
+    ]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -44,11 +47,7 @@ class ActionClient(BaseClient):
         such as its expected ``action_scope``, its ``input_schema``, and who to
         contact when there's trouble.
         """
-        headers: Dict = {}
-        if self.authorizer is not None:
-            self.authorizer.set_authorization_header(headers)
-        resp = requests.get(self.base_url, headers=headers)
-        return self.default_response_class(resp, client=self)
+        return self.get("")
 
     def run(
         self,
@@ -118,54 +117,46 @@ class ActionClient(BaseClient):
         path = self.qjoin_path(action_id, "release")
         return self.post(path)
 
+    def log(
+        self, action_id: str, limit: int = 10, reverse_order: bool = False
+    ) -> GlobusHTTPResponse:
+        """
+        Retrieve an Action's execution log history.
 
-def create_action_client(
-    action_url: str, action_scope: Optional[str] = None
-) -> ActionClient:
-    """
-    A helper function to handle creating a properly authenticated ``ActionClient``
-    which can operate against *Globus Action Provider Interface* compliant Action
-    Providers.
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
+        :param limit: A integer specifying how many log records to return
+        :param reverse_order: Display the Action states in reverse-
+            chronological order
+        """
+        params = {"reverse_order": reverse_order, "limit": limit}
+        path = self.qjoin_path(action_id, "log")
+        return self.get(path, params=params)
 
-    Given the ``action_url`` for a specific ActionProvider, this function will
-    attempt to create a valid ``ActionClient`` for interacting with that
-    ActionProvider. If the ``action_scope`` is not provided, this function will
-    attempt to discover the ``action_scope`` by querying the target Action
-    Provider's introspection endpoint. If the Action Provider is not configured
-    to allow public, unauthenticated access to its introspection endpoint, the
-    ``action_scope`` will be non-discoverable and authentication will fail.
+    @classmethod
+    def new_client(
+        cls: Type[_ActionClient], action_url: str, authorizer: AllowedAuthorizersType
+    ) -> _ActionClient:
+        """
+        Classmethod to simplify creating an ActionClient. Use this method when
+        attemping to create an ActionClient with pre-existing credentials or
+        authorizers.
 
-    With the ``action_scope`` available, the function will search for a valid
-    token using the fair_research_login library. In the event that tokens for
-    the scope cannot be loaded, an interactive login will be triggered. Once
-    tokens have been loaded, an Authorizer is created and used to instantiate
-    the ``ActionClient`` which can be used for operations against that Action
-    Provider.
+        :param action_url: The url at which the target Action Provider is
+            located.
 
-    :param action_url: The URL address at which the target Action Provider
-        exists
-    :param action_scope: The target Action Provider's Globus Auth Scope used
-        for authenticating access to it
-    """
-    if action_scope is None:
-        # We don't know the scope which makes it impossible to get a token,
-        # but create a client anyways in case this action provider is publicly
-        # visible without authentication.
-        temp_client = ActionClient(
-            "temp_client", base_url=action_url, app_name="tmp_client",
+        :param authorizer: The authorizer to use for validating requests to the
+            Action Provider.
+
+        **Examples**
+            >>> authorizer = ...
+            >>> action_url = "https://actions.globus.org/hello_world"
+            >>> ac = ActionClient.new_client(action_url, authorizer)
+            >>> print(ac.run({"echo_string": "Hello from SDK"}))
+        """
+        return cls(
+            "action_client",
+            app_name="Globus Automate SDK - ActionClient",
+            base_url=action_url,
+            authorizer=authorizer,
         )
-        action_scope = temp_client.action_scope
-
-    if action_scope:
-        authorizer = get_authorizer_for_scope(action_scope)
-    else:
-        # Any attempts to use this authorizer will fail but there's nothing we
-        # can do without a scope.
-        authorizer = None
-
-    return ActionClient(
-        "action_client",
-        base_url=action_url,
-        app_name="action_client",
-        authorizer=authorizer,
-    )
