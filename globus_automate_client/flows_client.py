@@ -339,6 +339,11 @@ class FlowsClient(BaseClient):
             Each value in the ``roles`` list is Or-ed to retrieve a listing of Flows
             where the retrieving identity has at least one of the listed roles on
             each Flow
+        :param marker: A pagination_token indicating the page of results to
+            return and how many entries to return. This is created by the Flow's
+            service and returned by operations that support pagination.
+        :param per_page: The number of results to return per page. If
+            supplied a pagination_token, this parameter has no effect.
         """
         self.authorizer = self.flow_management_authorizer
         params = {}
@@ -521,6 +526,12 @@ class FlowsClient(BaseClient):
             - runnable_by
             - administered_by
 
+        :param marker: A pagination_token indicating the page of results to
+            return and how many entries to return. This is created by the Flow's
+            service and returned by operations that support pagination.
+        :param per_page: The number of results to return per page. If
+            supplied a pagination_token, this parameter has no effect.
+
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
@@ -568,6 +579,12 @@ class FlowsClient(BaseClient):
 
         :param reverse_order: An indicator for whether to retrieve the records
             in reverse-chronological order.
+
+        :param marker: A pagination_token indicating the page of results to
+            return and how many entries to return. This is created by the Flow's
+            service and returned by operations that support pagination.
+        :param per_page: The number of results to return per page. If
+            supplied a pagination_token, this parameter has no effect.
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
