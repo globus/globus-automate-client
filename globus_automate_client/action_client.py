@@ -133,6 +133,12 @@ class ActionClient(BaseClient):
         :param limit: A integer specifying how many log records to return
         :param reverse_order: Display the Action states in reverse-
             chronological order
+        :param marker: A pagination_token indicating the page of results to
+            return and how many entries to return. Not all ActionProviders will
+            support this parameter.
+        :param per_page: The number of results to return per page. If
+            supplied a pagination_token, this parameter has no effect. Not all
+            ActionProviders will support this parameter.
         """
         params: Dict[str, Union[int, str]] = {
             "reverse_order": reverse_order,
