@@ -317,6 +317,20 @@ def flow_list(
         case_sensitive=False,
         show_default=True,
     ),
+    marker: str = typer.Option(
+        None,
+        "--marker",
+        "-m",
+        help="A pagination token for iterating through returned data.",
+    ),
+    per_page: int = typer.Option(
+        None,
+        "--per-page",
+        "-p",
+        help="The page size to return. Only valid when used without providing a marker.",
+        min=1,
+        max=50,
+    ),
     flows_endpoint: str = typer.Option(
         PROD_FLOWS_BASE_URL,
         hidden=True,
@@ -328,7 +342,9 @@ def flow_list(
     List Flows for which you have access.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flows = fc.list_flows(roles=[r.value for r in roles])
+    flows = fc.list_flows(
+        roles=[r.value for r in roles], marker=marker, per_page=per_page
+    )
     format_and_echo(flows, verbose=verbose)
 
 
@@ -443,6 +459,20 @@ def flow_actions_list(
         "--status",
         help="Display Actions with the selected status. [repeatable]",
     ),
+    marker: str = typer.Option(
+        None,
+        "--marker",
+        "-m",
+        help="A pagination token for iterating through returned data.",
+    ),
+    per_page: int = typer.Option(
+        None,
+        "--per-page",
+        "-p",
+        help="The page size to return. Only valid when used without providing a marker.",
+        min=1,
+        max=50,
+    ),
     flows_endpoint: str = typer.Option(
         PROD_FLOWS_BASE_URL,
         hidden=True,
@@ -465,7 +495,12 @@ def flow_actions_list(
         roles_str = [r.value for r in roles]
 
     action_list = fc.list_flow_actions(
-        flow_id, flow_scope, statuses=statuses_str, roles=roles_str
+        flow_id,
+        flow_scope,
+        statuses=statuses_str,
+        roles=roles_str,
+        marker=marker,
+        per_page=per_page,
     )
     format_and_echo(action_list, verbose=verbose)
 
@@ -577,6 +612,21 @@ def flow_action_log(
         None,
         help="Set a maximum number of events from the log to return",
         min=0,
+        max=100,
+    ),
+    marker: str = typer.Option(
+        None,
+        "--marker",
+        "-m",
+        help="A pagination token for iterating through returned data.",
+    ),
+    per_page: int = typer.Option(
+        None,
+        "--per-page",
+        "-p",
+        help="The page size to return. Only valid when used without providing a marker.",
+        min=1,
+        max=50,
     ),
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
@@ -597,7 +647,9 @@ def flow_action_log(
     Get a log of the steps executed by a Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    resp = fc.flow_action_log(flow_id, flow_scope, action_id, limit, reverse)
+    resp = fc.flow_action_log(
+        flow_id, flow_scope, action_id, limit, reverse, marker, per_page
+    )
 
     if verbose:
         display_http_details(resp)

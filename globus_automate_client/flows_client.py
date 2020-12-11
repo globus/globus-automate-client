@@ -318,7 +318,11 @@ class FlowsClient(BaseClient):
         return self.get(path, **kwargs)
 
     def list_flows(
-        self, roles: Optional[List[str]] = None, **kwargs
+        self,
+        roles: Optional[List[str]] = None,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
+        **kwargs,
     ) -> GlobusHTTPResponse:
         """
         Display all deployed Flows for which you have the selected role(s)
@@ -340,6 +344,10 @@ class FlowsClient(BaseClient):
         params = {}
         if roles is not None and len(roles) > 0:
             params.update(dict(roles=",".join(roles)))
+        if marker is not None:
+            params["pagination_token"] = marker
+        if per_page is not None and marker is None:
+            params["per_page"] = str(per_page)
         return self.get("/flows", params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs):
@@ -482,6 +490,8 @@ class FlowsClient(BaseClient):
         flow_scope: Optional[str],
         statuses: Optional[List[str]],
         roles: Optional[List[str]] = None,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -523,6 +533,10 @@ class FlowsClient(BaseClient):
             params.update(dict(status=",".join(statuses)))
         if roles is not None and len(roles) > 0:
             params.update(dict(roles=",".join(roles)))
+        if marker is not None:
+            params["pagination_token"] = marker
+        if per_page is not None and marker is None:
+            params["per_page"] = str(per_page)
         return self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
 
     def flow_action_log(
@@ -532,6 +546,8 @@ class FlowsClient(BaseClient):
         flow_action_id: str,
         limit: int = 10,
         reverse_order: bool = False,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -561,7 +577,7 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
-        return ac.log(flow_action_id, limit, reverse_order)
+        return ac.log(flow_action_id, limit, reverse_order, marker, per_page)
 
     @classmethod
     def new_client(
