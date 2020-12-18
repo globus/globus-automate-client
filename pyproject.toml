@@ -37,6 +37,7 @@ graphviz = "^0.12"
 typer = {extras = ["all"], version = "^0.3.0"}
 fair-research-login = {version = "^0.2.0"}
 jsonschema = "^3.2.0"
+PyYAML = "^5.3.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

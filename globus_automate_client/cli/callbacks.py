@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import yaml
 from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
@@ -63,6 +64,42 @@ def json_validator_callback(body: str) -> str:
             raise typer.BadParameter(f"Invalid JSON: {e}")
     return body
 
+
+def yaml_validator_callback(body: str) -> str:
+    """
+    A user supplied body can be a properly formatted YAML string or a the name
+    of a file that contains valid YAML.  This validator ensures the user
+    supplies a valid YAML or valid filename containing valid YAML. Returns the
+    valid JSON string.
+    """
+    # Callbacks are run regardless of whether an option was explicitly set.
+    # Handle the scenario where the default value for an option is empty
+    if not body:
+        return body
+
+    # Reading from a file was indicated by prepending the filename with the @
+    # symbol -- for backwards compatability check if the symbol is present and
+    # remove it
+    if body.startswith("@"):
+        body = body[1:]
+
+    body_path = pathlib.Path(body)
+    yaml_body = None
+    if body_path.exists() and body_path.is_file():
+        with body_path.open() as f:
+            try:
+                yaml_body = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                raise typer.BadParameter(f"Invalid YAML: {e}")
+    elif body_path.exists() and body_path.is_dir():
+        raise typer.BadParameter("Expected file, received directory")
+    else:
+        try:
+            yaml_body = yaml.safe_load(body)
+        except yaml.YAMLError as e:
+            raise typer.BadParameter(f"Invalid YAML: {e}")
+
+    return json.dumps(yaml_body)
 
 def text_validator_callback(message: str) -> str:
     """

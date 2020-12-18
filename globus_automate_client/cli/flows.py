@@ -56,6 +56,10 @@ class ActionStatus(str, Enum):
     active = "ACTIVE"
     inactive = "INACTIVE"
 
+class FlowInputFormat(str, Enum):
+    json = "json"
+    yaml = "yaml"
+
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
@@ -76,8 +80,8 @@ def flow_deploy(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON representation of the Flow to deploy. May be provided as a filename "
-            "or a raw JSON string."
+            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
+            "or a raw string representing a JSON object or YAML definition."
         ),
         prompt=True,
         callback=json_validator_callback,
@@ -139,6 +143,14 @@ def flow_deploy(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
+    input_format: FlowInputFormat = typer.Option(
+        FlowInputFormat.json,
+        help=(
+            "Force input processing to be the type selected. Otherwise "
+            "the type will try to be inferred automatically"
+        ),
+        show_choices=True,
+    ),
 ):
     """
     Deploy a new Flow.
