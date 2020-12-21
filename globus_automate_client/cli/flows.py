@@ -12,6 +12,7 @@ from globus_automate_client.cli.callbacks import (
     principal_or_public_validator,
     principal_validator,
     url_validator_callback,
+    input_validator_callback,
 )
 from globus_automate_client.cli.helpers import (
     display_http_details,
@@ -56,6 +57,7 @@ class ActionStatus(str, Enum):
     active = "ACTIVE"
     inactive = "INACTIVE"
 
+
 class FlowInputFormat(str, Enum):
     json = "json"
     yaml = "yaml"
@@ -84,7 +86,7 @@ def flow_deploy(
             "or a raw string representing a JSON object or YAML definition."
         ),
         prompt=True,
-        callback=json_validator_callback,
+        callback=input_validator_callback,
     ),
     subtitle: str = typer.Option(
         None,
@@ -143,14 +145,6 @@ def flow_deploy(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
-    input_format: FlowInputFormat = typer.Option(
-        FlowInputFormat.json,
-        help=(
-            "Force input processing to be the type selected. Otherwise "
-            "the type will try to be inferred automatically"
-        ),
-        show_choices=True,
-    ),
 ):
     """
     Deploy a new Flow.
@@ -283,7 +277,7 @@ def flow_lint(
             "or a raw JSON string."
         ),
         prompt=True,
-        callback=json_validator_callback,
+        callback=input_validator_callback,
     ),
     validate: bool = typer.Option(
         True,

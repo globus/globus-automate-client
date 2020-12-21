@@ -2,11 +2,11 @@ import json
 import os
 import pathlib
 import yaml
+import typer
+
 from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
-
-import typer
 
 
 def url_validator_callback(url: str) -> str:
@@ -84,7 +84,7 @@ def yaml_validator_callback(body: str) -> str:
         body = body[1:]
 
     body_path = pathlib.Path(body)
-    yaml_body = None
+
     if body_path.exists() and body_path.is_file():
         with body_path.open() as f:
             try:
@@ -99,7 +99,13 @@ def yaml_validator_callback(body: str) -> str:
         except yaml.YAMLError as e:
             raise typer.BadParameter(f"Invalid YAML: {e}")
 
-    return json.dumps(yaml_body)
+    try:
+        yaml_to_json = json.dumps(yaml_body)
+    except TypeError as e:
+        raise typer.BadParameter(f"Unable to translate to JSON: {e}")
+
+    return yaml_to_json
+
 
 def text_validator_callback(message: str) -> str:
     """
@@ -192,3 +198,19 @@ def flows_endpoint_envvar_callback(default_value: str) -> str:
     defining the target Flow endpoint.
     """
     return os.getenv("GLOBUS_AUTOMATE_FLOWS_ENDPOINT", default_value)
+
+
+def input_validator_callback(value: str) -> str:
+    """
+    Allows for the input_format parameter to guide which input
+    validation scheme to use (JSON or YAML) with JSON as default
+    """
+    json_data = None
+
+    try:
+        json_data = json_validator_callback(value)
+    except:
+
+        json_data = yaml_validator_callback(value)
+    finally:
+        return json_data
