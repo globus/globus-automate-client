@@ -200,17 +200,27 @@ def flows_endpoint_envvar_callback(default_value: str) -> str:
     return os.getenv("GLOBUS_AUTOMATE_FLOWS_ENDPOINT", default_value)
 
 
-def input_validator_callback(value: str) -> str:
+def input_validator_callback(body: str) -> str:
     """
-    Allows for the input_format parameter to guide which input
-    validation scheme to use (JSON or YAML) with JSON as default
+    Checks if input is a file and loads it, otherwise
+    returns the body string passed in
     """
-    json_data = None
+    # Callbacks are run regardless of whether an option was explicitly set.
+    # Handle the scenario where the default value for an option is empty
+    if not body:
+        return body
 
-    try:
-        json_data = json_validator_callback(value)
-    except:
+    # Reading from a file was indicated by prepending the filename with the @
+    # symbol -- for backwards compatability check if the symbol is present and
+    # remove it
+    if body.startswith("@"):
+        body = body[1:]
 
-        json_data = yaml_validator_callback(value)
-    finally:
-        return json_data
+    body_path = pathlib.Path(body)
+    if body_path.exists() and body_path.is_file():
+        with body_path.open() as f:
+            body = f.read()
+    elif body_path.exists() and body_path.is_dir():
+        raise typer.BadParameter("Expected file, received directory")
+
+    return body

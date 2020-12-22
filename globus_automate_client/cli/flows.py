@@ -19,7 +19,10 @@ from globus_automate_client.cli.helpers import (
     format_and_echo,
     verbosity_option,
 )
-from globus_automate_client.client_helpers import create_flows_client
+from globus_automate_client.client_helpers import (
+    create_flows_client,
+    process_definition
+)
 from globus_automate_client.flows_client import (
     PROD_FLOWS_BASE_URL,
     FlowValidationError,
@@ -43,6 +46,7 @@ class FlowDisplayFormat(str, Enum):
     json = "json"
     graphviz = "graphviz"
     image = "image"
+    yaml = "yaml"
 
 
 class ActionRole(str, Enum):
@@ -145,12 +149,22 @@ def flow_deploy(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
+    input_format: FlowInputFormat = typer.Option(
+        FlowInputFormat.json,
+        "--input",
+        "-i",
+        help="Input format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     Deploy a new Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_dict = json.loads(definition)
+
+    flow_dict = process_definition(definition, input_format)
+
     if input_schema is not None:
         input_schema_dict = json.loads(input_schema)
     else:
@@ -293,11 +307,20 @@ def flow_lint(
         case_sensitive=False,
         show_default=True,
     ),
+    input_format: FlowInputFormat = typer.Option(
+        FlowInputFormat.json,
+        "--input",
+        "-i",
+        help="Input format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     Parse and validate a Flow definition by providing visual output.
     """
-    flow_dict = json.loads(definition)
+    flow_dict = process_definition(definition, input_format)
+
     try:
         if validate:
             validate_flow_definition(flow_dict)
