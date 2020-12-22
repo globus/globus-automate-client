@@ -70,7 +70,6 @@ def _process_definition(definition: str, input_format: str) -> Mapping[str, Any]
     Turn input strings into dicts per input format type (json, yaml)
     """
     flow_dict = None
-    print(definition)
     if input_format == FlowInputFormat.json:
         try:
             flow_dict = json.loads(definition)
@@ -209,10 +208,10 @@ def flow_update(
     definition: str = typer.Option(
         None,
         help=(
-            "JSON representation of the Flow to update. May be provided as a filename "
-            "or a raw JSON string."
+            "JSON or YAML representation of the Flow to update. May be provided as a filename "
+            "or a raw string."
         ),
-        callback=json_validator_callback,
+        callback=input_validator_callback,
     ),
     subtitle: str = typer.Option(
         None,
@@ -271,12 +270,20 @@ def flow_update(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
+    input_format: FlowInputFormat = typer.Option(
+        FlowInputFormat.json,
+        "--input",
+        "-i",
+        help="Input format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     Update a Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_dict = json.loads(definition)
+    flow_dict = _process_definition(definition, input_format)
     if input_schema is not None:
         input_schema_dict = json.loads(input_schema)
     else:
@@ -305,8 +312,8 @@ def flow_lint(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON representation of the Flow to deploy. May be provided as a filename "
-            "or a raw JSON string."
+            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
+            "or a raw string."
         ),
         prompt=True,
         callback=input_validator_callback,
