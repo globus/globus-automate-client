@@ -1,7 +1,7 @@
 import json
 from enum import Enum
-from typing import List
-
+from typing import List, Mapping, Any
+import yaml
 import typer
 from globus_sdk import GlobusHTTPResponse
 
@@ -19,10 +19,8 @@ from globus_automate_client.cli.helpers import (
     format_and_echo,
     verbosity_option,
 )
-from globus_automate_client.client_helpers import (
-    create_flows_client,
-    process_definition
-)
+from globus_automate_client.client_helpers import create_flows_client
+
 from globus_automate_client.flows_client import (
     PROD_FLOWS_BASE_URL,
     FlowValidationError,
@@ -65,6 +63,26 @@ class ActionStatus(str, Enum):
 class FlowInputFormat(str, Enum):
     json = "json"
     yaml = "yaml"
+
+
+def _process_definition(definition: str, input_format: str) -> Mapping[str, Any]:
+    """
+    Turn input strings into dicts per input format type (json, yaml)
+    """
+    flow_dict = None
+    print(definition)
+    if input_format == FlowInputFormat.json:
+        try:
+            flow_dict = json.loads(definition)
+        except json.JSONDecodeError as e:
+            raise typer.BadParameter(f"Invalid JSON: {e}")
+    elif input_format == FlowInputFormat.yaml:
+        try:
+            flow_dict = yaml.safe_load(definition)
+        except Exception as e:
+            raise typer.BadParameter(f"Invalid YAML: {e}")
+
+    return flow_dict
 
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
@@ -163,7 +181,7 @@ def flow_deploy(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
 
-    flow_dict = process_definition(definition, input_format)
+    flow_dict = _process_definition(definition, input_format)
 
     if input_schema is not None:
         input_schema_dict = json.loads(input_schema)
@@ -319,7 +337,7 @@ def flow_lint(
     """
     Parse and validate a Flow definition by providing visual output.
     """
-    flow_dict = process_definition(definition, input_format)
+    flow_dict = _process_definition(definition, input_format)
 
     try:
         if validate:

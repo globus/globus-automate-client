@@ -1,10 +1,9 @@
 import json
-import yaml
 from typing import Union
 
 import typer
 from globus_sdk import GlobusHTTPResponse
-from flows import FlowInputFormat
+
 
 verbosity_option = typer.Option(
     False, "--verbose", "-v", help="Run with increased verbosity", show_default=False
@@ -34,21 +33,3 @@ def display_http_details(response: GlobusHTTPResponse) -> None:
     print(f"Headers:\n{formatted_headers}")
     print(f"Response: {response._data.status_code}")
 
-
-def process_definition(definition, input_format):
-    """
-    Turn input strings into dicts per input format type (json, yaml)
-    """
-    flow_dict = None
-    if input_format == FlowInputFormat.json:
-        try:
-            flow_dict = json.loads(definition)
-        except json.JSONDecodeError as e:
-            raise typer.BadParameter(f"Invalid JSON: {e}")
-    elif input_format == FlowInputFormat.yaml:
-        try:
-            flow_dict = yaml.safe_load(definition)
-        except Exception as e:
-            raise typer.BadParameter(f"Invalid YAML: {e}")
-
-    return flow_dict
