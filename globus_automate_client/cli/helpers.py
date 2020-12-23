@@ -1,16 +1,20 @@
 import json
-from typing import Union
+from typing import Union, Callable
+import yaml
 
 import typer
 from globus_sdk import GlobusHTTPResponse
-
 
 verbosity_option = typer.Option(
     False, "--verbose", "-v", help="Run with increased verbosity", show_default=False
 )
 
 
-def format_and_echo(result: Union[GlobusHTTPResponse, str], verbose=False) -> None:
+def format_and_echo(
+    result: Union[GlobusHTTPResponse, str],
+    dumper: Callable = lambda result, **args: json.dumps(result, indent=4, sort_keys=True),
+    verbose=False
+) -> None:
     if verbose and isinstance(result, GlobusHTTPResponse):
         display_http_details(result)
 
@@ -22,7 +26,9 @@ def format_and_echo(result: Union[GlobusHTTPResponse, str], verbose=False) -> No
         result = result.data
     else:
         color = typer.colors.GREEN
-    typer.secho(json.dumps(result, indent=4, sort_keys=True), fg=color)
+
+    typer.secho(dumper(result, indent=4, sort_keys=True), fg=color)
+
 
 
 def display_http_details(response: GlobusHTTPResponse) -> None:
