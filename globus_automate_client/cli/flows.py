@@ -420,11 +420,10 @@ def flow_list(
         roles=[r.value for r in roles], marker=marker, per_page=per_page
     )
 
-    format_and_echo(
-        flows,
-        json.dumps if output_format == FlowDisplayFormat.json else yaml.dump,
-        verbose=verbose
-    )
+    if output_format is FlowDisplayFormat.json:
+        format_and_echo(flow_get, json.dumps, verbose=verbose)
+    elif output_format is FlowDisplayFormat.yaml:
+        format_and_echo(flow_get, yaml.dump, verbose=verbose)
 
 
 @app.command("display")
