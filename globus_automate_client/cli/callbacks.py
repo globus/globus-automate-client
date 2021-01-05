@@ -1,12 +1,12 @@
 import json
 import os
 import pathlib
-import yaml
-import typer
-
 from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
+
+import typer
+import yaml
 
 
 def url_validator_callback(url: str) -> str:
@@ -43,8 +43,7 @@ def json_validator_callback(body: str) -> str:
     # Reading from a file was indicated by prepending the filename with the @
     # symbol -- for backwards compatability check if the symbol is present and
     # remove it
-    if body.startswith("@"):
-        body = body[1:]
+    body = body.lstrip("@")
 
     body_path = pathlib.Path(body)
     if body_path.exists() and body_path.is_file():
@@ -80,8 +79,8 @@ def yaml_validator_callback(body: str) -> str:
     # Reading from a file was indicated by prepending the filename with the @
     # symbol -- for backwards compatability check if the symbol is present and
     # remove it
-    if body.startswith("@"):
-        body = body[1:]
+    body = body.lstrip("@")
+
 
     body_path = pathlib.Path(body)
 
@@ -213,8 +212,8 @@ def input_validator_callback(body: str) -> str:
     # Reading from a file was indicated by prepending the filename with the @
     # symbol -- for backwards compatability check if the symbol is present and
     # remove it
-    if body.startswith("@"):
-        body = body[1:]
+    body = body.lstrip("@")
+
 
     body_path = pathlib.Path(body)
     if body_path.exists() and body_path.is_file():
