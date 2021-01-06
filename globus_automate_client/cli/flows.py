@@ -7,9 +7,9 @@ import yaml
 from globus_sdk import GlobusHTTPResponse
 
 from globus_automate_client.cli.callbacks import (
+    flow_input_validator,
     flows_endpoint_envvar_callback,
     input_validator_callback,
-    json_validator_callback,
     principal_or_all_authenticated_users_validator,
     principal_or_public_validator,
     principal_validator,
@@ -65,7 +65,9 @@ class FlowInputFormat(str, Enum):
     yaml = "yaml"
 
 
-def _process_definition(definition: str, input_format: FlowInputFormat) -> Mapping[str, Any]:
+def _process_definition(
+    definition: str, input_format: FlowInputFormat
+) -> Mapping[str, Any]:
     """
     Turn input strings into dicts per input format type (FlowInputFormat)
     """
@@ -119,12 +121,12 @@ def flow_deploy(
     input_schema: str = typer.Option(
         None,
         help=(
-            "A JSON representation of a JSON Schema which will be used to "
+            "A JSON or YAML representation of a JSON Schema which will be used to "
             "validate the input to the deployed Flow when it is run. "
             "If not provided, no validation will be performed on Flow input. "
-            "May be provided as a filename or a raw JSON string."
+            "May be provided as a filename or a raw string."
         ),
-        callback=json_validator_callback,
+        callback=input_validator_callback,
     ),
     keywords: List[str] = typer.Option(
         None,
@@ -183,7 +185,7 @@ def flow_deploy(
     flow_dict = _process_definition(definition, input_format)
 
     if input_schema is not None:
-        input_schema_dict = json.loads(input_schema)
+        input_schema_dict = yaml.safe_load(input_schema)
     else:
         input_schema_dict = None
     result = fc.deploy_flow(
@@ -200,9 +202,9 @@ def flow_deploy(
     )
 
     # Match up output format with input format
-    if FlowInputFormat(input_format) is FlowInputFormat.json:
+    if input_format is FlowInputFormat.json:
         format_and_echo(result, json.dumps, verbose=verbose)
-    elif FlowInputFormat(input_format) is FlowInputFormat.yaml:
+    elif input_format is FlowInputFormat.yaml:
         format_and_echo(result, yaml.dump, verbose=verbose)
 
 
@@ -228,12 +230,12 @@ def flow_update(
     input_schema: str = typer.Option(
         None,
         help=(
-            "A JSON representation of a JSON Schema which will be used to "
+            "A JSON or YAML representation of a JSON Schema which will be used to "
             "validate the input to the deployed Flow when it is run. "
             "If not provided, no validation will be performed on Flow input. "
-            "May be provided as a filename or a raw JSON string."
+            "May be provided as a filename or a raw string."
         ),
-        callback=json_validator_callback,
+        callback=input_validator_callback,
     ),
     keywords: List[str] = typer.Option(
         None,
@@ -290,7 +292,7 @@ def flow_update(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = _process_definition(definition, input_format)
     if input_schema is not None:
-        input_schema_dict = json.loads(input_schema)
+        input_schema_dict = yaml.safe_load(input_schema)
     else:
         input_schema_dict = None
     result = fc.update_flow(
@@ -308,9 +310,9 @@ def flow_update(
     )
     if result is not None:
         # Match up output format with input format
-        if FlowInputFormat(input_format) is FlowInputFormat.json:
+        if input_format is FlowInputFormat.json:
             format_and_echo(result, json.dumps, verbose=verbose)
-        elif FlowInputFormat(input_format) is FlowInputFormat.yaml:
+        elif input_format is FlowInputFormat.yaml:
             format_and_echo(result, yaml.dump, verbose=verbose)
     else:
         print("No operation to perform")
@@ -370,7 +372,7 @@ def flow_lint(
     elif output_format is FlowDisplayFormat.graphviz:
         typer.echo(graph.source)
     else:
-        graph.render(f"flows-output/graph", view=True, cleanup=True)
+        graph.render("flows-output/graph", view=True, cleanup=True)
 
 
 @app.command("list")
@@ -420,10 +422,7 @@ def flow_list(
         roles=[r.value for r in roles], marker=marker, per_page=per_page
     )
 
-    if output_format is FlowDisplayFormat.json:
-        format_and_echo(flow_get, json.dumps, verbose=verbose)
-    elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(flow_get, yaml.dump, verbose=verbose)
+    _format_and_display_flow(flows, output_format, verbose=verbose)
 
 
 @app.command("display")
@@ -451,10 +450,8 @@ def flow_display(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_get = fc.get_flow(flow_id)
 
-    if output_format is FlowDisplayFormat.json:
-        format_and_echo(flow_get, json.dumps, verbose=verbose)
-    elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(flow_get, yaml.dump, verbose=verbose)
+    _format_and_display_flow(flow_get, output_format, verbose=verbose)
+
 
 @app.command("delete")
 def flow_delete(
@@ -489,10 +486,10 @@ def flow_run(
     flow_input: str = typer.Option(
         None,
         help=(
-            "JSON formatted input to the Flow. May be provided as a filename "
-            "or a raw JSON string."
+            "JSON or YAML formatted input to the Flow. May be provided as a filename "
+            "or a raw string."
         ),
-        callback=json_validator_callback,
+        callback=flow_input_validator,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -505,17 +502,25 @@ def flow_run(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
+    output_format: FlowDisplayFormat = typer.Option(
+        FlowDisplayFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     if flow_input is not None:
-        flow_input_dict = json.loads(flow_input)
+        flow_input_dict = yaml.safe_load(flow_input)
     else:
         flow_input_dict = {}
     response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
-    format_and_echo(response, verbose=verbose)
+    _format_and_display_flow(response, output_format, verbose=verbose)
 
 
 @app.command("action-list")
@@ -735,10 +740,8 @@ def flow_action_log(
     if verbose:
         display_http_details(resp)
 
-    if output_format is FlowDisplayFormat.json:
-        format_and_echo(resp, json.dump)
-    elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(resp, yaml.dump)
+    if output_format in (FlowDisplayFormat.json, FlowDisplayFormat.yaml):
+        _format_and_display_flow(resp, output_format, verbose)
     elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
         flow_def_resp = fc.get_flow(flow_id)
         flow_def = flow_def_resp.data["definition"]
@@ -748,7 +751,7 @@ def flow_action_log(
         if output_format == FlowDisplayFormat.graphviz:
             typer.echo(graphviz_out.source)
         else:
-            graphviz_out.render(f"flows-output/graph", view=True, cleanup=True)
+            graphviz_out.render("flows-output/graph", view=True, cleanup=True)
 
 
 def _format_and_display_flow(
@@ -761,15 +764,15 @@ def _format_and_display_flow(
         display_http_details(flow_resp)
 
     if output_format is FlowDisplayFormat.json:
-        format_and_echo(resp, json.dump)
+        format_and_echo(flow_resp, json.dumps)
     elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(resp, yaml.dump)
+        format_and_echo(flow_resp, yaml.dump)
     elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
         graphviz_out = graphviz_format(flow_resp.data["definition"])
         if output_format == FlowDisplayFormat.graphviz:
             typer.echo(graphviz_out.source)
         else:
-            graphviz_out.render(f"flows-output/graph", view=True, cleanup=True)
+            graphviz_out.render("flows-output/graph", view=True, cleanup=True)
 
 
 if __name__ == "__main__":
