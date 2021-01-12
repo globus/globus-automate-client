@@ -49,7 +49,7 @@ def _process_action_body(
     elif input_format is ActionInputFormat.yaml:
         try:
             action_dict = yaml.safe_load(body)
-        except Exception as e:
+        except yaml.YAMLError as e:
             raise typer.BadParameter(f"Invalid YAML: {e}")
 
     return action_dict

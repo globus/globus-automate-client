@@ -86,6 +86,29 @@ def _process_definition(
     return flow_dict
 
 
+def _process_input_schema(
+    input_schema: str, input_format: FlowInputFormat
+) -> Mapping[str, Any]:
+    """
+    Turns input schema strings into dicts
+    """
+    input_schema_dict = None
+
+    if input_schema is not None:
+        if input_format is FlowInputFormat.json:
+            try:
+                input_schema_dict = json.loads(input_schema)
+            except json.JSONDecodeError as e:
+                raise typer.BadParameter(f"Invalid JSON for input schema: {e}")
+        elif input_format is FlowInputFormat.yaml:
+            try:
+                input_schema_dict = yaml.safe_load(input_schema)
+            except yaml.YAMLError as e:
+                raise typer.BadParameter(f"Invalid YAML for input schema: {e}")
+
+    return input_schema_dict
+
+
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
 
@@ -183,11 +206,8 @@ def flow_deploy(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
 
     flow_dict = _process_definition(definition, input_format)
+    input_schema_dict = _process_input_schema(input_schema, input_format)
 
-    if input_schema is not None:
-        input_schema_dict = yaml.safe_load(input_schema)
-    else:
-        input_schema_dict = None
     result = fc.deploy_flow(
         flow_dict,
         title,
@@ -291,10 +311,8 @@ def flow_update(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = _process_definition(definition, input_format)
-    if input_schema is not None:
-        input_schema_dict = yaml.safe_load(input_schema)
-    else:
-        input_schema_dict = None
+    input_schema_dict = _process_input_schema(input_schema, input_format)
+
     result = fc.update_flow(
         flow_id,
         flow_dict,
