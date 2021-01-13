@@ -109,6 +109,24 @@ def _process_input_schema(
     return input_schema_dict
 
 
+def _process_flow_input(flow_input: str, input_format) -> Mapping[str, Any]:
+    flow_input_dict = {}
+
+    if flow_input is not None:
+        if input_format is FlowInputFormat.json:
+            try:
+                flow_input_dict = json.loads(flow_input)
+            except json.JSONDecodeError as e:
+                raise typer.BadParameter(f"Invalid JSON for input schema: {e}")
+        elif input_format is FlowInputFormat.yaml:
+            try:
+                flow_input_dict = yaml.safe_load(flow_input)
+            except yaml.YAMLError as e:
+                raise typer.BadParameter(f"Invalid YAML for input schema: {e}")
+
+    return flow_input_dict
+
+
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
 
@@ -528,15 +546,21 @@ def flow_run(
         case_sensitive=False,
         show_default=True,
     ),
+    input_format: FlowInputFormat = typer.Option(
+        FlowInputFormat.json,
+        "--input",
+        "-i",
+        help="Input format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    if flow_input is not None:
-        flow_input_dict = yaml.safe_load(flow_input)
-    else:
-        flow_input_dict = {}
+    flow_input_dict = _process_flow_input(flow_input, input_format)
+
     response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
     _format_and_display_flow(response, output_format, verbose=verbose)
 
