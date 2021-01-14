@@ -25,13 +25,11 @@ class ActionOutputFormat(str, Enum):
     json = "json"
     yaml = "yaml"
 
-
-# Constant to reduce if statements making the selection
-# used in calls to format_and_echo
-DUMPERS = {
-    ActionOutputFormat.json: json.dumps,
-    ActionOutputFormat.yaml: yaml.dump,
-}
+    def get_dumper(self):
+        if self is self.json:
+            return json.dumps
+        elif self is self.yaml:
+            return yaml.dump
 
 
 def _process_action_body(
@@ -84,7 +82,7 @@ def action_introspect(
     ac = create_action_client(action_url, action_scope)
     if ac is not None:
         result = ac.introspect()
-        format_and_echo(result, DUMPERS[output_format], verbose=verbose)
+        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
 
@@ -151,7 +149,7 @@ def action_run(
     if ac:
         parsed_body = _process_action_body(body, input_format)
         result = ac.run(parsed_body, request_id, manage_by, monitor_by)
-        format_and_echo(result, DUMPERS[output_format], verbose=verbose)
+        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
 
@@ -185,7 +183,7 @@ def action_status(
     ac = create_action_client(action_url, action_scope)
     if ac:
         result = ac.status(action_id)
-        format_and_echo(result, DUMPERS[output_format], verbose=verbose)
+        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
 
@@ -219,7 +217,7 @@ def action_cancel(
     ac = create_action_client(action_url, action_scope)
     if ac:
         result = ac.cancel(action_id)
-        format_and_echo(result, DUMPERS[output_format], verbose=verbose)
+        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
 
@@ -253,7 +251,7 @@ def action_release(
     ac = create_action_client(action_url, action_scope)
     if ac:
         result = ac.release(action_id)
-        format_and_echo(result, DUMPERS[output_format], verbose=verbose)
+        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
 
