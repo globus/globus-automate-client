@@ -4,6 +4,7 @@ from typing import Any, List, Mapping
 
 import typer
 import yaml
+from constants import InputFormat
 from globus_sdk import GlobusHTTPResponse
 
 from globus_automate_client.cli.callbacks import (
@@ -18,6 +19,7 @@ from globus_automate_client.cli.callbacks import (
 from globus_automate_client.cli.helpers import (
     display_http_details,
     format_and_echo,
+    process_input,
     verbosity_option,
 )
 from globus_automate_client.client_helpers import create_flows_client
@@ -60,65 +62,16 @@ class ActionStatus(str, Enum):
     inactive = "INACTIVE"
 
 
-class FlowInputFormat(str, Enum):
-    json = "json"
-    yaml = "yaml"
-
-
-def _process_definition(
-    definition: str, input_format: FlowInputFormat
-) -> Mapping[str, Any]:
-    """
-    Turn input strings into dicts per input format type (FlowInputFormat)
-    """
-    flow_dict = None
-    if input_format is FlowInputFormat.json:
-        try:
-            flow_dict = json.loads(definition)
-        except json.JSONDecodeError as e:
-            raise typer.BadParameter(f"Invalid JSON: {e}")
-    elif input_format is FlowInputFormat.yaml:
-        try:
-            flow_dict = yaml.safe_load(definition)
-        except Exception as e:
-            raise typer.BadParameter(f"Invalid YAML: {e}")
-
-    return flow_dict
-
-
-def _process_input_schema(
-    input_schema: str, input_format: FlowInputFormat
-) -> Mapping[str, Any]:
-    """
-    Turns input schema strings into dicts
-    """
-    input_schema_dict = None
-
-    if input_schema is not None:
-        if input_format is FlowInputFormat.json:
-            try:
-                input_schema_dict = json.loads(input_schema)
-            except json.JSONDecodeError as e:
-                raise typer.BadParameter(f"Invalid JSON for input schema: {e}")
-        elif input_format is FlowInputFormat.yaml:
-            try:
-                input_schema_dict = yaml.safe_load(input_schema)
-            except yaml.YAMLError as e:
-                raise typer.BadParameter(f"Invalid YAML for input schema: {e}")
-
-    return input_schema_dict
-
-
 def _process_flow_input(flow_input: str, input_format) -> Mapping[str, Any]:
     flow_input_dict = {}
 
     if flow_input is not None:
-        if input_format is FlowInputFormat.json:
+        if input_format is InputFormat.json:
             try:
                 flow_input_dict = json.loads(flow_input)
             except json.JSONDecodeError as e:
                 raise typer.BadParameter(f"Invalid JSON for input schema: {e}")
-        elif input_format is FlowInputFormat.yaml:
+        elif input_format is InputFormat.yaml:
             try:
                 flow_input_dict = yaml.safe_load(flow_input)
             except yaml.YAMLError as e:
@@ -209,8 +162,8 @@ def flow_deploy(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
-    input_format: FlowInputFormat = typer.Option(
-        FlowInputFormat.json,
+    input_format: InputFormat = typer.Option(
+        InputFormat.json,
         "--input",
         "-i",
         help="Input format.",
@@ -223,8 +176,8 @@ def flow_deploy(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
 
-    flow_dict = _process_definition(definition, input_format)
-    input_schema_dict = _process_input_schema(input_schema, input_format)
+    flow_dict = process_input(definition, input_format)
+    input_schema_dict = process_input(input_schema, input_format, " for input schema")
 
     result = fc.deploy_flow(
         flow_dict,
@@ -240,9 +193,9 @@ def flow_deploy(
     )
 
     # Match up output format with input format
-    if input_format is FlowInputFormat.json:
+    if input_format is InputFormat.json:
         format_and_echo(result, json.dumps, verbose=verbose)
-    elif input_format is FlowInputFormat.yaml:
+    elif input_format is InputFormat.yaml:
         format_and_echo(result, yaml.dump, verbose=verbose)
 
 
@@ -315,8 +268,8 @@ def flow_update(
         callback=flows_endpoint_envvar_callback,
     ),
     verbose: bool = verbosity_option,
-    input_format: FlowInputFormat = typer.Option(
-        FlowInputFormat.json,
+    input_format: InputFormat = typer.Option(
+        InputFormat.json,
         "--input",
         "-i",
         help="Input format.",
@@ -328,8 +281,8 @@ def flow_update(
     Update a Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_dict = _process_definition(definition, input_format)
-    input_schema_dict = _process_input_schema(input_schema, input_format)
+    flow_dict = process_input(definition, input_format)
+    input_schema_dict = process_input(input_schema, input_format, " for input schema")
 
     result = fc.update_flow(
         flow_id,
@@ -346,9 +299,9 @@ def flow_update(
     )
     if result is not None:
         # Match up output format with input format
-        if input_format is FlowInputFormat.json:
+        if input_format is InputFormat.json:
             format_and_echo(result, json.dumps, verbose=verbose)
-        elif input_format is FlowInputFormat.yaml:
+        elif input_format is InputFormat.yaml:
             format_and_echo(result, yaml.dump, verbose=verbose)
     else:
         print("No operation to perform")
@@ -379,8 +332,8 @@ def flow_lint(
         case_sensitive=False,
         show_default=True,
     ),
-    input_format: FlowInputFormat = typer.Option(
-        FlowInputFormat.json,
+    input_format: InputFormat = typer.Option(
+        InputFormat.json,
         "--input",
         "-i",
         help="Input format.",
@@ -391,7 +344,7 @@ def flow_lint(
     """
     Parse and validate a Flow definition by providing visual output.
     """
-    flow_dict = _process_definition(definition, input_format)
+    flow_dict = process_input(definition, input_format)
 
     try:
         if validate:
@@ -546,8 +499,8 @@ def flow_run(
         case_sensitive=False,
         show_default=True,
     ),
-    input_format: FlowInputFormat = typer.Option(
-        FlowInputFormat.json,
+    input_format: InputFormat = typer.Option(
+        InputFormat.json,
         "--input",
         "-i",
         help="Input format.",

@@ -1,24 +1,24 @@
 import json
 from enum import Enum
-from typing import Any, List, Mapping
+from typing import List
 
 import typer
 import yaml
+from constants import InputFormat
 
 from globus_automate_client.cli.callbacks import (
     input_validator_callback,
     principal_validator,
     url_validator_callback,
 )
-from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
+from globus_automate_client.cli.helpers import (
+    format_and_echo,
+    process_input,
+    verbosity_option,
+)
 from globus_automate_client.client_helpers import create_action_client
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
-
-
-class ActionInputFormat(str, Enum):
-    json = "json"
-    yaml = "yaml"
 
 
 class ActionOutputFormat(str, Enum):
@@ -30,27 +30,6 @@ class ActionOutputFormat(str, Enum):
             return json.dumps
         elif self is self.yaml:
             return yaml.dump
-
-
-def _process_action_body(
-    body: str, input_format: ActionInputFormat
-) -> Mapping[str, Any]:
-    """
-    Turn input strings into dicts per input format type (ActionInputFormat)
-    """
-    action_dict = None
-    if input_format is ActionInputFormat.json:
-        try:
-            action_dict = json.loads(body)
-        except json.JSONDecodeError as e:
-            raise typer.BadParameter(f"Invalid JSON: {e}")
-    elif input_format is ActionInputFormat.yaml:
-        try:
-            action_dict = yaml.safe_load(body)
-        except yaml.YAMLError as e:
-            raise typer.BadParameter(f"Invalid YAML: {e}")
-
-    return action_dict
 
 
 @app.command("introspect")
@@ -133,8 +112,8 @@ def action_run(
         case_sensitive=False,
         show_default=True,
     ),
-    input_format: ActionInputFormat = typer.Option(
-        ActionInputFormat.json,
+    input_format: InputFormat = typer.Option(
+        InputFormat.json,
         "--input",
         "-i",
         help="Input format.",
@@ -147,7 +126,7 @@ def action_run(
     """
     ac = create_action_client(action_url, action_scope)
     if ac:
-        parsed_body = _process_action_body(body, input_format)
+        parsed_body = process_input(body, input_format)
         result = ac.run(parsed_body, request_id, manage_by, monitor_by)
         format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
