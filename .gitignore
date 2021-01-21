@@ -129,6 +129,7 @@ pytest-junit.xml
 
 # Local editor settings
 .dir-locals.el
+.vscode/
 
 # Flask
 instance/

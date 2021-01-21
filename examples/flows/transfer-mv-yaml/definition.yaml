@@ -1,0 +1,81 @@
+Comment: >-
+  A Flow for performing a logical 'move' operation by first transfering from a
+  source to a destination and then deleting from the source.
+StartAt: Transfer
+States:
+  Transfer:
+    Comment: >-
+      Run the initial transfer operation from the source ep/source path to the
+      destination ep/destination path
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/transfer'
+    WaitTime: 172800
+    ExceptionOnActionFailure: false
+    Parameters:
+      source_endpoint_id.$: $.source_endpoint_id
+      destination_endpoint_id.$: $.destination_endpoint_id
+      label.$: $.transfer_label
+      transfer_items:
+        - source_path.$: $.source_path
+          destination_path.$: $.destination_path
+          recursive.$: $.recursive
+    ResultPath: $.TransferResult
+    Next: CheckTransfer
+  CheckTransfer:
+    Comment: >-
+      Examine the status of the Transfer Action. If it failed, branch to a state
+      the reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.TransferResult.status
+        StringEquals: FAILED
+        Next: TransferFailed
+    Default: Delete
+  Delete:
+    Comment: >-
+      Use Transfer to delete the initial source ep/source path. It uses the same
+      value for recursive as the transfer
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/delete'
+    WaitTime: 21600
+    ExceptionOnActionFailure: false
+    Parameters:
+      endpoint_id.$: $.source_endpoint_id
+      recursive.$: $.recursive
+      label.$: $.delete_label
+      items.=: '[`$.source_path`]'
+    ResultPath: $.DeleteResult
+    Next: CheckDelete
+  CheckDelete:
+    Comment: >-
+      Examine the status of the Delete Action. If it failed, branch to a state
+      the reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.DeleteResult.status
+        StringEquals: FAILED
+        Next: DeleteFailed
+    Default: AllComplete
+  TransferFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Transfer failed
+      details.$: $.TransferResult.details
+    ResultPath: $.FlowResult
+    End: true
+  DeleteFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Deletion failed
+      details.$: $.DeleteResult.details
+    ResultPath: $.FlowResult
+    End: true
+  AllComplete:
+    Comment: 'Normal completion, so report success and exit'
+    Type: Pass
+    Parameters:
+      message: Move operation complete
+    ResultPath: $.FlowResult
+    End: true

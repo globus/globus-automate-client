@@ -1,10 +1,16 @@
 import sys
 
 import typer
+import yaml
 
 from globus_automate_client import __version__
 from globus_automate_client.cli import actions, flows, queues
 from globus_automate_client.token_management import CONFIG_PATH
+
+# Monkey patching out the unsafe load capability
+# Only use safe_load for our purposes
+del yaml.unsafe_load
+
 
 help = f"""
 CLI for Globus Automate

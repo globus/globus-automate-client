@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import typer
+import yaml
 
 
 def url_validator_callback(url: str) -> str:
@@ -25,43 +26,6 @@ def url_validator_callback(url: str) -> str:
     except:
         pass
     raise typer.BadParameter("Please supply a valid url")
-
-
-def json_validator_callback(body: str) -> str:
-    """
-    A user supplied body can be a properly formatted JSON string or a the name
-    of a file that contains valid JSON.  This validator ensures the user
-    supplies a valid JSON or valid filename containing valid JSON. Returns the
-    valid JSON string.
-    """
-    # Callbacks are run regardless of whether an option was explicitly set.
-    # Handle the scenario where the default value for an option is empty
-    if not body:
-        return body
-
-    # Reading from a file was indicated by prepending the filename with the @
-    # symbol -- for backwards compatability check if the symbol is present and
-    # remove it
-    if body.startswith("@"):
-        body = body[1:]
-
-    body_path = pathlib.Path(body)
-    if body_path.exists() and body_path.is_file():
-        with body_path.open() as f:
-            try:
-                json_body = json.load(f)
-            except json.JSONDecodeError as e:
-                raise typer.BadParameter(f"Invalid JSON: {e}")
-            else:
-                body = json.dumps(json_body)
-    elif body_path.exists() and body_path.is_dir():
-        raise typer.BadParameter("Expected file, received directory")
-    else:
-        try:
-            json.loads(body)
-        except json.JSONDecodeError as e:
-            raise typer.BadParameter(f"Invalid JSON: {e}")
-    return body
 
 
 def text_validator_callback(message: str) -> str:
@@ -155,3 +119,69 @@ def flows_endpoint_envvar_callback(default_value: str) -> str:
     defining the target Flow endpoint.
     """
     return os.getenv("GLOBUS_AUTOMATE_FLOWS_ENDPOINT", default_value)
+
+
+def input_validator_callback(body: str) -> str:
+    """
+    Checks if input is a file and loads it, otherwise
+    returns the body string passed in
+    """
+    # Callbacks are run regardless of whether an option was explicitly set.
+    # Handle the scenario where the default value for an option is empty
+    if not body:
+        return body
+
+    # Reading from a file was indicated by prepending the filename with the @
+    # symbol -- for backwards compatability check if the symbol is present and
+    # remove it
+    body = body.lstrip("@")
+
+    body_path = pathlib.Path(body)
+    if body_path.exists() and body_path.is_file():
+        with body_path.open() as f:
+            body = f.read()
+    elif body_path.exists() and body_path.is_dir():
+        raise typer.BadParameter("Expected file, received directory")
+
+    return body
+
+
+def flow_input_validator(body: str) -> str:
+    """
+    Flow inputs can be either YAML or JSON formatted
+    We can encompass these with just the YAML load checking,
+    but we need a more generic error message than is provided
+    by the other validators
+    """
+    # Callbacks are run regardless of whether an option was explicitly set.
+    # Handle the scenario where the default value for an option is empty
+    if not body:
+        return body
+
+    # Reading from a file was indicated by prepending the filename with the @
+    # symbol -- for backwards compatability check if the symbol is present
+    # remove it if present
+    body = body.lstrip("@")
+
+    body_path = pathlib.Path(body)
+
+    if body_path.exists() and body_path.is_file():
+        with body_path.open() as f:
+            try:
+                yaml_body = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                raise typer.BadParameter(f"Invalid flow input: {e}")
+    elif body_path.exists() and body_path.is_dir():
+        raise typer.BadParameter("Expected file, received directory")
+    else:
+        try:
+            yaml_body = yaml.safe_load(body)
+        except yaml.YAMLError as e:
+            raise typer.BadParameter(f"Invalid flow input: {e}")
+
+    try:
+        yaml_to_json = json.dumps(yaml_body)
+    except TypeError as e:
+        raise typer.BadParameter(f"Unable to translate flow input to JSON: {e}")
+
+    return yaml_to_json
