@@ -20,20 +20,6 @@ Helper
 
 .. autofunction:: globus_automate_client.create_action_client
 
-Example
--------
-
-.. code-block:: python
-
-    from globus_automate_client import create_action_client
-
-    ac = create_action_client("https://actions.globus.org/hello_world")
-
-    # Launch an Action and check its results
-    resp = ac.run({"echo_string": "Hello from SDK"})
-    assert resp.data["status"] == "SUCCEEDED"
-    print(resp.data)
-
 
 Flows
 ^^^^^
@@ -47,17 +33,61 @@ Helper
 
 .. autofunction:: globus_automate_client.create_flows_client
 
-Example
--------
+Examples
+^^^^^^^^
 
-.. code-block:: python
+SDK Helpers
+-----------
 
-    from globus_automate_client import create_flows_client
-    from globus_automate_client.token_management import CLIENT_ID
+If you're running the SDK locally in a secure location, you will probably want
+to use the provided convenience functions, ``create_action_client`` and
+``create_flows_client``. These functions share functionality with the
+``globus-automate`` CLI to handle loading and storing Globus Auth
+tokens on the local filesystem and trigger interactive logins when additional
+consents are required to interact with Actions or Flows:
 
-    fc = create_flows_client(CLIENT_ID)
+.. literalinclude:: code_snippets/create_action_client.py
+  :language: python
+  :emphasize-lines: 4
 
-    # Get a listing of runnable, deployed flows
-    available_flows = fc.list_flows(["runnable_by"])
-    for flow in available_flows.data["flows"]:
-        print(flow)
+The ``create_flows_client`` helper requires a Globus Auth client ID instead of
+an Action URL on instantiation. Feel free to use the client ID associated with
+this package:
+
+.. literalinclude:: code_snippets/create_flows_client.py
+  :language: python
+  :emphasize-lines: 2,6
+
+SDK - The Hard Way
+------------------
+
+There are plenty of scenarios in which the helper functions above should *NOT*
+be used, included in those are:
+
+- The SDK is being run on a platform without access to the local filesystem (or
+  it is preferable not to write to the local filesystem).
+- You do not want to (or cannot) trigger interactive logins during execution.
+- The SDK is being used as part of another service or in a pipeline
+
+In this case, you'll need to create the clients using the ``new_client``
+classmethod attached to each client. When creating an ActionClient, you'll need
+to create and supply the appropriate GlobusAuthorizer_ for the action.
+
+When creating a FlowsClient, you'll need to create a GlobusAuthorizer_ that
+gives access to the MANAGE_FLOWS_SCOPE. This authorizer will be used to manage
+interactions against the Flows service, such as creating a new Flow, updating an
+existing Flow, or deleting an old Flow. Additionally, you'll need to create a
+callback that accepts three keyword-arguments, ``flow_url``, ``flow_scope`` and
+``client_id`` and returns a GlobusAuthorizer_ that will be used to provide
+access to specific Flows. This authorizer allows the SDK to run operations
+against the Flow, such as running a Flow and checking an execution's status.
+
+The example below shows an example defining the callback used to create a
+GlobusAuthorizer_ by pulling tokens from environment variables.
+
+.. literalinclude:: code_snippets/premade_authorizers.py
+  :language: python
+  :emphasize-lines: 14,38
+
+
+.. _GlobusAuthorizer: https://globus-sdk-python.readthedocs.io/en/stable/authorization.html#globus_sdk.authorizers.base.GlobusAuthorizer
