@@ -3,8 +3,9 @@ from typing import Any, Callable, Mapping, Optional, Union
 
 import typer
 import yaml
-from constants import InputFormat
 from globus_sdk import GlobusHTTPResponse
+
+from globus_automate_client.cli.constants import InputFormat
 
 verbosity_option = typer.Option(
     False, "--verbose", "-v", help="Run with increased verbosity", show_default=False

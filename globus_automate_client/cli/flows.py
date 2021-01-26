@@ -4,7 +4,6 @@ from typing import Any, List, Mapping
 
 import typer
 import yaml
-from constants import InputFormat
 from globus_sdk import GlobusHTTPResponse
 
 from globus_automate_client.cli.callbacks import (
@@ -16,6 +15,7 @@ from globus_automate_client.cli.callbacks import (
     principal_validator,
     url_validator_callback,
 )
+from globus_automate_client.cli.constants import InputFormat
 from globus_automate_client.cli.helpers import (
     display_http_details,
     format_and_echo,

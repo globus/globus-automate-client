@@ -4,13 +4,13 @@ from typing import List
 
 import typer
 import yaml
-from constants import InputFormat
 
 from globus_automate_client.cli.callbacks import (
     input_validator_callback,
     principal_validator,
     url_validator_callback,
 )
+from globus_automate_client.cli.constants import InputFormat
 from globus_automate_client.cli.helpers import (
     format_and_echo,
     process_input,
