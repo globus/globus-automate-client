@@ -51,6 +51,10 @@ def process_input(
     Turn input strings into dicts per input format type (InputFormat)
     """
     input_dict = None
+
+    if input_arg is None:
+        return None
+
     if input_format is InputFormat.json:
         try:
             input_dict = json.loads(input_arg)
