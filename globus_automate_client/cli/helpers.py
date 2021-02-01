@@ -45,11 +45,15 @@ def display_http_details(response: GlobusHTTPResponse) -> None:
 
 
 def process_input(
-    input_arg: str, input_format: InputFormat, error_explanation: str = ""
+    input_arg: Union[str, None], input_format: InputFormat, error_explanation: str = ""
 ) -> Union[Mapping[str, Any], None]:
     """
     Turn input strings into dicts per input format type (InputFormat)
     """
+
+    if input_arg is None:
+        return None
+
     input_dict = None
     if input_format is InputFormat.json:
         try:
