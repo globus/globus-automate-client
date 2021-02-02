@@ -4,7 +4,7 @@ from typing import Any, List, Mapping
 
 import typer
 import yaml
-from globus_sdk import GlobusHTTPResponse
+from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
@@ -175,28 +175,25 @@ def flow_deploy(
     Deploy a new Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-
     flow_dict = process_input(definition, input_format)
     input_schema_dict = process_input(input_schema, input_format, " for input schema")
 
-    result = fc.deploy_flow(
-        flow_dict,
-        title,
-        subtitle,
-        description,
-        keywords,
-        visible_to,
-        runnable_by,
-        administered_by,
-        input_schema_dict,
-        validate_definition=validate,
-    )
-
-    # Match up output format with input format
-    if input_format is InputFormat.json:
-        format_and_echo(result, json.dumps, verbose=verbose)
-    elif input_format is InputFormat.yaml:
-        format_and_echo(result, yaml.dump, verbose=verbose)
+    try:
+        result = fc.deploy_flow(
+            flow_dict,
+            title,
+            subtitle,
+            description,
+            keywords,
+            visible_to,
+            runnable_by,
+            administered_by,
+            input_schema_dict,
+            validate_definition=validate,
+        )
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, input_format.get_dumper(), verbose=verbose)
 
 
 @app.command("update")
@@ -284,27 +281,25 @@ def flow_update(
     flow_dict = process_input(definition, input_format)
     input_schema_dict = process_input(input_schema, input_format, " for input schema")
 
-    result = fc.update_flow(
-        flow_id,
-        flow_dict,
-        title,
-        subtitle,
-        description,
-        keywords,
-        visible_to,
-        runnable_by,
-        administered_by,
-        input_schema_dict,
-        validate_definition=validate,
-    )
-    if result is not None:
-        # Match up output format with input format
-        if input_format is InputFormat.json:
-            format_and_echo(result, json.dumps, verbose=verbose)
-        elif input_format is InputFormat.yaml:
-            format_and_echo(result, yaml.dump, verbose=verbose)
-    else:
-        print("No operation to perform")
+    try:
+        result = fc.update_flow(
+            flow_id,
+            flow_dict,
+            title,
+            subtitle,
+            description,
+            keywords,
+            visible_to,
+            runnable_by,
+            administered_by,
+            input_schema_dict,
+            validate_definition=validate,
+        )
+    except GlobusAPIError as err:
+        result = err
+    if result is None:
+        result = "No operation to perform"
+    format_and_echo(result, input_format.get_dumper(), verbose=verbose)
 
 
 @app.command("lint")
@@ -407,11 +402,14 @@ def flow_list(
     List Flows for which you have access.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flows = fc.list_flows(
-        roles=[r.value for r in roles], marker=marker, per_page=per_page
-    )
-
-    _format_and_display_flow(flows, output_format, verbose=verbose)
+    try:
+        flows = fc.list_flows(
+            roles=[r.value for r in roles], marker=marker, per_page=per_page
+        )
+    except GlobusAPIError as err:
+        format_and_echo(err, verbose=verbose)
+    else:
+        _format_and_display_flow(flows, output_format, verbose=verbose)
 
 
 @app.command("display")
@@ -437,9 +435,12 @@ def flow_display(
     be present in the Flow's "visible_to" list to view it.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_get = fc.get_flow(flow_id)
-
-    _format_and_display_flow(flow_get, output_format, verbose=verbose)
+    try:
+        flow_get = fc.get_flow(flow_id)
+    except GlobusAPIError as err:
+        format_and_echo(err, verbose=verbose)
+    else:
+        _format_and_display_flow(flow_get, output_format, verbose=verbose)
 
 
 @app.command("delete")
@@ -465,8 +466,12 @@ def flow_delete(
     or be in the Flow's "administered_by" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_del = fc.delete_flow(flow_id)
-    _format_and_display_flow(flow_del, output_format, verbose=verbose)
+    try:
+        flow_del = fc.delete_flow(flow_id)
+    except GlobusAPIError as err:
+        format_and_echo(err, verbose=verbose)
+    else:
+        _format_and_display_flow(flow_del, output_format, verbose=verbose)
 
 
 @app.command("run")
@@ -514,8 +519,12 @@ def flow_run(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
 
-    response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
-    _format_and_display_flow(response, output_format, verbose=verbose)
+    try:
+        response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
+    except GlobusAPIError as err:
+        format_and_echo(err, verbose=verbose)
+    else:
+        _format_and_display_flow(response, output_format, verbose=verbose)
 
 
 @app.command("action-list")
@@ -575,15 +584,18 @@ def flow_actions_list(
     if roles is not None:
         roles_str = [r.value for r in roles]
 
-    action_list = fc.list_flow_actions(
-        flow_id,
-        flow_scope,
-        statuses=statuses_str,
-        roles=roles_str,
-        marker=marker,
-        per_page=per_page,
-    )
-    format_and_echo(action_list, verbose=verbose)
+    try:
+        result = fc.list_flow_actions(
+            flow_id,
+            flow_scope,
+            statuses=statuses_str,
+            roles=roles_str,
+            marker=marker,
+            per_page=per_page,
+        )
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("action-status")
@@ -610,8 +622,11 @@ def flow_action_status(
     Display the status for a Flow definition's particular invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    response = fc.flow_action_status(flow_id, flow_scope, action_id)
-    format_and_echo(response, verbose=verbose)
+    try:
+        result = fc.flow_action_status(flow_id, flow_scope, action_id)
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("action-release")
@@ -638,8 +653,11 @@ def flow_action_release(
     Remove execution history for a particular Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    response = fc.flow_action_release(flow_id, flow_scope, action_id)
-    format_and_echo(response, verbose=verbose)
+    try:
+        result = fc.flow_action_release(flow_id, flow_scope, action_id)
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("action-cancel")
@@ -666,8 +684,11 @@ def flow_action_cancel(
     Cancel an active execution for a particular Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    response = fc.flow_action_cancel(flow_id, flow_scope, action_id)
-    format_and_echo(response, verbose=verbose)
+    try:
+        result = fc.flow_action_cancel(flow_id, flow_scope, action_id)
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("action-log")
@@ -728,9 +749,14 @@ def flow_action_log(
     Get a log of the steps executed by a Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    resp = fc.flow_action_log(
-        flow_id, flow_scope, action_id, limit, reverse, marker, per_page
-    )
+
+    try:
+        resp = fc.flow_action_log(
+            flow_id, flow_scope, action_id, limit, reverse, marker, per_page
+        )
+    except GlobusAPIError as err:
+        format_and_echo(err, verbose=verbose)
+        raise typer.Exit(code=1)
 
     if verbose:
         display_http_details(resp)

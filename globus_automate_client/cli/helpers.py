@@ -1,9 +1,9 @@
 import json
-from typing import Any, Callable, Mapping, Optional, Union
+from typing import Any, Callable, Mapping, Union
 
 import typer
 import yaml
-from globus_sdk import GlobusHTTPResponse
+from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 from globus_automate_client.cli.constants import InputFormat
 
@@ -17,11 +17,11 @@ def default_json_dumper(result, *args, **kwargs):
 
 
 def format_and_echo(
-    result: Union[GlobusHTTPResponse, str],
-    dumper: Optional[Callable] = default_json_dumper,
+    result: Union[GlobusHTTPResponse, str, GlobusAPIError],
+    dumper: Callable = default_json_dumper,
     verbose=False,
 ) -> None:
-    if verbose and isinstance(result, GlobusHTTPResponse):
+    if verbose:
         display_http_details(result)
 
     if isinstance(result, GlobusHTTPResponse):
@@ -30,18 +30,28 @@ def format_and_echo(
         else:
             color = typer.colors.RED
         result = result.data
+    elif isinstance(result, GlobusAPIError):
+        color = typer.colors.RED
+        result = result.raw_json if result.raw_json else result.raw_text
     else:
         color = typer.colors.GREEN
     typer.secho(dumper(result, indent=4, sort_keys=True), fg=color)
 
 
-def display_http_details(response: GlobusHTTPResponse) -> None:
+def display_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> None:
+    if isinstance(result, GlobusHTTPResponse):
+        base_request = result._data.request
+        reponse_status_code = result._data.status_code
+    if isinstance(result, GlobusAPIError):
+        base_request = result._underlying_response.request
+        reponse_status_code = result._underlying_response.status_code
+
     formatted_headers = "\n".join(
-        f"  {k}: {v}" for k, v in response._data.request.headers.items()
+        f"  {k}: {v}" for k, v in base_request.headers.items()
     )
-    print(f"Request: {response._data.request.method} {response._data.request.url}")
-    print(f"Headers:\n{formatted_headers}")
-    print(f"Response: {response._data.status_code}")
+    typer.echo(f"Request: {base_request.method} {base_request.url}", err=True)
+    typer.echo(f"Headers:\n{formatted_headers}", err=True)
+    typer.echo(f"Response: {reponse_status_code}", err=True)
 
 
 def process_input(
