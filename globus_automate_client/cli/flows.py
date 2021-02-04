@@ -507,6 +507,12 @@ def flow_run(
         case_sensitive=False,
         show_default=True,
     ),
+    label: str = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Optional label to mark this run.",
+    )
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
@@ -514,7 +520,7 @@ def flow_run(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
 
-    response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
+    response = fc.run_flow(flow_id, flow_scope, flow_input_dict, label=label)
     _format_and_display_flow(response, output_format, verbose=verbose)
 
 
