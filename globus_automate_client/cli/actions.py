@@ -120,6 +120,12 @@ def action_run(
         case_sensitive=False,
         show_default=True,
     ),
+    label: str = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Optional label to mark this execution of the action.",
+    )
 ):
     """
     Launch an Action.
@@ -127,7 +133,7 @@ def action_run(
     ac = create_action_client(action_url, action_scope)
     if ac:
         parsed_body = process_input(body, input_format)
-        result = ac.run(parsed_body, request_id, manage_by, monitor_by)
+        result = ac.run(parsed_body, request_id, manage_by, monitor_by, label=label)
         format_and_echo(result, output_format.get_dumper(), verbose=verbose)
     return None
 
