@@ -9,7 +9,7 @@ from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
     flows_endpoint_envvar_callback,
-    input_validator_callback,
+    input_validator,
     principal_or_all_authenticated_users_validator,
     principal_or_public_validator,
     principal_validator,
@@ -103,7 +103,7 @@ def flow_deploy(
             "or a raw string representing a JSON object or YAML definition."
         ),
         prompt=True,
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     subtitle: str = typer.Option(
         None,
@@ -120,7 +120,7 @@ def flow_deploy(
             "If not provided, no validation will be performed on Flow input. "
             "May be provided as a filename or a raw string."
         ),
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     keywords: List[str] = typer.Option(
         None,
@@ -206,7 +206,7 @@ def flow_update(
             "JSON or YAML representation of the Flow to update. May be provided as a filename "
             "or a raw string."
         ),
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     subtitle: str = typer.Option(
         None,
@@ -223,7 +223,7 @@ def flow_update(
             "If not provided, no validation will be performed on Flow input. "
             "May be provided as a filename or a raw string."
         ),
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     keywords: List[str] = typer.Option(
         None,
@@ -311,7 +311,7 @@ def flow_lint(
             "or a raw string."
         ),
         prompt=True,
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     validate: bool = typer.Option(
         True,

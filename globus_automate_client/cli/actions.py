@@ -7,7 +7,7 @@ import yaml
 from globus_sdk import GlobusAPIError
 
 from globus_automate_client.cli.callbacks import (
-    input_validator_callback,
+    input_validator,
     principal_validator,
     url_validator_callback,
 )
@@ -89,7 +89,7 @@ def action_run(
             "JSON string."
         ),
         prompt=True,
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     request_id: str = typer.Option(
         None,
