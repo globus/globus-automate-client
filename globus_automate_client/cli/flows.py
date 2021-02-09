@@ -5,6 +5,8 @@ from typing import Any, List, Mapping, Optional
 
 import typer
 import yaml
+from globus_sdk import GlobusAPIError, GlobusHTTPResponse
+
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
@@ -40,7 +42,6 @@ from globus_automate_client.graphviz_rendering import (
     graphviz_format,
     state_colors_for_log,
 )
-from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 
 class FlowRole(str, Enum):
@@ -171,6 +172,14 @@ def flow_deploy(
         case_sensitive=False,
         show_default=True,
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help=(
+            "Do a dry run of deploying the flow to test your definition without"
+            " actually making changes."
+        ),
+    ),
 ):
     """
     Deploy a new Flow.
@@ -191,10 +200,15 @@ def flow_deploy(
             administered_by,
             input_schema_dict,
             validate_definition=validate,
+            dry_run=dry_run,
         )
     except GlobusAPIError as err:
         result = err
-    format_and_echo(result, verbose=verbose)
+    # Match up output format with input format
+    if input_format is InputFormat.json:
+        format_and_echo(result, json.dumps, verbose=verbose)
+    elif input_format is InputFormat.yaml:
+        format_and_echo(result, yaml.dump, verbose=verbose)
 
 
 @app.command("update")
@@ -552,6 +566,14 @@ def flow_run(
         help="Continuously poll this Action until it reaches a completed state.",
         show_default=True,
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help=(
+            "Do a dry run with your input to this flow to test the input without"
+            " actually running anything."
+        ),
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
@@ -559,7 +581,7 @@ def flow_run(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
     method = functools.partial(
-        fc.run_flow, flow_id, flow_scope, flow_input_dict, label=label
+        fc.run_flow, flow_id, flow_scope, flow_input_dict, label=label, dry_run=dry_run
     )
 
     with live_content:
