@@ -55,6 +55,7 @@ class ActionClient(BaseClient):
         request_id: Optional[str] = None,
         manage_by: Optional[Iterable[str]] = None,
         monitor_by: Optional[Iterable[str]] = None,
+        dry_run: bool = False,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -82,6 +83,7 @@ class ActionClient(BaseClient):
             "body": body,
             "monitor_by": monitor_by,
             "manage_by": manage_by,
+            "dry_run": dry_run,
         }
         # Remove None items from the temp_body
         body = {k: v for k, v in body.items() if v is not None}
