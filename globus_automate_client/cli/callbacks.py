@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+from errno import ENAMETOOLONG
 from typing import AbstractSet, List
 from urllib.parse import urlparse
 from uuid import UUID
@@ -26,27 +27,6 @@ def url_validator_callback(url: str) -> str:
     except:
         pass
     raise typer.BadParameter("Please supply a valid url")
-
-
-def text_validator_callback(message: str) -> str:
-    """
-    A user may supply a message directly on the command line or by referencing a
-    file whose contents should be interpreted as the message. This validator
-    determines if a user supplied a valid file name else use the raw text as the
-    message. Returns the text to be used as a message.
-    """
-    # Reading from a file was indicated by prepending the filename with the @
-    # symbol -- for backwards compatability check if the symbol is present and
-    # remove it
-    if message.startswith("@"):
-        message = message[1:]
-
-    message_path = pathlib.Path(message)
-    if message_path.exists() and message_path.is_file():
-        with message_path.open() as f:
-            return f.read()
-
-    return message
 
 
 def _base_principal_validator(
@@ -121,10 +101,10 @@ def flows_endpoint_envvar_callback(default_value: str) -> str:
     return os.getenv("GLOBUS_AUTOMATE_FLOWS_ENDPOINT", default_value)
 
 
-def input_validator_callback(body: str) -> str:
+def input_validator(body: str) -> str:
     """
-    Checks if input is a file and loads it, otherwise
-    returns the body string passed in
+    Checks if input is a file and loads its contents, otherwise returns the
+    supplied string.
     """
     # Callbacks are run regardless of whether an option was explicitly set.
     # Handle the scenario where the default value for an option is empty
@@ -137,12 +117,18 @@ def input_validator_callback(body: str) -> str:
     body = body.lstrip("@")
 
     body_path = pathlib.Path(body)
-    if body_path.exists() and body_path.is_file():
-        with body_path.open() as f:
-            body = f.read()
-    elif body_path.exists() and body_path.is_dir():
-        raise typer.BadParameter("Expected file, received directory")
-
+    try:
+        if body_path.exists() and body_path.is_dir():
+            raise typer.BadParameter("Expected file, received directory")
+        elif body_path.exists() and body_path.is_file():
+            with body_path.open() as f:
+                body = f.read()
+    except OSError as e:
+        if e.errno == ENAMETOOLONG:
+            # We cannot load the string to check if it exists, is a file, or
+            # is a directory, so we have to assume the string is JSON and
+            # continue
+            pass
     return body
 
 
@@ -158,26 +144,11 @@ def flow_input_validator(body: str) -> str:
     if not body:
         return body
 
-    # Reading from a file was indicated by prepending the filename with the @
-    # symbol -- for backwards compatability check if the symbol is present
-    # remove it if present
-    body = body.lstrip("@")
-
-    body_path = pathlib.Path(body)
-
-    if body_path.exists() and body_path.is_file():
-        with body_path.open() as f:
-            try:
-                yaml_body = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                raise typer.BadParameter(f"Invalid flow input: {e}")
-    elif body_path.exists() and body_path.is_dir():
-        raise typer.BadParameter("Expected file, received directory")
-    else:
-        try:
-            yaml_body = yaml.safe_load(body)
-        except yaml.YAMLError as e:
-            raise typer.BadParameter(f"Invalid flow input: {e}")
+    body = input_validator(body)
+    try:
+        yaml_body = yaml.safe_load(body)
+    except yaml.YAMLError as e:
+        raise typer.BadParameter(f"Invalid flow input: {e}")
 
     try:
         yaml_to_json = json.dumps(yaml_body)
