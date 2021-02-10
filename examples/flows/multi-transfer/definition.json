@@ -1,44 +1,42 @@
 {
-    "Comment": "Two step transfer",
-    "StartAt": "Transfer1",
-    "States": {
-        "Transfer1": {
-            "Comment": "Initial Transfer from Campus to DMZ",
-            "Type": "Action",
-            "ActionUrl": "https://actions.globus.org/transfer/transfer",
-            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/transfer/transfer",
-            "Parameters": {
-                "source_endpoint_id.$": "$.source_endpoint_id",
-                "destination_endpoint_id.$": "$.staging_endpoint_id",
-                "transfer_items": [
-                    {
-                        "source_path.$": "$.source_path",
-                        "destination_path.$": "$.staging_path",
-                        "recursive": true
-                    }
-                ]
-            },
-            "ResultPath": "$.Transfer1Result",
-            "Next": "Transfer2"
-        },
-        "Transfer2": {
-            "Comment": "Transfer from DMZ to dataset repository",
-            "Type": "Action",
-            "ActionUrl": "https://actions.globus.org/transfer/transfer",
-            "ActionScope": "https://auth.globus.org/scopes/actions.globus.org/transfer/transfer",
-            "Parameters": {
-                "source_endpoint_id.$": "$.staging_endpoint_id",
-                "destination_endpoint_id.$": "$.destination_endpoint_id",
-                "transfer_items": [
-                    {
-                        "source_path.$": "$.staging_path",
-                        "destination_path.$": "$.destination_path",
-                        "recursive": true
-                    }
-                ]
-            },
-            "ResultPath": "$.Transfer2Result",
-            "End": true
-        }
+  "Comment": "Two step transfer",
+  "StartAt": "Transfer1",
+  "States": {
+    "Transfer1": {
+      "Comment": "Initial Transfer from Campus to DMZ",
+      "Type": "Action",
+      "ActionUrl": "https://actions.globus.org/transfer/transfer",
+      "Parameters": {
+        "source_endpoint_id.$": "$.source_endpoint_id",
+        "destination_endpoint_id.$": "$.staging_endpoint_id",
+        "transfer_items": [
+          {
+            "source_path.$": "$.source_path",
+            "destination_path.$": "$.staging_path",
+            "recursive": true
+          }
+        ]
+      },
+      "ResultPath": "$.Transfer1Result",
+      "Next": "Transfer2"
+    },
+    "Transfer2": {
+      "Comment": "Transfer from DMZ to dataset repository",
+      "Type": "Action",
+      "ActionUrl": "https://actions.globus.org/transfer/transfer",
+      "Parameters": {
+        "source_endpoint_id.$": "$.staging_endpoint_id",
+        "destination_endpoint_id.$": "$.destination_endpoint_id",
+        "transfer_items": [
+          {
+            "source_path.$": "$.staging_path",
+            "destination_path.$": "$.destination_path",
+            "recursive": true
+          }
+        ]
+      },
+      "ResultPath": "$.Transfer2Result",
+      "End": true
     }
+  }
 }
