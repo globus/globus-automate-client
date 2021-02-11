@@ -512,6 +512,12 @@ def flow_run(
         case_sensitive=False,
         show_default=True,
     ),
+    label: str = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Optional label to mark this run.",
+    )
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
@@ -520,7 +526,7 @@ def flow_run(
     flow_input_dict = _process_flow_input(flow_input, input_format)
 
     try:
-        response = fc.run_flow(flow_id, flow_scope, flow_input_dict)
+        response = fc.run_flow(flow_id, flow_scope, flow_input_dict, label=label)
     except GlobusAPIError as err:
         format_and_echo(err, verbose=verbose)
     else:
