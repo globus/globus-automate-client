@@ -243,10 +243,12 @@ class FlowsClient(BaseClient):
         temp_body["runnable_by"] = runnable_by
         temp_body["administered_by"] = administered_by
         temp_body["input_schema"] = input_schema
-        temp_body["dry_run"] = dry_run
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
-        return self.post("/flows", req_body, **kwargs)
+        url = "/flows"
+        if dry_run:
+            url = "/flows/dry-run"
+        return self.post(url, req_body, **kwargs)
 
     def update_flow(
         self,

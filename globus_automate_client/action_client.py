@@ -79,6 +79,8 @@ class ActionClient(BaseClient):
             monitor_by = list(set(monitor_by))
 
         path = self.qjoin_path("run")
+        if dry_run:
+            path = self.qjoin_path("run", "dry-run")
         body = {
             "request_id": str(request_id),
             "body": body,
