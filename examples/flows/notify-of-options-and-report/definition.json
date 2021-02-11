@@ -1,62 +1,59 @@
 {
-    "Comment": "Use the notification service to notify of a choice and then report the result",
-    "StartAt": "NotifyOfOption",
-    "States": {
-        "NotifyOfOption": {
-            "Type": "Action",
-            "ActionUrl": "https://actions.automate.globus.org/notification/notify",
-            "ActionScope": "https://auth.globus.org/scopes/helloworld.actions.automate.globus.org/notification_notify",
-            "Parameters": {
-                "notification_method": "email",
-                "sender": "globus.automate.notifications@gmail.com",
-                "destination.$": "$.notification_recipient",
-                "subject.$": "$.notification_subject",
-                "body_template.$": "$.notification_body_template",
-                "body_variables.$": "$.notification_body_variables",
-                "body_mimetype": "text/html",
-                "send_credentials.$": "$.server_credentials"
-            },
-            "ResultPath": "$.EmailNotificationResult",
-            "Next": "CreateOption"
-        },
-        "CreateOption": {
-            "Type": "Action",
-            "ActionUrl": "https://actions.automate.globus.org/weboption/wait_for_option",
-            "ActionScope": "https://auth.globus.org/scopes/helloworld.actions.automate.globus.org/weboption_wait_for_option",
-            "Parameters": {
-                "options": [
-                    {
-                        "name": "Accept",
-                        "url_suffix.$": "$.notification_body_variables.accept_option_suffix",
-                        "completed_message": "Thank you for choosing to Accept"
-                    },
-                    {
-                        "name": "Reject",
-                        "url_suffix.$": "$.notification_body_variables.reject_option_suffix",
-                        "completed_message": "We're sorry you had to Reject"
-                    }
-                ]
-            },
-            "ResultPath": "$.OptionResult",
-            "WaitTime": 7200,
-            "Next": "NotifyOfResult"
-        },
-        "NotifyOfResult": {
-            "Type": "Action",
-            "ActionUrl": "https://actions.automate.globus.org/notification/notify",
-            "ActionScope": "https://auth.globus.org/scopes/helloworld.actions.automate.globus.org/notification_notify",
-            "Parameters": {
-                "notification_method": "email",
-                "sender": "globus.automate.notifications@gmail.com",
-                "destination.$": "$.notification_recipient",
-                "subject.$": "$.result_subject",
-                "body_template.$": "$.result_body_template",
-                "body_variables.$": "$.OptionResult.details",
-                "body_mimetype": "text/html",
-                "send_credentials.$": "$.server_credentials"
-            },
-            "ResultPath": "$.EmailOptionResultResult",
-            "End": true
-        }
+  "Comment": "Use the notification service to notify of a choice and then report the result",
+  "StartAt": "NotifyOfOption",
+  "States": {
+    "NotifyOfOption": {
+      "Type": "Action",
+      "ActionUrl": "https://actions.automate.globus.org/notification/notify",
+      "Parameters": {
+        "notification_method": "email",
+        "sender": "globus.automate.notifications@gmail.com",
+        "destination.$": "$.notification_recipient",
+        "subject.$": "$.notification_subject",
+        "body_template.$": "$.notification_body_template",
+        "body_variables.$": "$.notification_body_variables",
+        "body_mimetype": "text/html",
+        "send_credentials.$": "$.server_credentials"
+      },
+      "ResultPath": "$.EmailNotificationResult",
+      "Next": "CreateOption"
+    },
+    "CreateOption": {
+      "Type": "Action",
+      "ActionUrl": "https://actions.automate.globus.org/weboption/wait_for_option",
+      "Parameters": {
+        "options": [
+          {
+            "name": "Accept",
+            "url_suffix.$": "$.notification_body_variables.accept_option_suffix",
+            "completed_message": "Thank you for choosing to Accept"
+          },
+          {
+            "name": "Reject",
+            "url_suffix.$": "$.notification_body_variables.reject_option_suffix",
+            "completed_message": "We're sorry you had to Reject"
+          }
+        ]
+      },
+      "ResultPath": "$.OptionResult",
+      "WaitTime": 7200,
+      "Next": "NotifyOfResult"
+    },
+    "NotifyOfResult": {
+      "Type": "Action",
+      "ActionUrl": "https://actions.automate.globus.org/notification/notify",
+      "Parameters": {
+        "notification_method": "email",
+        "sender": "globus.automate.notifications@gmail.com",
+        "destination.$": "$.notification_recipient",
+        "subject.$": "$.result_subject",
+        "body_template.$": "$.result_body_template",
+        "body_variables.$": "$.OptionResult.details",
+        "body_mimetype": "text/html",
+        "send_credentials.$": "$.server_credentials"
+      },
+      "ResultPath": "$.EmailOptionResultResult",
+      "End": true
     }
+  }
 }

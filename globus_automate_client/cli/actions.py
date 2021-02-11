@@ -4,9 +4,10 @@ from typing import List
 
 import typer
 import yaml
+from globus_sdk import GlobusAPIError
 
 from globus_automate_client.cli.callbacks import (
-    input_validator_callback,
+    input_validator,
     principal_validator,
     url_validator_callback,
 )
@@ -59,10 +60,11 @@ def action_introspect(
     Introspect an Action Provider's schema.
     """
     ac = create_action_client(action_url, action_scope)
-    if ac is not None:
+    try:
         result = ac.introspect()
-        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
-    return None
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("run")
@@ -87,7 +89,7 @@ def action_run(
             "JSON string."
         ),
         prompt=True,
-        callback=input_validator_callback,
+        callback=input_validator,
     ),
     request_id: str = typer.Option(
         None,
@@ -131,11 +133,12 @@ def action_run(
     Launch an Action.
     """
     ac = create_action_client(action_url, action_scope)
-    if ac:
-        parsed_body = process_input(body, input_format)
+    parsed_body = process_input(body, input_format)
+    try:
         result = ac.run(parsed_body, request_id, manage_by, monitor_by, label=label)
-        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
-    return None
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("status")
@@ -166,10 +169,11 @@ def action_status(
     Query an Action's status by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    if ac:
+    try:
         result = ac.status(action_id)
-        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
-    return None
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("cancel")
@@ -200,10 +204,11 @@ def action_cancel(
     Terminate a running Action by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    if ac:
+    try:
         result = ac.cancel(action_id)
-        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
-    return None
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("release")
@@ -234,10 +239,11 @@ def action_release(
     Remove an Action's execution history by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    if ac:
+    try:
         result = ac.release(action_id)
-        format_and_echo(result, output_format.get_dumper(), verbose=verbose)
-    return None
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 if __name__ == "__main__":

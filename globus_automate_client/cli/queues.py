@@ -3,10 +3,7 @@ from typing import List
 
 import typer
 
-from globus_automate_client.cli.callbacks import (
-    principal_validator,
-    text_validator_callback,
-)
+from globus_automate_client.cli.callbacks import input_validator, principal_validator
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
 from globus_automate_client.queues_client import create_queues_client
 from globus_automate_client.token_management import CLIENT_ID
@@ -186,9 +183,9 @@ def queue_send(
         ...,
         "--message",
         "-m",
-        help="Text of the message to send. Files may be referenced by prefixing the '@' character to the value.",
+        help="Text of the message to send. Files may also be referenced.",
         prompt=True,
-        callback=text_validator_callback,
+        callback=input_validator,
     ),
     verbose: bool = verbosity_option,
 ):

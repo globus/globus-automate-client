@@ -6,7 +6,6 @@ States:
     Comment: Say Hello World
     Type: Action
     ActionUrl: 'https://actions.automate.globus.org/hello_world'
-    ActionScope: 'https://auth.globus.org/scopes/actions.globus.org/hello_world'
     Parameters:
       echo_string.$: $.input.echo_string
       sleep_time.$: $.input.sleep
