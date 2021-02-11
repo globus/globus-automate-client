@@ -78,12 +78,13 @@ class ActionClient(BaseClient):
             monitor_by = list(set(monitor_by))
 
         path = self.qjoin_path("run")
+        if dry_run:
+            path = self.qjoin_path("run", "dry-run")
         body = {
             "request_id": str(request_id),
             "body": body,
             "monitor_by": monitor_by,
             "manage_by": manage_by,
-            "dry_run": dry_run,
         }
         # Remove None items from the temp_body
         body = {k: v for k, v in body.items() if v is not None}
