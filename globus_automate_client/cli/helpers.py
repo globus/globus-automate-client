@@ -1,28 +1,145 @@
 import json
+import time
 from typing import Any, Callable, Mapping, Union
 
 import typer
 import yaml
 from globus_sdk import GlobusAPIError, GlobusHTTPResponse
+from rich.text import Text
 
-from globus_automate_client.cli.constants import InputFormat
+from globus_automate_client.cli.constants import InputFormat, OutputFormat
+from globus_automate_client.cli.rich_rendering import cli_content
+
+GlobusCallable = Callable[[], GlobusHTTPResponse]
+GlobusAPIResponse = Union[GlobusAPIError, GlobusHTTPResponse]
 
 verbosity_option = typer.Option(
     False, "--verbose", "-v", help="Run with increased verbosity", show_default=False
 )
 
 
-def default_json_dumper(result, *args, **kwargs):
-    return json.dumps(result, indent=4, sort_keys=True)
+def get_renderable_response(
+    result: Union[GlobusHTTPResponse, str, GlobusAPIError],
+    dumper: Callable = OutputFormat.json.get_dumper(),
+    verbose: bool = False,
+) -> Text:
+    text = Text()
+
+    if verbose:
+        verbose_output = get_http_details(result)
+        text.append(f"{verbose_output}\n", style="bright_cyan")
+
+    if isinstance(result, GlobusHTTPResponse):
+        result = result.data
+        style = "green"
+    elif isinstance(result, GlobusAPIError):
+        result = result.raw_json if result.raw_json else result.raw_text
+        style = "red"
+    else:
+        result = result
+
+    text.append(dumper(result), style=style)
+    return text
+
+
+def request_runner(
+    operation: GlobusCallable, output_format, verbose: bool, follow: bool
+) -> GlobusAPIResponse:
+    """
+    This function takes an operation and executes it until it returns a
+    completed Action state or a GlobusAPIError. On each execution, it will
+    display the results of the query while keeping track of how much output was
+    produced. Using this information, it will clear the previous number of lines
+    from stdout before displaying updated results.
+    """
+    dumper = output_format.get_dumper()
+    terminal_statuses = {"SUCCEEDED", "FAILED"}
+    cli_content.init()
+
+    while True:
+        if cli_content.time_to_update():
+            try:
+                result = operation()
+            except GlobusAPIError as err:
+                result = err
+
+            text = get_renderable_response(result, dumper, verbose)
+            cli_content.update(text)
+            if (
+                not follow
+                or isinstance(result, GlobusAPIError)
+                or result.data["status"] in terminal_statuses
+            ):
+                break
+        else:
+            time.sleep(1)
+
+    cli_content.complete()
+    return result
+
+
+# TODO Any way to refactor this?
+def flow_log_runner(
+    operation: GlobusCallable, output_format, verbose: bool, follow: bool
+) -> GlobusAPIResponse:
+    dumper = output_format.get_dumper()
+    terminal_statuses = {"FlowSucceeded", "FlowFailed", "FlowCanceled"}
+    cli_content.init()
+
+    while True:
+        if cli_content.time_to_update():
+            try:
+                result = operation()
+            except GlobusAPIError as err:
+                result = err
+
+            text = get_flow_renderable_response(result, dumper, verbose)
+            cli_content.update(text)
+            if (
+                not follow
+                or isinstance(result, GlobusAPIError)
+                or result.data["entries"][-1]["code"] in terminal_statuses
+            ):
+                break
+        else:
+            time.sleep(1)
+
+    cli_content.complete()
+    return result
+
+
+def get_flow_renderable_response(
+    result: Union[GlobusHTTPResponse, str, GlobusAPIError],
+    dumper: Callable = OutputFormat.json.get_dumper(),
+    verbose: bool = False,
+) -> Text:
+    text = Text()
+
+    if verbose:
+        verbose_output = get_http_details(result)
+        text.append(f"{verbose_output}\n", style="bright_cyan")
+
+    if isinstance(result, GlobusHTTPResponse):
+        result = result.data["entries"][-1]
+        style = "green"
+    elif isinstance(result, GlobusAPIError):
+        result = result.raw_json if result.raw_json else result.raw_text
+        style = "red"
+    else:
+        result = result
+
+    text.append(dumper(result), style=style)
+    return text
 
 
 def format_and_echo(
     result: Union[GlobusHTTPResponse, str, GlobusAPIError],
-    dumper: Callable = default_json_dumper,
+    dumper: Callable = OutputFormat.json.get_dumper(),
     verbose=False,
-) -> None:
+):
+    output = ""
     if verbose:
-        display_http_details(result)
+        output += f"{get_http_details(result)}\n"
 
     if isinstance(result, GlobusHTTPResponse):
         if 200 <= result.http_status < 300:
@@ -35,10 +152,12 @@ def format_and_echo(
         result = result.raw_json if result.raw_json else result.raw_text
     else:
         color = typer.colors.GREEN
-    typer.secho(dumper(result, indent=4, sort_keys=True), fg=color)
+
+    output += dumper(result)
+    typer.secho(output, fg=color)
 
 
-def display_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> None:
+def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
     if isinstance(result, GlobusHTTPResponse):
         base_request = result._data.request
         reponse_status_code = result._data.status_code
@@ -49,9 +168,10 @@ def display_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> N
     formatted_headers = "\n".join(
         f"  {k}: {v}" for k, v in base_request.headers.items()
     )
-    typer.echo(f"Request: {base_request.method} {base_request.url}", err=True)
-    typer.echo(f"Headers:\n{formatted_headers}", err=True)
-    typer.echo(f"Response: {reponse_status_code}", err=True)
+    http_details = f"Request: {base_request.method} {base_request.url}\n"
+    http_details += f"Headers:\n{formatted_headers}\n"
+    http_details += f"Response: {reponse_status_code}"
+    return http_details
 
 
 def process_input(
