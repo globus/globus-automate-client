@@ -457,7 +457,11 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
-        return ac.run(flow_input, dry_run=dry_run, **kwargs)
+        if dry_run:
+            path = flow_url + "/dry-run"
+            return ac.run(flow_input, force_path=path, **kwargs)
+        else:
+            return ac.run(flow_input, **kwargs)
 
     def flow_action_status(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs

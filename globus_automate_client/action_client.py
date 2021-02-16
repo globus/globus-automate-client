@@ -56,7 +56,7 @@ class ActionClient(BaseClient):
         manage_by: Optional[Iterable[str]] = None,
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
-        dry_run: bool = False,
+        force_path: Optional[str] = None,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -70,6 +70,8 @@ class ActionClient(BaseClient):
             this Action's execution
         :param monitor_by: A series of Globus identities which may
             view the state of this Action
+        :param force_path: A URL to use for running this action, ignoring any
+            previous configuration
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
@@ -79,15 +81,14 @@ class ActionClient(BaseClient):
             monitor_by = list(set(monitor_by))
 
         path = self.qjoin_path("run")
-        if dry_run:
-            path = self.qjoin_path("run", "dry-run")
+        if force_path:
+            path = force_path
         body = {
             "request_id": str(request_id),
             "body": body,
             "monitor_by": monitor_by,
             "manage_by": manage_by,
             "label": label,
-            "dry_run": dry_run,
         }
         # Remove None items from the temp_body
         body = {k: v for k, v in body.items() if v is not None}
