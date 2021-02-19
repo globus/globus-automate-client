@@ -94,6 +94,20 @@ def _all_vals_for_keys(
 
 
 def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
+    """Perform local, JSONSchema based validation of a Flow definition. This is validation
+    on the basic structure of your Flow definition.such as required fields / properties
+    for the various state types and the overall structure of the Flow. This schema based
+    validation *does not* do any validation of input values or parameters passed to
+    Actions as those Actions define their own schemas and the Flow may generate or
+    compute values to these Actions and thus static, schema based validation cannot
+    determine if the Action parameter values generated during execution are correct.
+
+    The input is the dictionary containing the flow definition.
+
+    If the flow passes validation, no value is returned. If validation errors are found,
+    a FlowValidationError exception will be raised containing a string message describing
+    the error(s) encountered.
+    """
     schema_path = Path(__file__).parent / "flows_schema.json"
     with schema_path.open() as sf:
         flow_schema = json.load(sf)
