@@ -33,7 +33,7 @@ globus-automate = "globus_automate_client.cli.main:app"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-globus-sdk = "^1.9"
+globus-sdk = "^2.0"
 graphviz = "^0.12"
 typer = {extras = ["all"], version = "^0.3.0"}
 fair-research-login = {version = "^0.2.0"}
