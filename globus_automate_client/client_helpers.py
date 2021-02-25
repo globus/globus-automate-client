@@ -59,7 +59,7 @@ def cli_authorizer_callback(**kwargs):
 
 
 def create_flows_client(
-    client_id: str, base_url: str = PROD_FLOWS_BASE_URL
+    client_id: str = CLIENT_ID, base_url: str = PROD_FLOWS_BASE_URL
 ) -> FlowsClient:
     """
     A helper function to handle creating a properly authenticated
