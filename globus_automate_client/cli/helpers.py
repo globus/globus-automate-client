@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Mapping, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import typer
 import yaml
@@ -77,3 +77,22 @@ def process_input(
             raise typer.BadParameter(f"Invalid YAML{error_explanation}: {e}")
 
     return input_dict
+
+
+def parse_query_options(queries: Optional[List[str]]) -> Dict[str, str]:
+    result: Dict[str, str] = {}
+
+    if queries is None:
+        return result
+
+    for q in queries:
+        try:
+            field, pattern = q.split("=")
+        except ValueError:
+            raise typer.BadParameter(
+                f"Issue parsing '{q}'. Options should be of the form 'field=pattern'."
+            )
+        if pattern == "":
+            raise typer.BadParameter(f"Issue parsing '{q}'. Missing pattern.")
+        result[field] = pattern
+    return result

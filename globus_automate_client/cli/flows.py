@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any, List, Mapping
+from typing import Any, List, Mapping, Optional
 
 import typer
 import yaml
@@ -19,6 +19,7 @@ from globus_automate_client.cli.constants import InputFormat
 from globus_automate_client.cli.helpers import (
     display_http_details,
     format_and_echo,
+    parse_query_options,
     process_input,
     verbosity_option,
 )
@@ -388,6 +389,25 @@ def flow_list(
         hidden=True,
         callback=flows_endpoint_envvar_callback,
     ),
+    filters: Optional[List[str]] = typer.Option(
+        None,
+        "--filter",
+        help="A filtering criteria in the form 'key=value' to apply to the "
+        "resulting Flow listing. The key indicates the filter, the value "
+        "indicates the pattern to match. Multiple patterns may for a single key "
+        "may be specified as a comma seperated string, the results for which will "
+        "represent a logical OR. If multiple filters are applied, the returned "
+        "data will be the result of a logical AND between them. [repeatable]",
+    ),
+    orderings: Optional[List[str]] = typer.Option(
+        None,
+        "--orderby",
+        help="An ordering criteria in the form 'key=value' to apply to the resulting "
+        "Flow listing. The key indicates the field to order on, and the value is "
+        "either ASC, for ascending order, or DESC, for descending order. The first "
+        "ordering criteria will be used to sort the data, subsequent ordering criteria "
+        "will further sort ties. [repeatable]",
+    ),
     verbose: bool = verbosity_option,
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
@@ -401,10 +421,17 @@ def flow_list(
     """
     List Flows for which you have access.
     """
+    parsed_filters = parse_query_options(filters)
+    parsed_orderings = parse_query_options(orderings)
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
         flows = fc.list_flows(
-            roles=[r.value for r in roles], marker=marker, per_page=per_page
+            roles=[r.value for r in roles],
+            marker=marker,
+            per_page=per_page,
+            filters=parsed_filters,
+            orderings=parsed_orderings,
         )
     except GlobusAPIError as err:
         format_and_echo(err, verbose=verbose)
@@ -517,7 +544,7 @@ def flow_run(
         "--label",
         "-l",
         help="Optional label to mark this run.",
-    )
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.

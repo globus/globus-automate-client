@@ -335,6 +335,8 @@ class FlowsClient(BaseClient):
         roles: Optional[List[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
+        filters: Optional[dict] = None,
+        orderings: Optional[dict] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -357,6 +359,18 @@ class FlowsClient(BaseClient):
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
+        :param filters: A filtering criteria to apply to the resulting Flow
+            listing. The keys indicate the filter, the values indicate the
+            pattern to match. The returned data will be the result of a logical
+            AND between the filters. Patterns may be comma separated to produce
+            the result of a logical OR.
+        :param orderings: An ordering criteria to apply to the resulting
+            Flow listing. The keys indicate the field to order on, and
+            the value can be either ASC, for ascending order, or DESC, for
+            descending order. The first ordering criteria will be used to sort
+            the data, subsequent ordering criteria will be applied for ties.
+            Note: To ensure orderings are applied in the correct order, use an
+            OrderedDict if trying to apply multiple orderings.
         """
         self.authorizer = self.flow_management_authorizer
         params = {}
@@ -366,6 +380,13 @@ class FlowsClient(BaseClient):
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = str(per_page)
+        if filters is not None:
+            params.update(filters)
+        if orderings is not None:
+            builder = []
+            for field, value in orderings.items():
+                builder.append(f"{field} {value}")
+            params["orderby"] = ",".join(builder)
         return self.get("/flows", params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs):
