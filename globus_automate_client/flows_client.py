@@ -531,6 +531,8 @@ class FlowsClient(BaseClient):
         roles: Optional[List[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
+        filters: Optional[dict] = None,
+        orderings: Optional[dict] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -565,6 +567,18 @@ class FlowsClient(BaseClient):
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
+        :param filters: A filtering criteria to apply to the resulting Action
+            listing. The keys indicate the filter, the values indicate the
+            pattern to match. The returned data will be the result of a logical
+            AND between the filters. Patterns may be comma separated to produce
+            the result of a logical OR.
+        :param orderings: An ordering criteria to apply to the resulting
+            Action listing. The keys indicate the field to order on, and
+            the value can be either ASC, for ascending order, or DESC, for
+            descending order. The first ordering criteria will be used to sort
+            the data, subsequent ordering criteria will be applied for ties.
+            Note: To ensure orderings are applied in the correct order, use an
+            OrderedDict if trying to apply multiple orderings.
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
@@ -575,13 +589,21 @@ class FlowsClient(BaseClient):
 
         params = {}
         if statuses is not None and len(statuses) > 0:
-            params.update(dict(status=",".join(statuses)))
+            params.update(dict(filter_status=",".join(statuses)))
         if roles is not None and len(roles) > 0:
-            params.update(dict(roles=",".join(roles)))
+            params.update(dict(filter_roles=",".join(roles)))
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = str(per_page)
+        if filters:
+            params.update(filters)
+        if orderings:
+            builder = []
+            for field, value in orderings.items():
+                builder.append(f"{field} {value}")
+            params["orderby"] = ",".join(builder)
+
         return self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
 
     def flow_action_log(
