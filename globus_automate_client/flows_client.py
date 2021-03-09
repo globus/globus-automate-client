@@ -414,7 +414,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope:  The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param flow_input: A Flow-specific dictionary specifying the input
             required for the Flow to run.
@@ -439,7 +439,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param flow_action_id: The ID specifying the Action for which's status
             we want to query
@@ -454,6 +454,31 @@ class FlowsClient(BaseClient):
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.status(flow_action_id)
 
+    def flow_action_resume(
+        self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs
+    ) -> GlobusHTTPResponse:
+        """
+        Resume a Flow Action which is in an INACTIVE state.
+
+        :param flow_id: The UUID identifying the Flow which triggered the Action
+
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to determine its scope automatically.
+
+        :param flow_action_id: The ID specifying the Action for which's status
+            we want to query
+
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        flow_url = f"{self.base_url}/flows/{flow_id}"
+        ac = ActionClient.new_client(flow_url, authorizer)
+        return ac.resume(flow_action_id)
+
     def flow_action_release(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs
     ) -> GlobusHTTPResponse:
@@ -464,7 +489,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param flow_action_id: The ID specifying the Action to release
 
@@ -488,7 +513,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param flow_action_id: The ID specifying the Action we want to cancel
 
@@ -519,7 +544,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param statuses: A list of statuses used to filter the Actions that are
             returned by the listing. Returned Actions are guaranteed to have one
@@ -582,7 +607,7 @@ class FlowsClient(BaseClient):
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
-            the Flow to pull its scope automatically
+            the Flow to determine its scope automatically
 
         :param flow_action_id: The ID specifying the Action for which's history
             to query

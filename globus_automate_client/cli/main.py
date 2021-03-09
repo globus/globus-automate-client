@@ -4,7 +4,7 @@ import typer
 import yaml
 
 from globus_automate_client import __version__
-from globus_automate_client.cli import actions, flows, queues
+from globus_automate_client.cli import actions, flows, queues, session
 from globus_automate_client.token_management import CONFIG_PATH
 
 # Monkey patching out the unsafe load capability
@@ -22,6 +22,7 @@ app = typer.Typer(help=help, short_help="Globus Automate CLI")
 app.add_typer(actions.app, name="action")
 app.add_typer(flows.app, name="flow")
 app.add_typer(queues.app, name="queue")
+app.add_typer(session.app, name="session")
 
 
 def version_callback(display_version: bool):

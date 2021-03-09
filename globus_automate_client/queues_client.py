@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Optional
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -9,7 +9,7 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 
-from globus_automate_client.token_management import get_authorizer_for_scope
+from globus_automate_client.cli.auth import get_authorizer_for_scope
 
 _prod_queues_base_url = "https://queues.api.globus.org/v1"
 
