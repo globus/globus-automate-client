@@ -1,12 +1,12 @@
 from typing import Optional
 
 from globus_automate_client.action_client import ActionClient
+from globus_automate_client.cli.auth import CLIENT_ID, get_cli_authorizer
 from globus_automate_client.flows_client import (
     MANAGE_FLOWS_SCOPE,
     PROD_FLOWS_BASE_URL,
     FlowsClient,
 )
-from globus_automate_client.token_management import CLIENT_ID, get_cli_authorizer
 
 
 def create_action_client(

@@ -2,8 +2,6 @@ import functools
 from typing import List
 
 import typer
-from globus_sdk import GlobusAPIError
-
 from globus_automate_client.cli.callbacks import (
     input_validator,
     principal_validator,
@@ -18,6 +16,7 @@ from globus_automate_client.cli.helpers import (
 )
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
+from globus_sdk import GlobusAPIError
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
 
@@ -182,6 +181,58 @@ def action_status(
     method = functools.partial(ac.status, action_id)
     with live_content:
         request_runner(method, output_format, verbose, watch)
+
+
+@app.command("resume")
+def action_resume(
+    action_url: str = typer.Option(
+        ...,
+        help="The url at which the target Action Provider is located.",
+        prompt=True,
+        callback=url_validator_callback,
+    ),
+    action_scope: str = typer.Option(
+        None,
+        help="The scope this Action Provider uses to authenticate requests.",
+        callback=url_validator_callback,
+    ),
+    query_for_inactive_reason: bool = typer.Option(
+        True,
+        help=(
+            "Should the Action first be queried to determine the reason for the "
+            "resume, and prompt for additional consent if needed."
+        ),
+    ),
+    action_id: str = typer.Argument(...),
+    verbose: bool = verbosity_option,
+    output_format: ActionOutputFormat = typer.Option(
+        ActionOutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
+):
+    """
+    Resume an inactive Action by its ACTION_ID.
+    """
+    ac = create_action_client(action_url, action_scope=action_scope)
+    try:
+        if query_for_inactive_reason:
+            result = ac.status(action_id)
+            body = result.data
+            status = body.get("status")
+            details = body.get("details", {})
+            code = details.get("code")
+            if status == "INACTIVE" and code == "ConsentRequired":
+                required_scope = details.get("required_scope")
+                if required_scope is not None:
+                    ac = create_action_client(action_url, action_scope=required_scope)
+        result = ac.resume(action_id)
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("cancel")

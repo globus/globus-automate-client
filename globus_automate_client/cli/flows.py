@@ -5,8 +5,6 @@ from typing import Any, List, Mapping, Optional
 
 import typer
 import yaml
-from globus_sdk import GlobusAPIError, GlobusHTTPResponse
-
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
     flows_endpoint_envvar_callback,
@@ -42,6 +40,7 @@ from globus_automate_client.graphviz_rendering import (
     state_colors_for_log,
 )
 from globus_automate_client.token_management import CLIENT_ID
+from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 
 class FlowRole(str, Enum):
@@ -704,6 +703,55 @@ def flow_action_status(
 
     with live_content:
         request_runner(method, OutputFormat.json, verbose, watch)
+
+
+@app.command("action-resume")
+def flow_action_resume(
+    action_id: str = typer.Argument(...),
+    flow_id: str = typer.Option(
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+        prompt=True,
+    ),
+    flow_scope: str = typer.Option(
+        None,
+        help="The scope this Flow uses to authenticate requests.",
+        callback=url_validator_callback,
+    ),
+    query_for_inactive_reason: bool = typer.Option(
+        True,
+        help=(
+            "Should the Action first be queried to determine the reason for the "
+            "resume, and prompt for additional consent if needed."
+        ),
+    ),
+    flows_endpoint: str = typer.Option(
+        PROD_FLOWS_BASE_URL,
+        hidden=True,
+        callback=flows_endpoint_envvar_callback,
+    ),
+    verbose: bool = verbosity_option,
+):
+    """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set, and the
+    Flow Action is in an INACTIVE state due to requiring additional Consent, the required
+    Consent will be determined and you may be prompted to allow Consent using the Globus
+    Auth web interface.
+
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    try:
+        if query_for_inactive_reason:
+            result = fc.flow_action_status(flow_id, flow_scope, action_id)
+            body = result.data
+            status = body.get("status")
+            details = body.get("details", {})
+            code = details.get("code")
+            if status == "INACTIVE" and code == "ConsentRequired":
+                flow_scope = details.get("required_scope")
+        fc.flow_action_resume(flow_id, flow_scope, action_id)
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("action-release")
