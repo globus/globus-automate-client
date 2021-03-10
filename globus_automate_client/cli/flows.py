@@ -395,8 +395,8 @@ def flow_list(
         "--filter",
         help="A filtering criteria in the form 'key=value' to apply to the "
         "resulting Flow listing. The key indicates the filter, the value "
-        "indicates the pattern to match. Multiple patterns may for a single key "
-        "may be specified as a comma seperated string, the results for which will "
+        "indicates the pattern to match. Multiple patterns for a single key may "
+        "be specified as a comma seperated string, the results for which will "
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
@@ -616,8 +616,8 @@ def flow_actions_list(
         "--filter",
         help="A filtering criteria in the form 'key=value' to apply to the "
         "resulting Action listing. The key indicates the filter, the value "
-        "indicates the pattern to match. Multiple patterns may for a single key "
-        "may be specified as a comma seperated string, the results for which will "
+        "indicates the pattern to match. Multiple patterns for a single key may "
+        "be specified as a comma seperated string, the results for which will "
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
