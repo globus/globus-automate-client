@@ -50,13 +50,6 @@ class FlowRole(str, Enum):
     administered_by = "administered_by"
 
 
-# class FlowDisplayFormat(str, Enum):
-#    json = "json"
-#    graphviz = "graphviz"
-#    image = "image"
-#    yaml = "yaml"
-
-
 class ActionRole(str, Enum):
     created_by = "created_by"
     monitor_by = "monitor_by"
