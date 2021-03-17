@@ -5,7 +5,7 @@ import yaml
 
 from globus_automate_client import __version__
 from globus_automate_client.cli import actions, flows, queues, session
-from globus_automate_client.token_management import CONFIG_PATH
+from globus_automate_client.cli.auth import DEFAULT_TOKEN_FILE
 
 # Monkey patching out the unsafe load capability
 # Only use safe_load for our purposes
@@ -15,7 +15,7 @@ del yaml.unsafe_load
 help = f"""
 CLI for Globus Automate
 
-By default, this CLI keeps all its config and cached tokens in {CONFIG_PATH}
+By default, this CLI keeps all its config and cached tokens in {DEFAULT_TOKEN_FILE}
 """
 
 app = typer.Typer(help=help, short_help="Globus Automate CLI")

@@ -3,7 +3,6 @@ import os
 import pathlib
 import platform
 import sys
-from collections import defaultdict
 from json import JSONDecodeError
 from typing import Any, Dict, List, NamedTuple, Optional, Set
 

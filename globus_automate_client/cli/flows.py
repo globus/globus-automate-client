@@ -5,6 +5,7 @@ from typing import Any, List, Mapping, Optional
 
 import typer
 import yaml
+from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
     flows_endpoint_envvar_callback,
@@ -39,7 +40,6 @@ from globus_automate_client.graphviz_rendering import (
     graphviz_format,
     state_colors_for_log,
 )
-from globus_automate_client.token_management import CLIENT_ID
 from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 
@@ -748,7 +748,7 @@ def flow_action_resume(
             code = details.get("code")
             if status == "INACTIVE" and code == "ConsentRequired":
                 flow_scope = details.get("required_scope")
-        fc.flow_action_resume(flow_id, flow_scope, action_id)
+        result = fc.flow_action_resume(flow_id, flow_scope, action_id)
     except GlobusAPIError as err:
         result = err
     format_and_echo(result, verbose=verbose)
