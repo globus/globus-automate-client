@@ -1,9 +1,7 @@
-import json
-from enum import Enum
+import functools
 from typing import List
 
 import typer
-import yaml
 from globus_sdk import GlobusAPIError
 
 from globus_automate_client.cli.callbacks import (
@@ -11,26 +9,17 @@ from globus_automate_client.cli.callbacks import (
     principal_validator,
     url_validator_callback,
 )
-from globus_automate_client.cli.constants import InputFormat
+from globus_automate_client.cli.constants import InputFormat, OutputFormat
 from globus_automate_client.cli.helpers import (
     format_and_echo,
     process_input,
+    request_runner,
     verbosity_option,
 )
+from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
-
-
-class ActionOutputFormat(str, Enum):
-    json = "json"
-    yaml = "yaml"
-
-    def get_dumper(self):
-        if self is self.json:
-            return json.dumps
-        elif self is self.yaml:
-            return yaml.dump
 
 
 @app.command("introspect")
@@ -47,8 +36,8 @@ def action_introspect(
         callback=url_validator_callback,
     ),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
@@ -106,8 +95,8 @@ def action_run(
         callback=principal_validator,
     ),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
@@ -127,18 +116,32 @@ def action_run(
         "--label",
         "-l",
         help="Optional label to mark this execution of the action.",
-    )
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state.",
+        show_default=True,
+    ),
 ):
     """
     Launch an Action.
     """
-    ac = create_action_client(action_url, action_scope)
     parsed_body = process_input(body, input_format)
-    try:
-        result = ac.run(parsed_body, request_id, manage_by, monitor_by, label=label)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+    ac = create_action_client(action_url, action_scope)
+    method = functools.partial(
+        ac.run, parsed_body, request_id, manage_by, monitor_by, label=label
+    )
+
+    with live_content:
+        # Set watch to false here to immediately return after running the Action
+        result = request_runner(method, output_format, verbose, False)
+
+        if watch and not isinstance(result, GlobusAPIError):
+            action_id = result.data.get("action_id")
+            method = functools.partial(ac.status, action_id)
+            request_runner(method, output_format, verbose, watch)
 
 
 @app.command("status")
@@ -156,12 +159,19 @@ def action_status(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
         case_sensitive=False,
+        show_default=True,
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state. ",
         show_default=True,
     ),
 ):
@@ -169,11 +179,9 @@ def action_status(
     Query an Action's status by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    try:
-        result = ac.status(action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+    method = functools.partial(ac.status, action_id)
+    with live_content:
+        request_runner(method, output_format, verbose, watch)
 
 
 @app.command("cancel")
@@ -191,8 +199,8 @@ def action_cancel(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
@@ -226,8 +234,8 @@ def action_release(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",

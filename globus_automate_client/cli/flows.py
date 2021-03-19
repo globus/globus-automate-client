@@ -1,3 +1,4 @@
+import functools
 import json
 from enum import Enum
 from typing import Any, List, Mapping
@@ -15,13 +16,20 @@ from globus_automate_client.cli.callbacks import (
     principal_validator,
     url_validator_callback,
 )
-from globus_automate_client.cli.constants import InputFormat
+from globus_automate_client.cli.constants import (
+    FlowDisplayFormat,
+    InputFormat,
+    OutputFormat,
+)
 from globus_automate_client.cli.helpers import (
-    display_http_details,
+    flow_log_runner,
     format_and_echo,
+    get_http_details,
     process_input,
+    request_runner,
     verbosity_option,
 )
+from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
     PROD_FLOWS_BASE_URL,
@@ -40,13 +48,6 @@ class FlowRole(str, Enum):
     visible_to = "visible_to"
     runnable_by = "runnable_by"
     administered_by = "administered_by"
-
-
-class FlowDisplayFormat(str, Enum):
-    json = "json"
-    graphviz = "graphviz"
-    image = "image"
-    yaml = "yaml"
 
 
 class ActionRole(str, Enum):
@@ -193,7 +194,7 @@ def flow_deploy(
         )
     except GlobusAPIError as err:
         result = err
-    format_and_echo(result, input_format.get_dumper(), verbose=verbose)
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("update")
@@ -517,20 +518,34 @@ def flow_run(
         "--label",
         "-l",
         help="Optional label to mark this run.",
-    )
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state.",
+        show_default=True,
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
+    method = functools.partial(
+        fc.run_flow, flow_id, flow_scope, flow_input_dict, label=label
+    )
 
-    try:
-        response = fc.run_flow(flow_id, flow_scope, flow_input_dict, label=label)
-    except GlobusAPIError as err:
-        format_and_echo(err, verbose=verbose)
-    else:
-        _format_and_display_flow(response, output_format, verbose=verbose)
+    with live_content:
+        # Set watch to false here to immediately return after running the Action
+        response = request_runner(method, output_format, verbose, False)
+
+        if watch and isinstance(response, GlobusHTTPResponse):
+            action_id = response.data.get("action_id")
+            method = functools.partial(
+                fc.flow_action_status, flow_id, flow_scope, action_id
+            )
+            request_runner(method, output_format, verbose, watch)
 
 
 @app.command("action-list")
@@ -622,17 +637,23 @@ def flow_action_status(
         hidden=True,
         callback=flows_endpoint_envvar_callback,
     ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state.",
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Display the status for a Flow definition's particular invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        result = fc.flow_action_status(flow_id, flow_scope, action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+    method = functools.partial(fc.flow_action_status, flow_id, flow_scope, action_id)
+
+    with live_content:
+        request_runner(method, OutputFormat.json, verbose, watch)
 
 
 @app.command("action-release")
@@ -744,6 +765,15 @@ def flow_action_log(
         case_sensitive=False,
         show_default=True,
     ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state. "
+        "Using this option will report only the latest state available."
+        "Only JSON and YAML output formats are supported.",
+        show_default=True,
+    ),
     flows_endpoint: str = typer.Option(
         PROD_FLOWS_BASE_URL,
         hidden=True,
@@ -755,30 +785,36 @@ def flow_action_log(
     Get a log of the steps executed by a Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    method = functools.partial(
+        fc.flow_action_log,
+        flow_id,
+        flow_scope,
+        action_id,
+        limit,
+        reverse,
+        marker,
+        per_page,
+    )
+
+    if watch and output_format in {FlowDisplayFormat.json, FlowDisplayFormat.yaml}:
+        with live_content:
+            flow_log_runner(method, output_format, verbose, watch)
+        raise typer.Exit()
 
     try:
-        resp = fc.flow_action_log(
-            flow_id, flow_scope, action_id, limit, reverse, marker, per_page
-        )
+        resp = method()
     except GlobusAPIError as err:
-        format_and_echo(err, verbose=verbose)
-        raise typer.Exit(code=1)
+        resp = err
 
-    if verbose:
-        display_http_details(resp)
-
-    if output_format in (FlowDisplayFormat.json, FlowDisplayFormat.yaml):
-        _format_and_display_flow(resp, output_format, verbose)
-    elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
-        flow_def_resp = fc.get_flow(flow_id)
-        flow_def = flow_def_resp.data["definition"]
-        colors = state_colors_for_log(resp.data["entries"])
-        graphviz_out = graphviz_format(flow_def, colors)
-
-        if output_format == FlowDisplayFormat.graphviz:
-            typer.echo(graphviz_out.source)
+    if output_format in {FlowDisplayFormat.json, FlowDisplayFormat.yaml}:
+        format_and_echo(resp, output_format.get_dumper(), verbose=verbose)
+    else:
+        if isinstance(resp, GlobusHTTPResponse):
+            flow_def = fc.get_flow(flow_id)
+            dumper = output_format.get_dumper()
+            dumper(resp, flow_def)
         else:
-            graphviz_out.render("flows-output/graph", view=True, cleanup=True)
+            format_and_echo(resp, verbose=verbose)
 
 
 def _format_and_display_flow(
@@ -788,12 +824,12 @@ def _format_and_display_flow(
     Diplays a flow as either JSON, graphviz, or an image
     """
     if verbose:
-        display_http_details(flow_resp)
+        print(get_http_details(flow_resp))
 
     if output_format is FlowDisplayFormat.json:
-        format_and_echo(flow_resp, json.dumps)
+        format_and_echo(flow_resp, OutputFormat.json.get_dumper())
     elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(flow_resp, yaml.dump)
+        format_and_echo(flow_resp, OutputFormat.yaml.get_dumper())
     elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
         graphviz_out = graphviz_format(flow_resp.data["definition"])
         if output_format == FlowDisplayFormat.graphviz:
