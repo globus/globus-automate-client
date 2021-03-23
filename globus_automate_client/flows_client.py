@@ -14,6 +14,7 @@ from typing import (
     Union,
 )
 
+from globus_automate_client import ActionClient
 from globus_sdk import (
     AccessTokenAuthorizer,
     ClientCredentialsAuthorizer,
@@ -22,8 +23,6 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 from jsonschema import Draft7Validator
-
-from globus_automate_client import ActionClient
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -487,8 +486,8 @@ class FlowsClient(BaseClient):
             not provided, the SDK will attempt to perform an introspection on
             the Flow to determine its scope automatically.
 
-        :param flow_action_id: The ID specifying the Action for which's status
-            we want to query
+        :param flow_action_id: The ID specifying the Action with an INACTIVE
+            status we want to resume.
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
