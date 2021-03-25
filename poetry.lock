@@ -183,6 +183,17 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "commonmark"
+version = "0.9.1"
+description = "Python parser for the CommonMark Markdown spec"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
+
+[[package]]
 name = "cryptography"
 version = "3.4.6"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -213,7 +224,7 @@ python-versions = ">=3.6"
 name = "dataclasses"
 version = "0.8"
 description = "A backport of the dataclasses module for Python 3.6"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6, <3.7"
 
@@ -259,14 +270,6 @@ python-versions = "*"
 
 [package.dependencies]
 sexpdata = ">=0.0.3"
-
-[[package]]
-name = "future"
-version = "0.18.2"
-description = "Clean single-source support for Python 3 and 2"
-category = "dev"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "globus-sdk"
@@ -427,18 +430,18 @@ colors = ["colorama (>=0.4.3,<0.5.0)"]
 
 [[package]]
 name = "jedi"
-version = "0.18.0"
+version = "0.17.2"
 description = "An autocompletion tool for Python that can be used for text editors."
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.dependencies]
-parso = ">=0.8.0,<0.9.0"
+parso = ">=0.7.0,<0.8.0"
 
 [package.extras]
-qa = ["flake8 (==3.8.3)", "mypy (==0.782)"]
-testing = ["Django (<3.1)", "colorama", "docopt", "pytest (<6.0.0)"]
+qa = ["flake8 (==3.7.9)"]
+testing = ["Django (<3.1)", "colorama", "docopt", "pytest (>=3.9.0,<5.0.0)"]
 
 [[package]]
 name = "jinja2"
@@ -509,7 +512,7 @@ test = ["async-generator", "ipykernel", "ipython", "mock", "pytest-asyncio", "py
 
 [[package]]
 name = "jupyter-console"
-version = "6.3.0"
+version = "6.4.0"
 description = "Jupyter terminal console"
 category = "dev"
 optional = false
@@ -744,15 +747,14 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "parso"
-version = "0.8.1"
+version = "0.7.1"
 description = "A Python Parser"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.extras]
-qa = ["flake8 (==3.8.3)", "mypy (==0.782)"]
-testing = ["docopt", "pytest (<6.0.0)"]
+testing = ["docopt", "pytest (>=3.0.7)"]
 
 [[package]]
 name = "pathspec"
@@ -835,7 +837,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pycodestyle"
-version = "2.7.0"
+version = "2.6.0"
 description = "Python style guide checker"
 category = "dev"
 optional = false
@@ -851,7 +853,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pyflakes"
-version = "2.3.0"
+version = "2.2.0"
 description = "passive checker of Python programs"
 category = "dev"
 optional = false
@@ -861,7 +863,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 name = "pygments"
 version = "2.8.1"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -990,31 +992,31 @@ test = ["versioneer", "pylint", "pycodestyle", "pyflakes", "pytest", "mock", "py
 
 [[package]]
 name = "python-language-server"
-version = "0.26.1"
+version = "0.36.2"
 description = "Python Language Server for the Language Server Protocol"
 category = "dev"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-future = ">=0.14.0"
-jedi = ">=0.13.2"
+jedi = ">=0.17.2,<0.18.0"
 pluggy = "*"
-pycodestyle = {version = "*", optional = true, markers = "extra == \"pycodestyle\""}
-pyflakes = {version = ">=1.6.0", optional = true, markers = "extra == \"pyflakes\""}
-python-jsonrpc-server = ">=0.1.0"
+pycodestyle = {version = ">=2.6.0,<2.7.0", optional = true, markers = "extra == \"pycodestyle\""}
+pyflakes = {version = ">=2.2.0,<2.3.0", optional = true, markers = "extra == \"pyflakes\""}
+python-jsonrpc-server = ">=0.4.0"
 rope = {version = ">0.10.5", optional = true, markers = "extra == \"rope\""}
 
 [package.extras]
-all = ["autopep8", "mccabe", "pycodestyle", "pydocstyle (>=2.0.0)", "pyflakes (>=1.6.0)", "pylint", "rope (>=0.10.5)", "yapf"]
+all = ["autopep8", "flake8 (>=3.8.0)", "mccabe (>=0.6.0,<0.7.0)", "pycodestyle (>=2.6.0,<2.7.0)", "pydocstyle (>=2.0.0)", "pyflakes (>=2.2.0,<2.3.0)", "pylint (>=2.5.0)", "rope (>=0.10.5)", "yapf"]
 autopep8 = ["autopep8"]
-mccabe = ["mccabe"]
-pycodestyle = ["pycodestyle"]
+flake8 = ["flake8 (>=3.8.0)"]
+mccabe = ["mccabe (>=0.6.0,<0.7.0)"]
+pycodestyle = ["pycodestyle (>=2.6.0,<2.7.0)"]
 pydocstyle = ["pydocstyle (>=2.0.0)"]
-pyflakes = ["pyflakes (>=1.6.0)"]
-pylint = ["pylint"]
+pyflakes = ["pyflakes (>=2.2.0,<2.3.0)"]
+pylint = ["pylint (>=2.5.0)"]
 rope = ["rope (>0.10.5)"]
-test = ["versioneer", "pylint", "pytest", "mock", "pytest-cov", "coverage"]
+test = ["versioneer", "pylint (>=2.5.0)", "pytest", "mock", "pytest-cov", "coverage", "numpy", "pandas", "matplotlib", "flaky", "pyqt5"]
 yapf = ["yapf"]
 
 [[package]]
@@ -1131,6 +1133,24 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
+
+[[package]]
+name = "rich"
+version = "9.13.0"
+description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+colorama = ">=0.4.0,<0.5.0"
+commonmark = ">=0.9.0,<0.10.0"
+dataclasses = {version = ">=0.7,<0.9", markers = "python_version >= \"3.6\" and python_version < \"3.7\""}
+pygments = ">=2.6.0,<3.0.0"
+typing-extensions = ">=3.7.4,<4.0.0"
+
+[package.extras]
+jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
 [[package]]
 name = "rope"
@@ -1492,7 +1512,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "a33dabaff638a1e321a5f0358ea69f2d3f1b7318f5805ac9624c49bba62bb169"
+content-hash = "e5ebdfd1844815334353534cdae9c9cb2e3bd40b2e8b7a0f323b4072df8383c5"
 
 [metadata.files]
 alabaster = [
@@ -1614,6 +1634,10 @@ colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
+commonmark = [
+    {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
+    {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
+]
 cryptography = [
     {file = "cryptography-3.4.6-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:57ad77d32917bc55299b16d3b996ffa42a1c73c6cfa829b14043c561288d2799"},
     {file = "cryptography-3.4.6-cp36-abi3-macosx_11_0_arm64.whl", hash = "sha256:4169a27b818de4a1860720108b55a2801f32b6ae79e7f99c00d79f2a2822eeb7"},
@@ -1655,9 +1679,6 @@ entrypoints = [
 ]
 epc = [
     {file = "epc-0.0.5.tar.gz", hash = "sha256:a14d2ea74817955a20eb00812e3a4630a132897eb4d976420240f1152c0d7d25"},
-]
-future = [
-    {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 globus-sdk = [
     {file = "globus-sdk-2.0.1.tar.gz", hash = "sha256:94225982da7596f5bc8cd3dc30a4746014bf1f501cc8b23fe4dfd230114ae7e6"},
@@ -1703,8 +1724,8 @@ isort = [
     {file = "isort-5.8.0.tar.gz", hash = "sha256:0a943902919f65c5684ac4e0154b1ad4fac6dcaa5d9f3426b732f1c8b5419be6"},
 ]
 jedi = [
-    {file = "jedi-0.18.0-py2.py3-none-any.whl", hash = "sha256:18456d83f65f400ab0c2d3319e48520420ef43b23a086fdc05dff34132f0fb93"},
-    {file = "jedi-0.18.0.tar.gz", hash = "sha256:92550a404bad8afed881a137ec9a461fed49eca661414be45059329614ed0707"},
+    {file = "jedi-0.17.2-py2.py3-none-any.whl", hash = "sha256:98cc583fa0f2f8304968199b01b6b4b94f469a1f4a74c1560506ca2a211378b5"},
+    {file = "jedi-0.17.2.tar.gz", hash = "sha256:86ed7d9b750603e4ba582ea8edc678657fb4007894a12bcf6f4bb97892f31d20"},
 ]
 jinja2 = [
     {file = "Jinja2-2.11.3-py2.py3-none-any.whl", hash = "sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419"},
@@ -1724,8 +1745,8 @@ jupyter-client = [
     {file = "jupyter_client-6.1.12.tar.gz", hash = "sha256:c4bca1d0846186ca8be97f4d2fa6d2bae889cce4892a167ffa1ba6bd1f73e782"},
 ]
 jupyter-console = [
-    {file = "jupyter_console-6.3.0-py3-none-any.whl", hash = "sha256:092283ba2c9b5ceb53f32d95891ecc59ed4bfeb69e36fe017db176213daa5b0e"},
-    {file = "jupyter_console-6.3.0.tar.gz", hash = "sha256:947f66bbdeee2221b4fb3a6b78225d337b8f10832f14cecf7932183635abe1d9"},
+    {file = "jupyter_console-6.4.0-py3-none-any.whl", hash = "sha256:7799c4ea951e0e96ba8260575423cb323ea5a03fcf5503560fa3e15748869e27"},
+    {file = "jupyter_console-6.4.0.tar.gz", hash = "sha256:242248e1685039cd8bff2c2ecb7ce6c1546eb50ee3b08519729e6e881aec19c7"},
 ]
 jupyter-core = [
     {file = "jupyter_core-4.7.1-py3-none-any.whl", hash = "sha256:8c6c0cac5c1b563622ad49321d5ec47017bd18b94facb381c6973a0486395f8e"},
@@ -1893,8 +1914,8 @@ pandocfilters = [
     {file = "pandocfilters-1.4.3.tar.gz", hash = "sha256:bc63fbb50534b4b1f8ebe1860889289e8af94a23bff7445259592df25a3906eb"},
 ]
 parso = [
-    {file = "parso-0.8.1-py2.py3-none-any.whl", hash = "sha256:15b00182f472319383252c18d5913b69269590616c947747bc50bf4ac768f410"},
-    {file = "parso-0.8.1.tar.gz", hash = "sha256:8519430ad07087d4c997fda3a7918f7cfa27cb58972a8c89c2a0295a1c940e9e"},
+    {file = "parso-0.7.1-py2.py3-none-any.whl", hash = "sha256:97218d9159b2520ff45eb78028ba8b50d2bc61dcc062a9682666f2dc4bd331ea"},
+    {file = "parso-0.7.1.tar.gz", hash = "sha256:caba44724b994a8a5e086460bb212abc5a8bc46951bf4a9a1210745953622eb9"},
 ]
 pathspec = [
     {file = "pathspec-0.8.1-py2.py3-none-any.whl", hash = "sha256:aa0cb481c4041bf52ffa7b0d8fa6cd3e88a2ca4879c533c9153882ee2556790d"},
@@ -1929,16 +1950,16 @@ py = [
     {file = "py-1.10.0.tar.gz", hash = "sha256:21b81bda15b66ef5e1a777a21c4dcd9c20ad3efd0b3f817e7a809035269e1bd3"},
 ]
 pycodestyle = [
-    {file = "pycodestyle-2.7.0-py2.py3-none-any.whl", hash = "sha256:514f76d918fcc0b55c6680472f0a37970994e07bbb80725808c17089be302068"},
-    {file = "pycodestyle-2.7.0.tar.gz", hash = "sha256:c389c1d06bf7904078ca03399a4816f974a1d590090fecea0c63ec26ebaf1cef"},
+    {file = "pycodestyle-2.6.0-py2.py3-none-any.whl", hash = "sha256:2295e7b2f6b5bd100585ebcb1f616591b652db8a741695b3d8f5d28bdc934367"},
+    {file = "pycodestyle-2.6.0.tar.gz", hash = "sha256:c58a7d2815e0e8d7972bf1803331fb0152f867bd89adf8a01dfd55085434192e"},
 ]
 pycparser = [
     {file = "pycparser-2.20-py2.py3-none-any.whl", hash = "sha256:7582ad22678f0fcd81102833f60ef8d0e57288b6b5fb00323d101be910e35705"},
     {file = "pycparser-2.20.tar.gz", hash = "sha256:2d475327684562c3a96cc71adf7dc8c4f0565175cf86b6d7a404ff4c771f15f0"},
 ]
 pyflakes = [
-    {file = "pyflakes-2.3.0-py2.py3-none-any.whl", hash = "sha256:910208209dcea632721cb58363d0f72913d9e8cf64dc6f8ae2e02a3609aba40d"},
-    {file = "pyflakes-2.3.0.tar.gz", hash = "sha256:e59fd8e750e588358f1b8885e5a4751203a0516e0ee6d34811089ac294c8806f"},
+    {file = "pyflakes-2.2.0-py2.py3-none-any.whl", hash = "sha256:0d94e0e05a19e57a99444b6ddcf9a6eb2e5c68d3ca1e98e90707af8152c90a92"},
+    {file = "pyflakes-2.2.0.tar.gz", hash = "sha256:35b2d75ee967ea93b55750aa9edbbf72813e06a66ba54438df2cfac9e3c27fc8"},
 ]
 pygments = [
     {file = "Pygments-2.8.1-py3-none-any.whl", hash = "sha256:534ef71d539ae97d4c3a4cf7d6f110f214b0e687e92f9cb9d2a3b0d3101289c8"},
@@ -1978,7 +1999,8 @@ python-jsonrpc-server = [
     {file = "python_jsonrpc_server-0.4.0-py3-none-any.whl", hash = "sha256:e5a908ff182e620aac07db5f57887eeb0afe33993008f57dc1b85b594cea250c"},
 ]
 python-language-server = [
-    {file = "python-language-server-0.26.1.tar.gz", hash = "sha256:1a746a4031938df03ee546fa4760895b6a6e420a07d58161b064945add6449ef"},
+    {file = "python-language-server-0.36.2.tar.gz", hash = "sha256:9984c84a67ee2c5102c8e703215f407fcfa5e62b0ae86c9572d0ada8c4b417b0"},
+    {file = "python_language_server-0.36.2-py2.py3-none-any.whl", hash = "sha256:a0ad0aca03f4a20c1c40f4f230c6773eac82c9b7cdb026cb09ba10237f4815d5"},
 ]
 python-slugify = [
     {file = "python-slugify-4.0.1.tar.gz", hash = "sha256:69a517766e00c1268e5bbfc0d010a0a8508de0b18d30ad5a1ff357f8ae724270"},
@@ -2130,6 +2152,10 @@ regex = [
 requests = [
     {file = "requests-2.25.1-py2.py3-none-any.whl", hash = "sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e"},
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
+]
+rich = [
+    {file = "rich-9.13.0-py3-none-any.whl", hash = "sha256:9004f6449c89abadf689dad6f92393e760b8c3a8a8c4ea6d8d474066307c0e66"},
+    {file = "rich-9.13.0.tar.gz", hash = "sha256:d59e94a0e3e686f0d268fe5c7060baa1bd6744abca71b45351f5850a3aaa6764"},
 ]
 rope = [
     {file = "rope-0.18.0.tar.gz", hash = "sha256:786b5c38c530d4846aa68a42604f61b4e69a493390e3ca11b88df0fbfdc3ed04"},

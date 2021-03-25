@@ -2,6 +2,8 @@ import functools
 from typing import List
 
 import typer
+from globus_sdk import GlobusAPIError
+
 from globus_automate_client.cli.callbacks import (
     input_validator,
     principal_validator,
@@ -16,7 +18,6 @@ from globus_automate_client.cli.helpers import (
 )
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
-from globus_sdk import GlobusAPIError
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
 
@@ -205,8 +206,8 @@ def action_resume(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: ActionOutputFormat = typer.Option(
-        ActionOutputFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
