@@ -14,7 +14,6 @@ from typing import (
     Union,
 )
 
-from globus_automate_client import ActionClient
 from globus_sdk import (
     AccessTokenAuthorizer,
     ClientCredentialsAuthorizer,
@@ -23,6 +22,8 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 from jsonschema import Draft7Validator
+
+from globus_automate_client import ActionClient
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -683,6 +684,7 @@ class FlowsClient(BaseClient):
         authorizer_callback: AuthorizerCallbackType,
         authorizer: AllowedAuthorizersType,
         base_url: str = PROD_FLOWS_BASE_URL,
+        http_timeout: int = 10,
     ) -> _FlowsClient:
         """
         Classmethod to simplify creating an FlowsClient. Use this method when
@@ -728,4 +730,5 @@ class FlowsClient(BaseClient):
             app_name="Globus Automate SDK FlowsClient",
             base_url=base_url,
             authorizer=authorizer,
+            http_timeout=http_timeout,
         )
