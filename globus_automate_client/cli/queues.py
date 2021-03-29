@@ -3,10 +3,10 @@ from typing import List
 
 import typer
 
+from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import input_validator, principal_validator
 from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
 from globus_automate_client.queues_client import create_queues_client
-from globus_automate_client.token_management import CLIENT_ID
 
 
 class QueueRole(str, Enum):

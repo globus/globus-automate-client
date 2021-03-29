@@ -99,6 +99,21 @@ class ActionClient(BaseClient):
         path = self.qjoin_path(action_id, "status")
         return self.get(path)
 
+    def resume(self, action_id: str) -> GlobusHTTPResponse:
+        """
+        Resume an INACTIVE action. Corrective action must have been taken prior to invoking
+        this method, including the possibility of consenting to additional permissions
+        and using tokens issued by those consents when creating this client. These
+        consents would commonly be required when an Action is INACTIVE and shows the code
+        ConsentRequired.
+
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
+
+        """
+        path = self.qjoin_path(action_id, "resume")
+        return self.post(path)
+
     def cancel(self, action_id: str) -> GlobusHTTPResponse:
         """
         Cancel a currently executing Action on an Action Provider
