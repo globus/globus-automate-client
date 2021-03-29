@@ -170,7 +170,10 @@ class ActionClient(BaseClient):
 
     @classmethod
     def new_client(
-        cls: Type[_ActionClient], action_url: str, authorizer: AllowedAuthorizersType
+        cls: Type[_ActionClient],
+        action_url: str,
+        authorizer: AllowedAuthorizersType,
+        http_timeout: int = 10,
     ) -> _ActionClient:
         """
         Classmethod to simplify creating an ActionClient. Use this method when
@@ -194,4 +197,5 @@ class ActionClient(BaseClient):
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
+            http_timeout=http_timeout,
         )
