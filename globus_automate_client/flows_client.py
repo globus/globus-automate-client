@@ -426,7 +426,13 @@ class FlowsClient(BaseClient):
         )
 
     def run_flow(
-        self, flow_id: str, flow_scope: Optional[str], flow_input: Mapping, **kwargs
+        self,
+        flow_id: str,
+        flow_scope: Optional[str],
+        flow_input: Mapping,
+        manage_by: Optional[List[str]] = None,
+        monitor_by: Optional[List[str]] = None,
+        **kwargs,
     ) -> GlobusHTTPResponse:
         """
         Run an instance of a deployed Flow with the given input.
@@ -440,6 +446,16 @@ class FlowsClient(BaseClient):
         :param flow_input: A Flow-specific dictionary specifying the input
             required for the Flow to run.
 
+        :param manage_by: A series of Globus identities which may alter
+            this Flow instance's execution. The principal value is the user's or
+            group's UUID prefixed with either 'urn:globus:groups:id:' or
+            'urn:globus:auth:identity:'
+
+        :param monitor_by: A series of Globus identities which may view this
+            Flow instance's execution state. The principal value is the user's
+            or group's UUID prefixed with either 'urn:globus:groups:id:' or
+            'urn:globus:auth:identity:'
+
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
@@ -448,7 +464,7 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
-        return ac.run(flow_input, **kwargs)
+        return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, **kwargs)
 
     def flow_action_status(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs

@@ -7,6 +7,7 @@ from json import JSONDecodeError
 from typing import Any, Dict, List, NamedTuple, Optional, Set
 
 import click
+import typer
 from globus_sdk import AuthClient, GlobusAPIError, NativeAppAuthClient
 from globus_sdk.auth.token_response import OAuthTokenResponse
 from globus_sdk.authorizers import (
@@ -150,7 +151,7 @@ def _get_globus_sdk_native_client(
 
 def safeprint(s):
     try:
-        print(s)
+        typer.secho(s)
         sys.stdout.flush()
     except IOError:
         pass
@@ -168,13 +169,15 @@ def _do_login_for_scopes(
         refresh_tokens=True,
         prefill_named_grant=label,
     )
-    linkprompt = "Please log into Globus here"
-    safeprint(
-        "{0}:\n{1}\n{2}\n{1}\n".format(
-            linkprompt, "-" * len(linkprompt), native_client.oauth2_get_authorize_url()
-        )
+
+    linkprompt = (
+        "Please log into Globus here:\n"
+        "----------------------------\n"
+        f"{native_client.oauth2_get_authorize_url()}\n"
+        "----------------------------\n"
     )
-    auth_code = click.prompt("Enter the resulting Authorization Code here").strip()
+    safeprint(linkprompt)
+    auth_code = typer.prompt("Enter the resulting Authorization Code here")
     return native_client.oauth2_exchange_code_for_tokens(auth_code)
 
 

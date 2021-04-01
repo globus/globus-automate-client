@@ -29,7 +29,7 @@ Tips on using the CLI tool
 
    In most cases, use of a file is easier and more flexible. The tool will automatically detect whether the content is formatted JSON or if it specifies the name of a file.
 
-3. In almost all cases, the output from each command will be in JSON format. The tool will format the output to try to improve readability. However, you may wish to filter the output using pipes and further command line tools such as ``grep`` or ``jq``. When errors occur, a Python traceback is printed, with the content of the Automate API error in the exception message.
+3. In almost all cases, the output from each command will be in JSON format. The tool will format the output to try to improve readability. However, you may wish to filter the output using pipes and further command line tools such as ``grep`` or ``jq``.
 
 Working with Actions
 --------------------

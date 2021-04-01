@@ -4,7 +4,7 @@ VIRTUAL_ENV = .venv
 PYTHON_VERSION ?= python3.6
 POETRY ?= poetry
 
-.PHONY: lock test build clean help lint develop format typecheck lint_all api-docs
+.PHONY: lock test build clean help lint develop format typecheck lint_all api-docs docs
 
 # settings from .pytest.cfg file
 PYTEST_OPTS?=-c .pytest.cfg
@@ -70,3 +70,6 @@ clean:
 	rm -f *.tar.gz
 	rm -rf tar-source
 	rm -rf dist
+
+docs:
+	poetry run make --directory=docs html

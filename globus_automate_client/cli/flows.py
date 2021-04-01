@@ -5,6 +5,8 @@ from typing import Any, List, Mapping, Optional
 
 import typer
 import yaml
+from globus_sdk import GlobusAPIError, GlobusHTTPResponse
+
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
@@ -40,7 +42,6 @@ from globus_automate_client.graphviz_rendering import (
     graphviz_format,
     state_colors_for_log,
 )
-from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 
 class FlowRole(str, Enum):
@@ -130,25 +131,26 @@ def flow_deploy(
     ),
     visible_to: List[str] = typer.Option(
         None,
-        help=(
-            "A principal which may see the existence of the deployed Flow. The "
-            'special value of "public" may be used to control which users can '
-            "discover this flow. [repeatable]"
-        ),
+        help="A principal which may view this Flow. The principal value is the user's "
+        "or group's UUID prefixed with either 'urn:globus:groups:id:' or "
+        "'urn:globus:auth:identity:'. The special value of 'public' may be used to "
+        "indicate that any user can view this Flow. [repeatable]",
         callback=principal_or_public_validator,
     ),
     administered_by: List[str] = typer.Option(
         None,
-        help="A principal which may update the deployed Flow. [repeatable]",
+        help="A principal which may update the deployed Flow. The principal value is the "
+        "user's or group's UUID prefixed with either 'urn:globus:groups:id:' or "
+        "'urn:globus:auth:identity:'. [repeatable]",
         callback=principal_validator,
     ),
     runnable_by: List[str] = typer.Option(
         None,
-        help=(
-            "A principal which may run an instance of the deployed Flow. The special "
-            'value of "all_authenticated_users" may be used to control which users '
-            "can invoke this flow. [repeatable]"
-        ),
+        help="A principal which may run an instance of the deployed Flow. The principal "
+        "value is the user's or group's UUID prefixed with either "
+        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:'. The special value of "
+        "'all_authenticated_users' may be used to indicate that any authenticated user "
+        "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
     validate: bool = typer.Option(
@@ -233,25 +235,26 @@ def flow_update(
     ),
     visible_to: List[str] = typer.Option(
         None,
-        help=(
-            "A principal which may see the existence of the deployed Flow. The "
-            'special value of "public" may be used to control which users can '
-            "discover this flow. [repeatable]"
-        ),
+        help="A principal which may view this Flow. The principal value is the user's "
+        "or group's UUID prefixed with either 'urn:globus:groups:id:' or "
+        "'urn:globus:auth:identity:'. The special value of 'public' may be used to "
+        "indicate that any user can view this Flow. [repeatable]",
         callback=principal_or_public_validator,
     ),
     administered_by: List[str] = typer.Option(
         None,
-        help="A principal which may update the deployed Flow. [repeatable]",
+        help="A principal which may update the deployed Flow. The principal value is the "
+        "user's or group's UUID prefixed with either 'urn:globus:groups:id:' or "
+        "'urn:globus:auth:identity:' [repeatable]",
         callback=principal_validator,
     ),
     runnable_by: List[str] = typer.Option(
         None,
-        help=(
-            "A principal which may run an instance of the deployed Flow. The special "
-            'value of "all_authenticated_users" may be used to control which users '
-            "can invoke this flow. [repeatable]"
-        ),
+        help="A principal which may run an instance of the deployed Flow. The principal "
+        "value is the user's or group's UUID prefixed with either "
+        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:'. The special value of "
+        "'all_authenticated_users' may be used to indicate that any authenticated user "
+        "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
     validate: bool = typer.Option(
@@ -314,20 +317,6 @@ def flow_lint(
         prompt=True,
         callback=input_validator,
     ),
-    validate: bool = typer.Option(
-        True,
-        help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
-        case_sensitive=False,
-        show_default=True,
-    ),
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
     input_format: InputFormat = typer.Option(
         InputFormat.json,
         "--input",
@@ -343,21 +332,12 @@ def flow_lint(
     flow_dict = process_input(definition, input_format)
 
     try:
-        if validate:
-            validate_flow_definition(flow_dict)
+        validate_flow_definition(flow_dict)
     except FlowValidationError as fve:
         typer.secho(str(fve), fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    graph = graphviz_format(flow_dict)
-    if output_format is FlowDisplayFormat.json:
-        format_and_echo(flow_dict)
-    elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(flow_dict, yaml.dump)
-    elif output_format is FlowDisplayFormat.graphviz:
-        typer.echo(graph.source)
-    else:
-        graph.render("flows-output/graph", view=True, cleanup=True)
+    typer.secho("No issues found in the Flow definition.", fg=typer.colors.GREEN)
 
 
 @app.command("list")
@@ -517,6 +497,20 @@ def flow_run(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
+    manage_by: List[str] = typer.Option(
+        None,
+        help="A principal which may change the execution of the Flow instace. The "
+        "principal value is the user's or group's UUID prefixed with either "
+        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:' [repeatable]",
+        callback=principal_validator,
+    ),
+    monitor_by: List[str] = typer.Option(
+        None,
+        help="A principal which may monitory the execution of the Flow instace. The "
+        "principal value is the user's or group's UUID prefixed with either "
+        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:' [repeatable]",
+        callback=principal_validator,
+    ),
     flows_endpoint: str = typer.Option(
         PROD_FLOWS_BASE_URL,
         hidden=True,
@@ -559,7 +553,13 @@ def flow_run(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
     method = functools.partial(
-        fc.run_flow, flow_id, flow_scope, flow_input_dict, label=label
+        fc.run_flow,
+        flow_id,
+        flow_scope,
+        flow_input_dict,
+        monitor_by=monitor_by,
+        manage_by=manage_by,
+        label=label,
     )
 
     with live_content:
