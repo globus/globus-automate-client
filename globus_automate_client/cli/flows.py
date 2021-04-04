@@ -1,7 +1,7 @@
 import functools
 import json
 from enum import Enum
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Mapping, Optional, Union
 
 import typer
 import yaml
@@ -389,8 +389,8 @@ def flow_list(
         "will further sort ties. [repeatable]",
     ),
     verbose: bool = verbosity_option,
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
@@ -406,7 +406,7 @@ def flow_list(
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
-        flows = fc.list_flows(
+        response = fc.list_flows(
             roles=[r.value for r in roles],
             marker=marker,
             per_page=per_page,
@@ -414,14 +414,23 @@ def flow_list(
             orderings=parsed_orderings,
         )
     except GlobusAPIError as err:
-        format_and_echo(err, verbose=verbose)
-    else:
-        _format_and_display_flow(flows, output_format, verbose=verbose)
+        response = err
+
+    format_and_echo(flows, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("display")
 def flow_display(
-    flow_id: str = typer.Argument(...),
+    flow_id: str = typer.Argument("", show_default=False),
+    flow_definition: str = typer.Option(
+        "",
+        help=(
+            "JSON or YAML representation of the Flow to display. May be provided as a filename "
+            "or a raw string representing a JSON object or YAML definition."
+        ),
+        callback=input_validator,
+        show_default=False,
+    ),
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
         "--format",
@@ -438,16 +447,29 @@ def flow_display(
     verbose: bool = verbosity_option,
 ):
     """
-    Display a deployed Flow. You must have either created the Flow or
-    be present in the Flow's "visible_to" list to view it.
+    Visualize a local or deployed Flow defintion. If providing a Flows's ID, You
+    must have either created the Flow or be present in the Flow's "visible_to"
+    list to view it.
     """
-    fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        flow_get = fc.get_flow(flow_id)
-    except GlobusAPIError as err:
-        format_and_echo(err, verbose=verbose)
+    if not flow_definition and not flow_id:
+        raise typer.BadParameter("Either FLOW_ID or --flow_definition should be set.")
+    if flow_definition and flow_id:
+        raise typer.BadParameter(
+            "Only one of FLOW_ID or --flow_definition should be set."
+        )
+
+    if flow_id:
+        fc = create_flows_client(CLIENT_ID, flows_endpoint)
+        try:
+            flow_get = fc.get_flow(flow_id)
+        except GlobusAPIError as err:
+            format_and_echo(err, verbose=verbose)
+            typer.Exit(1)
+        flow_definition = flow_get.data["definition"]
     else:
-        _format_and_display_flow(flow_get, output_format, verbose=verbose)
+        flow_definition = json.loads(flow_definition)
+
+    _format_and_display_flow(flow_definition, output_format, verbose=verbose)
 
 
 @app.command("delete")
@@ -916,20 +938,20 @@ def flow_action_log(
 
 
 def _format_and_display_flow(
-    flow_resp: GlobusHTTPResponse, output_format: FlowDisplayFormat, verbose=False
+    flow_resp: Union[GlobusHTTPResponse, dict],
+    output_format: FlowDisplayFormat,
+    verbose=False,
 ):
     """
     Diplays a flow as either JSON, graphviz, or an image
     """
-    if verbose:
-        print(get_http_details(flow_resp))
-
-    if output_format is FlowDisplayFormat.json:
-        format_and_echo(flow_resp, OutputFormat.json.get_dumper())
-    elif output_format is FlowDisplayFormat.yaml:
-        format_and_echo(flow_resp, OutputFormat.yaml.get_dumper())
+    if output_format in (FlowDisplayFormat.json, FlowDisplayFormat.yaml):
+        format_and_echo(flow_resp, output_format.get_dumper())
     elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
-        graphviz_out = graphviz_format(flow_resp.data["definition"])
+        if isinstance(flow_resp, GlobusHTTPResponse):
+            flow_resp = flow_resp.data["definition"]
+
+        graphviz_out = graphviz_format(flow_resp)
         if output_format == FlowDisplayFormat.graphviz:
             typer.echo(graphviz_out.source)
         else:

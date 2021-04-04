@@ -57,9 +57,9 @@ def cli_authorizer_callback(**kwargs):
     flow_scope = kwargs["flow_scope"]
     client_id = kwargs["client_id"]
 
-    live_content.stop()
+    live_content.pause_live()
     authorizer = get_cli_authorizer(flow_url, flow_scope, client_id)
-    live_content.start()
+    live_content.resume_live()
     return authorizer
 
 
