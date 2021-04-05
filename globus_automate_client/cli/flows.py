@@ -416,7 +416,7 @@ def flow_list(
     except GlobusAPIError as err:
         response = err
 
-    format_and_echo(flows, output_format.get_dumper(), verbose=verbose)
+    format_and_echo(response, output_format.get_dumper(), verbose=verbose)
 
 
 @app.command("display")
