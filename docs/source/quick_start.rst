@@ -46,7 +46,7 @@ SDK in a Python script:
 
 Use of the CLI and SDK to invoke any services requires authentication. Upon
 first interaction with any Action Provider or the Flows Service via the CLI, a
-text prompt will appear directing the user to a web URL where that can proceed
+text prompt will appear directing the user to a web URL where they can proceed
 through an authentication process using Globus Auth to consent to the service
 they are using the CLI to interact with. This typically only needs to be done
 once, the first time a particular service is invoked. Subsequently, the cached
