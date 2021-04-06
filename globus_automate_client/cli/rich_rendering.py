@@ -86,8 +86,9 @@ class PauseableLive(Live):
         """
         Set the Live thread's refresh method to temporarily do nothing.
         """
-        self.live_refresher = self._refresh_thread.live.refresh
-        self._refresh_thread.live.refresh = lambda *args: None
+        if self._refresh_thread is not None:
+            self.live_refresher = self._refresh_thread.live.refresh
+            self._refresh_thread.live.refresh = lambda *args: None
 
     def resume_live(self):
         """
