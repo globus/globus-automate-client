@@ -29,7 +29,7 @@ Tips on using the CLI tool
 
    In most cases, use of a file is easier and more flexible. The tool will automatically detect whether the content is formatted JSON or if it specifies the name of a file.
 
-3. In almost all cases, the output from each command will be in JSON format. The tool will format the output to try to improve readability. However, you may wish to filter the output using pipes and further command line tools such as ``grep`` or ``jq``. When errors occur, a Python traceback is printed, with the content of the Automate API error in the exception message.
+3. In almost all cases, the output from each command will be in JSON format. The tool will format the output to try to improve readability. However, you may wish to filter the output using pipes and further command line tools such as ``grep`` or ``jq``.
 
 Working with Actions
 --------------------
@@ -82,7 +82,9 @@ The most important information for our next step is the ``input_schema`` element
 Running
 ^^^^^^^
 
-The first step to prepare for running the Action is to create a file containing the input we want to provide when we run the Action. We'll call the file ``hello_input.json`` and will contain the following:
+The first step to prepare for running the Action is to create a file containing
+the input we want to provide when we run the Action. We'll call the file
+``hello_input.json`` and will contain the following:
 
 .. code-block:: JSON
 
@@ -91,7 +93,10 @@ The first step to prepare for running the Action is to create a file containing 
     "sleep_time": 60
   }
 
-This input conforms to the ``input_schema`` from the introspect call, and specifies that we will have the Action echo our name back to us and that it will "sleep" for 60 seconds until the Action is complete. We'll use this sleep time to demonstrate monitoring the state of an Action below.
+This input conforms to the ``input_schema`` from the introspect call, and
+specifies that we will have the Action echo our name back to us and that it
+will "sleep" for 60 seconds until the Action is complete. We'll use this sleep
+time to demonstrate monitoring the state of an Action below.
 
 We can run the action using the following command:
 
@@ -115,10 +120,13 @@ If the command is formatted properly, the resulting output will look like the fo
     "start_time": "<current_time>"
   }
 
-The output from this command is referred to as an "Action Status" document, and as you will see, this format is the result of all operations for working with Actions.
-The ``action_id`` is an identifier associated with this execution of the Action and will be used later.
+The output from this command is referred to as an "Action Status" document, and
+as you will see, this format is the result of all operations for working with
+Actions. The ``action_id`` is an identifier associated with this execution of the Action
+and will be used later.
 
-The ``status`` value of ``ACTIVE`` indicates that the Action is still considered to be executing. The possible values for ``status`` are:
+The ``status`` value of ``ACTIVE`` indicates that the Action is still considered
+to be executing. The possible values for ``status`` are:
 
 *  ``ACTIVE``: The Action is still running and making progress towards completion.
 
@@ -128,24 +136,71 @@ The ``status`` value of ``ACTIVE`` indicates that the Action is still considered
 
 *  ``FAILED``: The Action has stopped running due to some error condition. It cannot make progress towards a successful completion.
 
-Because we specified a ``sleep_time`` value of 60 in our example input, the Action will remain in this state for 60 seconds. The ``details`` portion will be specific to every Action and is the output or result of running the Action. This Action always includes the value ``"Hello": "World"`` and the property ``hello`` with the value passed in the ``echo_string``.  The ``release_after`` value provides the number of seconds, after the Action has completed, that the result from the Action will automatically be removed. Until that amount of time has elapsed after the Action completes, we can continue to retrieve the result of the Action as we show in the next section.
+Because we specified a ``sleep_time`` value of 60 in our example input, the
+Action will remain in this state for 60 seconds. The ``details`` portion will
+be specific to every Action and is the output or result of running the Action.
+This Action always includes the value ``"Hello": "World"`` and the property
+``hello`` with the value passed in the ``echo_string``.  The ``release_after``
+value provides the number of seconds, after the Action has completed, that the
+result from the Action will automatically be removed. Until that amount of time
+has elapsed after the Action completes, we can continue to retrieve the result
+of the Action as we show in the next section.
+
+It's also possible to delegate Action access to other Globus Auth identities
+when running the Action. By providing the ``monitor-by`` option, you can
+delegate read-only access to other users or groups, allowing them to retrieve
+the Action's execution state (see :ref:`retrieving_status`). By providing the
+``manage-by`` option, you delegate write access to other users or groups,
+allowing them to alter the Action's execution state (see
+:ref:`canceling_and_releasing`).
+
+Taking the example above, if we wanted to delegate read access to a Globus Group
+with ID ``00000000-0000-0000-0000-000000000000`` and delegate admin access to
+another Globus user with user ID ``00000000-0000-0000-0000-000000000000`` to the
+executed Action, we would run:
+
+.. code-block:: BASH
+
+    globus-automate action run --action-url \
+        https://actions.globus.org/hello_world --body hello_input.json \
+        --monitor-by urn:globus:groups:id:00000000-0000-0000-0000-000000000000 \
+        --manage-by urn:globus:auth:identity:00000000-0000-0000-0000-000000000000
+
+.. admonition:: Tip
+    :class: tip
+
+    You can specify each of the --monitor-by and --manage-by flags multiple
+    times to provide multiple identities with read or write access on the
+    Action.
+
+.. _retrieving_status:
 
 Retrieving Status
 ^^^^^^^^^^^^^^^^^
 
-Once an Action has been run, we can monitor or retrieve its status as follows:
+Once an Action has been run, the user who initiated the Action or anyone in
+the Action's ``monitor_by`` field can monitor or retrieve its status as follows:
 
 .. code-block:: BASH
 
     globus-automate action status --action-url https://actions.globus.org/hello_world <action_id>
 
-where the ``action_id`` is the value returned from the ``action run`` command from above. The output will be an Action status, similar to the output from the ``action run``. If at least 60 seconds have passed since the Action was started in our example, the ``status`` field will have the value ``SUCCEEDED``. When it is done, a ``completion_time`` field will be present indicating when the Action reached its final state. The request for status may be repeated as often as you wish until the Action's status has been "released" as described below.
+where the ``action_id`` is the value returned from the ``action run`` command
+from above. The output will be an Action status, similar to the output from the
+``action run``. If at least 60 seconds have passed since the Action was started
+in our example, the ``status`` field will have the value ``SUCCEEDED``. When it
+is done, a ``completion_time`` field will be present indicating when the Action
+reached its final state. The request for status may be repeated as often as you
+wish until the Action's status has been "released" as described below.
 
+.. _canceling_and_releasing:
 
 Canceling and Releasing
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-An Action which is running, but which is no longer needed may be canceled using a command of the form:
+An Action which is running, but which is no longer needed, may be canceled (or
+released) by the user who initiated the Action execution or anyone in the
+Action's ``manage_by`` field using a command of the form:
 
 .. code-block:: BASH
 
@@ -169,33 +224,91 @@ As described in the section on :ref:`flows_concept`, a Flow is a combination of 
 .. note::
    This section does not provide details on creating new Flows. This is covered in greater detail in the section on :ref:`flows_authoring`.
 
-Finding and displaying Flows
+Finding and Displaying Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following command will list the flows available for your use:
+When a Flow is deployed to Automate, the creator can specify which identities
+the Flow should be visible to and which identities the Flow should be runnable
+by. As the names suggest, users in a Flow's ``visible_to`` field will be able to
+query the service to view a Flow's definition and metadata. Users in a Flow's
+``runnable_by`` field will be able to run an instance of the Flow.
+
+The following command will list the Flows you have created:
 
 .. code-block:: BASH
 
     globus-automate flow list
 
-This outputs a list of flows, where the description of each flow carries the same fields as the output from ``globus-automate action introspect`` described above. This emphasizes again the similarity between Flows and Actions. The ``title`` and ``description`` fields may be helpful in determining what a Flow does and what its purpose is. Like Actions, the ``input_schema`` may define what is required of the input when running the flow. However, not all Flows are required to define an ``input_schema`` as a convenience to Flow authors who may not be familiar with creating JSON Schema specifications. Importantly, each entry in the list of Flows will also contain a value for ``id`` which we refer to as the "Flow id" and denote as ``flow_id`` below. This value will be used for further interacting with a particular Flow. For example, to display information about a single Flow you may use:
+To view Flows which are visible or runnable by you as well, run the following
+command:
+
+.. code-block:: BASH
+
+    globus-automate flow list \
+        --role created_by \
+        --role visible_to \
+        --role runnable_by
+
+This outputs a list of Flows, where the description of each flow carries the
+same fields as the output from ``globus-automate action introspect`` described
+above. This emphasizes again the similarity between Flows and Actions. The
+``title`` and ``description`` fields may be helpful in determining what a Flow
+does and what its purpose is. Like Actions, the ``input_schema`` may define what
+is required of the input when running the flow. However, not all Flows are
+required to define an ``input_schema`` as a convenience to Flow authors who may
+not be familiar with creating JSON Schema specifications. Importantly, each
+entry in the list of Flows will also contain a value for ``id`` which we refer
+to as the "Flow id" and denote as ``flow_id`` below. This value will be used for
+further interacting with a particular Flow.
+
+To display information about a single Flow you may use:
 
 .. code-block:: BASH
 
     globus-automate flow display <flow_id>
 
-When focusing on one Flow, it is also useful to notice the field ``definition``. This is the actual encoding of the Flow as it was created and deployed by the Flow's author. Looking at this value may give further information about how the Flow works. This can be useful both to determine if a Flow performs the function you desire, but also as a method to see how other Flows have been defined if you are interested in creating new Flows.
+Or, to visualize the Flow:
+
+.. code-block:: BASH
+
+    globus-automate flow display <flow_id> --format image
+
+When focusing on one Flow, it is also useful to notice the field ``definition``.
+This is the actual encoding of the Flow as it was created and deployed by the
+Flow's author. Looking at this value may give further information about how the
+Flow works. This can be useful both to determine if a Flow performs the function
+you desire, but also as a method to see how other Flows have been defined if you
+are interested in creating new Flows.
 
 Executing and Monitoring Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Execution and monitoring of Flows follows the same pattern as Actions: the run/status/cancel/release pattern is the same. We provide the following flows-specific commands to perform these tasks:
+Execution and monitoring of Flows follows the same pattern as Actions: the
+run/status/cancel/release pattern is the same.
+
+When initiating a Flow run, you can delegate access to the Flow instance to
+other Globus Auth identities. By providing the ``monitor-by`` option, you can
+delegate read-only access to other users or groups, allowing them to retrieve
+it execution state. By providing the ``manage-by`` option, you delegate write
+access to other users or groups, allowing them to alter its execution state. In
+the example below, we show how to run an instance of a Flow and delegate monitor
+access to a Globus Group:
 
 .. code-block:: BASH
 
-    globus-automate flow run --flow-input input.json <flow_id>
+    globus-automate flow run <flow_id> --flow-input input.json \
+        --monitor-by urn:globus:groups:id:00000000-0000-0000-0000-000000000000
 
-This acts like ``globus-automate action run`` with the flow id rather than the ``action_url`` specifying the "name" of the entity to be run. The output, like for Actions, will be an Action status document including an ``action_id`` which is used in the following commands:
+.. note::
+
+    If no ``manage_by`` or ``monitor_by`` values are specified, only the
+    identity instantiating the Flow run is allowed to monitor or manage a Flow's
+    running state.
+
+This acts like ``globus-automate action run`` with the flow id rather than the
+``action_url`` specifying the "name" of the Action to be run. The output, like
+for Actions, will be an Action status document including an ``action_id`` which
+is used in the following commands:
 
 .. code-block:: BASH
 
@@ -209,30 +322,70 @@ This acts like ``globus-automate action run`` with the flow id rather than the `
 
     globus-automate flow action-release --flow-id <flow_id> <action_id>
 
-For each of these, the ``details`` provides information about the most recent, potentially final, state executed by the Flow. However, as the Flow may execute many states, it is useful to be able to see what states have been executed and what their input and output have been. This can be seen via the "log" of the Flow execution as follows:
+For each of these, the ``details`` provides information about the most recent,
+potentially final, state executed by the Flow. However, as the Flow may execute
+many states, it is useful to be able to see what states have been executed and
+what their input and output have been. This can be seen via the "log" of the
+Flow execution as follows:
 
 .. code-block:: BASH
 
     globus-automate flow action-log --flow-id <flow_id> <action_id>
 
-The log may have a large number of entries. You can request more entries be returned using the option ``-limit N`` where ``N`` is the number of log entries to return. The default value is 10.
+The log may have a large number of entries. You can request more entries be
+returned using the option ``-limit N`` where ``N`` is the number of log entries
+to return. The default value is 10.
 
 Creating and managing Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Many users will only ever use Flows created by others, so they may not necessarily need to understand how to create Flows including the commands listed in this section. For those that are creating new Flows, the first step is to deploy a Flow as follows:
+Many users will only ever use Flows created by others, so they may not
+necessarily need to understand how to create Flows including the commands
+listed in this section. For those that have created a Flow, the first step is
+to deploy a Flow as follows:
 
 .. code-block:: BASH
 
     globus-automate flow deploy --title <title> --definition <Flow definition JSON> --input-schema <Input schema JSON> --visible-to <urn of user or group which can see this Flow> --runnable-by <urn of user or group which can run this Flow> --administered-by <urn of user or group who can maintain this flow>
 
-The output will be the Flow description as displayed by the ``flow display`` command above. These command line options provide the values for the similarly named fields in the Flow description. Of these, only ``title`` and ``definition`` are required. To aid users in using your Flow, we highly recommend the use of ``input-schema`` as it provides them both a form of documentation and assurance at run-time that the input they provide is correct for executing the Flow. By providing a value or values to ``administered-by`` you grant rights to others for updating or eventually removing the Flow you have deployed. Commands for updating and removing flows are as follows.
+When deployed this way, only the identity that deployed the Flow will be able to
+view the Flow and only they will be able to run an instance of the Flow. When
+deploying, it's possible to specify who should be able to see and run the Flow.
+Using the ``visible_to`` flag, you can indicate which Globus identities can view
+the deployed Flow, or set it to ``public``, which creates a Flow viewable by
+anyone. Using the ``runnable_by`` flag, you can indicate which Globus ideneties
+can run an instance of the deployed Flow, or set a value of
+``all_authenticated_users`` which allows any authenticated user to run an
+instance of the Flow.
+
+Below, we demonstrate how to deploy a Flow that is ``visible_to`` a single
+Globus group and ``runnable_by`` any authenticated user:
+
+.. code-block:: BASH
+
+    globus-automate flow deploy --title <title> \
+        --definition <Flow definition JSON> \
+        --input-schema <Input schema JSON> \
+        --visible-to urn:globus:groups:id:00000000-0000-0000-0000-000000000000 \
+        --runnable-by all_authenticated_users
+
+Once deployed, the output will be the Flow description as displayed by the
+``flow display`` command above. These command line options provide the values
+for the similarly named fields in the Flow description. Of these, only ``title``
+and ``definition`` are required. To aid users in using your Flow, we highly
+recommend the use of ``input-schema`` as it provides them both a form of
+documentation and assurance at run-time that the input they provide is correct
+for executing the Flow. By providing a value or values to ``administered-by``
+you grant rights to others for updating or eventually removing the Flow you have
+deployed. Commands for updating and removing flows are as follows.
 
 .. code-block:: BASH
 
     globus-automate flow update --title <title> --definition <Flow definition JSON> --input-schema <Input schema JSON> --visible-to <urn of user or group which can see this Flow> --runnable-by <urn of user or group which can run this Flow> --administered-by <urn of user or group who can maintain this flow> <flow_id>
 
-This will update any of the fields or description of the Flow, including the Flow definition itself. Note the ``flow_id`` field is present at the end of the command line.
+This will update any of the fields or description of the Flow, including the
+Flow definition itself. Note the ``flow_id`` field is present at the end of the
+command line.
 
 Deleting a Flow is done via:
 
@@ -240,6 +393,10 @@ Deleting a Flow is done via:
 
     globus-automate flow delete <flow_id>
 
-Care should be taken when issuing this command. There is no further prompting to insure the flow should really be deleted. After deletion, no record of the Flow definition or its execution history (i.e. the ``flow action-*`` commands) is maintained.
+Care should be taken when issuing this command. There is no further prompting to
+ensure the flow should really be deleted. After deletion, no record of the Flow
+definition or its execution history (i.e. the ``flow action-*`` commands) is
+maintained.
 
-The bulk of the effort in creating flows is in authoring their definition which is covered in the section :ref:`flows_authoring`.
+The bulk of the effort in creating flows is in authoring their definition which
+is covered in the section :ref:`flows_authoring`.

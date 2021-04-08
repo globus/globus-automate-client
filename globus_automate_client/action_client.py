@@ -63,12 +63,16 @@ class ActionClient(BaseClient):
 
         :param body: The Action Provider specific input required to execute an
             Action payload
-        :param request_id: An optional identifier that serves to de-deplicate
+        :param request_id: An optional identifier that serves to de-duplicate
             requests to the Action Provider
         :param manage_by: A series of Globus identities which may alter
-            this Action's execution
+            this Action's execution. The principal value is the user's or
+            group's UUID prefixed with either 'urn:globus:groups:id:' or
+            'urn:globus:auth:identity:'
         :param monitor_by: A series of Globus identities which may
-            view the state of this Action
+            view the state of this Action. The principal value is the user's or
+            group's UUID prefixed with either 'urn:globus:groups:id:' or
+            'urn:globus:auth:identity:'
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
