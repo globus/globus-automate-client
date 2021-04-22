@@ -86,12 +86,16 @@ def action_run(
     ),
     manage_by: List[str] = typer.Option(
         None,
-        help="A principal which may change the execution of the Action. [repeatable]",
+        help="A principal which may change the execution of the Action. The principal "
+        "is the user's or group's UUID prefixed with either 'urn:globus:groups:id:' "
+        "or 'urn:globus:auth:identity:' [repeatable]",
         callback=principal_validator,
     ),
     monitor_by: List[str] = typer.Option(
         None,
-        help="A principal which may view the state of the Action. [repeatable]",
+        help="A principal which may view the state of the Action. The principal "
+        "is the user's or group's UUID prefixed with either 'urn:globus:groups:id:' "
+        "or 'urn:globus:auth:identity:' [repeatable]",
         callback=principal_validator,
     ),
     verbose: bool = verbosity_option,

@@ -15,7 +15,8 @@ of this package. It is published for ease of distribution among those planning
 to use it for its intended, experimental, purpose.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :titlesonly:
 
    quick_start
    concepts

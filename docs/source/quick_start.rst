@@ -45,16 +45,16 @@ SDK in a Python script:
     off with the CLI interface.
 
 Use of the CLI and SDK to invoke any services requires authentication. Upon
-first interaction with any Action Provider or the Flows Service, a
-browser window will be opened to proceed through an Authentication
-process using Globus Auth to consent for use by the CLI with the
-service it is interacting with. This typically only needs to be done
+first interaction with any Action Provider or the Flows Service via the CLI, a
+text prompt will appear directing the user to a web URL where they can proceed
+through an authentication process using Globus Auth to consent to the service
+they are using the CLI to interact with. This typically only needs to be done
 once, the first time a particular service is invoked. Subsequently, the cached
 authentication information will be used. Authentication information is
-cached in the file ``~/.globus-automate.cfg``.
+cached in the file ``~/.globus_automate_tokens.json``.
 
 It is recommended that this file be protected. If re-authentication or
 re-consent is needed, the file may be deleted. This will remove
 consents to **all** Action Providers and the Flows service. The file
-is in ``ini`` format with section names based on the "scope". It may be
+is in ``json`` format with section names based on the ``scope``. It may be
 edited to remove particular scopes if done with care.
