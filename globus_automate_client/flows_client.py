@@ -382,7 +382,7 @@ class FlowsClient(BaseClient):
             params["per_page"] = str(per_page)
         if filters is not None:
             params.update(filters)
-        if orderings is not None:
+        if orderings:
             builder = []
             for field, value in orderings.items():
                 builder.append(f"{field} {value}")
@@ -567,8 +567,8 @@ class FlowsClient(BaseClient):
     def list_flow_actions(
         self,
         flow_id: str,
-        flow_scope: Optional[str],
-        statuses: Optional[List[str]],
+        flow_scope: Optional[str] = None,
+        statuses: Optional[List[str]] = None,
         roles: Optional[List[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
@@ -626,8 +626,6 @@ class FlowsClient(BaseClient):
             argument, that gets used to run the Flow operation. Otherwise the
             authorizer_callback defined for the FlowsClient will be used.
         """
-        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-
         params = {}
         if statuses is not None and len(statuses) > 0:
             params.update(dict(filter_status=",".join(statuses)))
@@ -645,7 +643,10 @@ class FlowsClient(BaseClient):
                 builder.append(f"{field} {value}")
             params["orderby"] = ",".join(builder)
 
-        return self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        response = self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        self.authorizer = self.flow_management_authorizer
+        return response
 
     def flow_action_log(
         self,
