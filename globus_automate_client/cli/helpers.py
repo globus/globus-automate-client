@@ -27,7 +27,7 @@ def get_renderable_response(
 
     if verbose:
         verbose_output = get_http_details(result)
-        text.append(f"{verbose_output}\n", style="bright_cyan")
+        text.append(f"{verbose_output}\n\n", style="bright_cyan")
 
     if isinstance(result, GlobusHTTPResponse):
         result = result.data
@@ -117,7 +117,7 @@ def get_flow_renderable_response(
 
     if verbose:
         verbose_output = get_http_details(result)
-        text.append(f"{verbose_output}\n", style="bright_cyan")
+        text.append(f"{verbose_output}\n\n", style="bright_cyan")
 
     if isinstance(result, GlobusHTTPResponse):
         result = result.data["entries"][-1]
@@ -137,9 +137,10 @@ def format_and_echo(
     dumper: Callable = OutputFormat.json.get_dumper(),
     verbose=False,
 ):
-    output = ""
     if verbose:
-        output += f"{get_http_details(result)}\n"
+        typer.secho(
+            f"{get_http_details(result)}\n", fg=typer.colors.BRIGHT_CYAN, err=True
+        )
 
     if isinstance(result, GlobusHTTPResponse):
         if 200 <= result.http_status < 300:
@@ -153,8 +154,7 @@ def format_and_echo(
     else:
         color = typer.colors.GREEN
 
-    output += dumper(result)
-    typer.secho(output, fg=color)
+    typer.secho(dumper(result), fg=color)
 
 
 def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
