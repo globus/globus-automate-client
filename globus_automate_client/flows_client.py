@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import (
     Any,
@@ -26,6 +27,17 @@ from jsonschema import Draft7Validator
 from globus_automate_client import ActionClient
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
+
+_ENVIRONMENT_FLOWS_BASE_URLS = {
+    None: PROD_FLOWS_BASE_URL,
+    "prod": PROD_FLOWS_BASE_URL,
+    "production": PROD_FLOWS_BASE_URL,
+    "sandbox": "https://sandbox.flows.automate.globus.org",
+    "integration": "https://integration.flows.automate.globus.org",
+    "test": "https://test.flows.automate.globus.org",
+    "preview": "https://preview.flows.automate.globus.org",
+    "staging": "https://staging.flows.automate.globus.org",
+}
 
 MANAGE_FLOWS_SCOPE = (
     "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
@@ -153,6 +165,11 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
     if error_msgs:
         raise FlowValidationError(error_msgs)
     return
+
+
+def _get_flows_base_url_for_environment():
+    environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
+    return _ENVIRONMENT_FLOWS_BASE_URLS[environ]
 
 
 class FlowsClient(BaseClient):
@@ -700,7 +717,7 @@ class FlowsClient(BaseClient):
         client_id: str,
         authorizer_callback: AuthorizerCallbackType,
         authorizer: AllowedAuthorizersType,
-        base_url: str = PROD_FLOWS_BASE_URL,
+        base_url: Optional[str] = None,
         http_timeout: int = 10,
     ) -> _FlowsClient:
         """
@@ -740,6 +757,8 @@ class FlowsClient(BaseClient):
             >>> fc = FlowsClient.new_client(client_id, cli_authorizer_callback, auth)
             >>> print(fc.list_flows())
         """
+        if base_url is None:
+            base_url = _get_flows_base_url_for_environment()
         return cls(
             client_id,
             authorizer_callback,

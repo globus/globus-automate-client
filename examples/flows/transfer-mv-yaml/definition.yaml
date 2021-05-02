@@ -8,7 +8,7 @@ States:
       Run the initial transfer operation from the source ep/source path to the
       destination ep/destination path
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/transfer'
+    ActionUrl: 'https://prod.actions.automate.globus.org/transfer/transfer'
     WaitTime: 172800
     ExceptionOnActionFailure: false
     Parameters:
@@ -36,7 +36,7 @@ States:
       Use Transfer to delete the initial source ep/source path. It uses the same
       value for recursive as the transfer
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/delete'
+    ActionUrl: 'https://prod.actions.automate.globus.org/transfer/delete'
     WaitTime: 21600
     ExceptionOnActionFailure: false
     Parameters:
