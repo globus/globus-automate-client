@@ -4,7 +4,7 @@ import pathlib
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Any, Dict, List, NamedTuple, Optional, Set
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Union
 
 import click
 import typer
@@ -53,16 +53,32 @@ class TokenSet(NamedTuple):
     dependent_scopes: Set[str]
 
 
+TokensInTokenCache = Dict[str, Union[TokenSet, Dict[str, TokenSet]]]
+
+
 class TokenCache:
     def __init__(self, token_store: str):
         self.token_store = token_store
-        self.tokens: Dict[str, TokenSet] = {}
+        self.tokens: TokensInTokenCache = {}
         self.modified = False
 
+    @property
+    def tokens_for_environment(self) -> Dict[str, TokenSet]:
+        """
+        We will sub-key the full token set for environments other than production
+        """
+        environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
+        if environ in {None, "production", "prod"}:
+            return self.tokens
+        environ_cache_key = "__" + environ
+        if environ_cache_key not in self.tokens:
+            self.tokens[environ_cache_key]: Dict[str, TokenSet] = {}
+        return self.tokens[environ_cache_key]
+
     def set_tokens(self, scope: str, tokens: TokenSet) -> TokenSet:
-        if scope in self.tokens:
+        if scope in self.tokens_for_environment:
             dependent_scopes = set(tokens.dependent_scopes).union(
-                set(self.tokens[scope].dependent_scopes)
+                set(self.tokens_for_environment[scope].dependent_scopes)
             )
             new_token_set = TokenSet(
                 access_token=tokens.access_token,
@@ -70,9 +86,9 @@ class TokenCache:
                 expiration_time=tokens.expiration_time,
                 dependent_scopes=dependent_scopes,
             )
-            self.tokens[scope] = new_token_set
+            self.tokens_for_environment[scope] = new_token_set
         else:
-            self.tokens[scope] = tokens
+            self.tokens_for_environment[scope] = tokens
         self.modified = True
         return tokens
 
@@ -82,12 +98,23 @@ class TokenCache:
             # the tokens. If not, even if we have a token for the base scope, we
             # shouldn't return that because it won't work for the new scope.
             base_scope = scope.split("[")[0]
-            tokens = self.tokens.get(base_scope)
+            tokens = self.tokens_for_environment.get(base_scope)
             if not tokens or scope not in getattr(tokens, "dependent_scopes", set()):
                 return None
             else:
                 return tokens
-        return self.tokens.get(scope)
+        return self.tokens_for_environment.get(scope)
+
+    @staticmethod
+    def _deserialize_from_file(file_tokens: Dict[str, Any]) -> TokensInTokenCache:
+        deserialized: TokensInTokenCache = {}
+        for k, v in file_tokens.items():
+            if k.startswith("__"):
+                v = TokenCache._deserialize_from_file(v)
+            else:
+                v = TokenSet(**v)
+            deserialized[k] = v
+        return deserialized
 
     def load_tokens(self):
         """
@@ -96,7 +123,7 @@ class TokenCache:
         try:
             with open(self.token_store) as f:
                 contents = json.load(f)
-                self.tokens = {k: TokenSet(**v) for k, v in contents.items()}
+                self.tokens = TokenCache._deserialize_from_file(contents)
         except FileNotFoundError:
             pass
         except JSONDecodeError:
@@ -104,6 +131,17 @@ class TokenCache:
                 "Token cache for Timer CLI is corrupted; please run a `session revoke`"
                 " and try again"
             )
+
+    @staticmethod
+    def _make_jsonable(tokens: TokensInTokenCache) -> Dict[str, Any]:
+        serialized: Dict[str, Any] = {}
+        for k, v in tokens.items():
+            if isinstance(v, TokenSet):
+                v = v._asdict()
+            elif isinstance(v, dict):
+                v = TokenCache._make_jsonable(v)
+            serialized[k] = v
+        return serialized
 
     def save_tokens(self):
         def default(x):
@@ -113,8 +151,9 @@ class TokenCache:
 
         if self.modified:
             with open(self.token_store, "w") as f:
+                jsonable = TokenCache._make_jsonable(self.tokens)
                 json.dump(
-                    {k: v._asdict() for k, v in self.tokens.items()},
+                    jsonable,
                     f,
                     indent=2,
                     sort_keys=True,
