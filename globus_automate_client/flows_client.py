@@ -169,6 +169,8 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
 
 def _get_flows_base_url_for_environment():
     environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
+    if environ not in _ENVIRONMENT_FLOWS_BASE_URLS:
+        raise ValueError(f"Unknown value for GLOBUS_SDK_ENVIRONMENT: {environ}")
     return _ENVIRONMENT_FLOWS_BASE_URLS[environ]
 
 
