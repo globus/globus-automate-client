@@ -19,11 +19,28 @@ As we will see in later sections, Actions can be invoked directly when needed, b
 Flows
 -----
 
-Flows define a combination of Actions and other processing steps into more complicated, and useful operations. The method of defining a flow is "declarative" requiring a user to define the Actions and conditions upon which the flow should proceed. This approach is intended to be easier than other automation approaches which are more "programmatic" such as Python or Shell scripts.
+Flows define a combination of Actions and other processing steps into more
+complicated, and useful operations. The method  of defining a flow is
+"declarative" requiring a user to define the Actions and conditions upon which
+the flow should proceed. This approach is intended to be easier than other
+automation approaches which are more "programmatic" such as Python or Shell
+scripts.
 
-Flows may be defined by any user and deployed to the Flows service. Once deployed, a Flow may be invoked by the creator and be discovered and invoked by other, authorized users. Thus, flows are easily and safely shared among users. Operationally, Flows behave like other Actions which allows both common tooling for executing and monitoring Flows and Actions. This also allows Flows to make use of other Flows, leading to good separation of concerns and an environment in which users may make further use of contributions from other users.
+Flows may be defined by any user and deployed to the Flows service. Once
+deployed, a Flow may be invoked  by the creator and be discovered and invoked by
+other, authorized users. Thus, flows are easily and safely shared among users.
+Operationally, Flows behave like other Actions which allows both common tooling
+for executing and monitoring Flows and Actions. This also allows Flows to make
+use of other Flows, leading to good separation of concerns and an environment in
+which users may make further use of contributions from other users.
 
-Flows by their very nature are expected to be long running and may control and monitor a complex sequence of steps. As the Flows are run by the Flow service, a user need not provide any hosting or any other platform to keep a Flow running and making forward progress. This intrinsic hosting, and monitoring of Flows again makes creating automation processes easier because a user who defines the process need not also create and maintain a resource, such as a physical or virtual server, to keep the process running.
+Flows by their very nature are expected to be long running and may control and
+monitor a complex  sequence of steps. As the Flows are run by the Flow service,
+a user need not provide any hosting or any other platform to keep a Flow running
+and making forward progress. This intrinsic hosting, and monitoring of Flows
+again makes creating automation processes easier because a user who defines the
+process need not also create and maintain a resource, such as a physical or
+virtual server, to keep the process running.
 
 
 .. _auth:

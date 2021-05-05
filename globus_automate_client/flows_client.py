@@ -384,7 +384,7 @@ class FlowsClient(BaseClient):
             where the retrieving identity has at least one of the listed roles on
             each Flow
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -418,7 +418,7 @@ class FlowsClient(BaseClient):
             params["orderby"] = ",".join(builder)
         return self.get("/flows", params=params, **kwargs)
 
-    def delete_flow(self, flow_id: str, **kwargs):
+    def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
         Remove a Flow definition and its metadata from the Flows service
 
@@ -633,7 +633,7 @@ class FlowsClient(BaseClient):
             - administered_by
 
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -708,7 +708,7 @@ class FlowsClient(BaseClient):
             in reverse-chronological order.
 
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -740,22 +740,21 @@ class FlowsClient(BaseClient):
         process.
 
         :param client_id: The client_id to associate with this FlowsClient.
-
         :param authorizer_callback: A callable which is capable of returning an
             authorizer for a particular Flow. The callback should accept three
             keyword-args: flow_url, flow_scope, client_id. Using some, all, or
             none of these args, the callback should return a GlobusAuthorizer
             which provides access to the targetted Flow.
-
         :param authorizer: The authorizer to use for validating requests to the
             Flows service. This authorizer is used when interacting with the
             Flow's service, it is not used for interactive with a particular
             flow. Therefore, this authorizer should grant consent to the
             MANAGE_FLOWS_SCOPE. For interacting with a particular flow, set the
             authorizer_callback parameter.
-
         :param base_url: The url at which the target Action Provider is
             located.
+        :param http_timeout: The amount of time to wait for connections to
+            the Action Provider to be made.
 
         **Examples**
             >>> def cli_authorizer_callback(**kwargs):

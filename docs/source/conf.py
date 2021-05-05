@@ -14,14 +14,14 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../../"))
-autodoc_mock_imports = ["globus_sdk", "fair_research_login", "jsonschema", "graphviz"]
+autodoc_mock_imports = ["globus_sdk", "jsonschema", "graphviz"]
 autodoc_typehints = "description"
 
 # -- Project information -----------------------------------------------------
 
 project = "Globus Automate Client"
-copyright = "2020, Jim Pruyne, Uriel Mandujano, Rudyard Richter"
-author = "Jim Pruyne, Uriel Mandujano, Rudyard Richter"
+copyright = "2020, University of Chicago"
+author = "Globus"
 
 # The full version, including alpha/beta/rc tags
 # release = "0.7.0"
@@ -32,7 +32,11 @@ author = "Jim Pruyne, Uriel Mandujano, Rudyard Richter"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
+    "sphinx_copybutton",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -47,38 +51,10 @@ master_doc = "index"
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = "sphinx_material"
+html_title = "Globus Automate Client"
+html_logo = "_static/images/globus-300x300-blue.png"
+html_theme = "furo"
 
-# Material theme options (see theme.conf for more information)
-html_theme_options = {
-    # Set the name of the project to appear in the navigation.
-    "nav_title": "Globus Automate Client",
-    "logo_icon": "&#xe869",
-    # Set the color and the accent color
-    "color_primary": "blue",
-    "color_accent": "light-blue",
-    # Set the repo location to get a badge with stats
-    "repo_url": "https://github.com/globus/globus-automate-client",
-    "repo_name": "Globus Automate Client",
-    # Visible levels of the global TOC; -1 means unlimited
-    "globaltoc_depth": 1,
-    # If False, expand all TOC entries
-    "globaltoc_collapse": False,
-    # If True, show hidden TOC entries
-    "globaltoc_includehidden": False,
-    "repo_type": "github",
-    "master_doc": True,
-}
+pygments_dark_style = "monokai"
 
-html_sidebars = {
-    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
-}
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
-pygments_style = "stata"

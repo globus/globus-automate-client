@@ -1,0 +1,111 @@
+Globus Automate Overview
+========================
+
+The Globus Automate platform provides tools and services which can be used to
+create reliable processes for research data management. The platform builds on the
+foundation of Globus capabilities such as Authorization and Data Transfer.
+
+The
+Automate Platform introduces a few key concepts which may then be extended and
+combined to create custom processes solving particular research data management
+problems. These concepts are ``Action Providers``, ``Actions``, and ``Flows``.
+Read on to learn about how ``Flows`` orchestrate ``Action Providers`` together
+in order to create ``Actions`` that perform the actual automation.
+
+Use Cases
+---------
+
+The key to the platform is enabling users to orchestrate multiple processing
+steps into a single workflow, or ``Flow``. Some of these steps are provided by
+``Globus Automate`` and othes of which may be custom implementations supporting
+a specific need. Examples of these workflows might be:
+
+- Automatically detect data output from scientific instruments which is then
+  transferred, processed, and indexed.
+- Provide a curated pipeline for description, annotation and publication of
+  research datasets.
+- Run data transfers on a recurring schedule.
+
+
+Action Providers
+----------------
+
+An ``Action Provider`` is an HTTP accessible service which acts as a single step
+in a process and implements the ``Action Provider Interface`` [TODO - insert ref]. When
+an ``Action Provider`` is invoked, it creates (or "provides") an ``Action``
+which represents a single unit of work. Examples of units of work are running a
+file transfer using ``Globus Transfer`` or ingesting data into ``Globus
+Search``.
+
+Each ``Action Provider`` expects to be invoked with parameters
+particular to the service it provides. To support usability and discovery, each
+can be introspected to determine what its ``input schema`` or input properties
+are. Introspection also provides information such as who operates the ``Action
+Provider``, descriptive text on the service it provides, and who can use the
+service. Access to ``Action Providers`` and their invocation is controlled via
+``Globus Auth``. Some of these services may be *synchronous* meaning that an
+invocation will complete in the context of the HTTP request that triggered it.
+Other services support *asynchronous* activities, meaning that the invocation
+will persist beyond the HTTP request that invoked it and the the caller must
+monitor the ``Action`` for updates on when it is completed and its result.
+
+Globus operates a series of these ``Action Providers`` available for public use.
+For a full list of these ``Action Providers``, see [TODO - insert
+reference]. Globus also supports users writing their own ``Action Providers``
+via the `Globus Action Provider Toolkit
+<https://action-provider-tools.readthedocs.io/en/latest/>`_ - a Python
+SDK that makes it easy to provide custom services that can be tied into the
+``Globus Automate`` ecosystem of services.
+
+These ``Action Providers`` form the foundation of  ``Globus Automate`` and are
+primarily used by referencing their URLs in `Flows`_.
+``Globus Automate`` allows users to flexibly piece together these individual
+services to create reliable high level workflows.
+
+
+Actions
+-------
+
+An ``Action`` represents a single, discrete invocation of an ``Action
+Provider``. It is record of an operation and includes details for its result,
+its current execution status, and metadata dictating which ``Globus Auth``
+identities are allowed to read or modify the ``Action``'s state. ``Globus
+Automate`` services allow orchestrating these individual ``Actions`` into robust
+processes that can tolerate their distinct execution states, including success
+and failure. Users will not often need to operate on ``Actions`` directly,
+rather, the User will create a ``Run`` of a ``Flow`` and the ``Run`` will invoke
+``Action Providers``, creating ``Actions`` as necessary to accomplish the
+automation.
+
+Flows
+-----
+
+A ``Flow`` represents a single process that orchestrates a series of services
+into a self contained operation. One can think of a ``Flow`` as a
+declaratively defined ordering of ``Action Providers`` with condition handling
+to define expected success or failure scenarios.
+
+A ``Flow`` may be defined and deployed to the ``Flows`` service by any user.
+When deploying, the user may control which other users can discover the ``Flow``
+and separately, which users can run the ``Flow``. All access control is provided
+by ``Globus Auth``. Thus, ``Flows`` can easily and safely be shared among users.
+Once deployed, the ``Flow`` will receive a HTTP-accessible ``Flow`` URL which
+makes it available for use in ``Globus Automate``.
+
+It may also be interesting to note that once deployed, the ``Flow`` will
+implement the ``Action Provider Interface``. What this means is that a ``Flow``
+is technically a form of ``Action Provider``, and as such it can be referenced
+by other ``Flows`` by its ``Flow`` URL. This allows for modularity in defining
+``Flows`` and in a separation of concerns where ``SubFlows`` can be trusted to
+provide some process or behavior.
+
+When users run an instance of the ``Flow``, we call that a ``Run``. A
+``Run`` shares the ``Action`` interface, supporting operations such as viewing
+its status, cancelling its execution, and removing its execution state. This
+allows for common tooling and terminology for working with ``Runs`` and
+``Actions``.  In general, any operation available on an ``Action`` will be
+possible on a ``Run`` and vice versa.
+
+``Globus Automate`` imposes no restrictions on how long a ``Run`` may execute or
+on the number of units of work defined in a ``Flow``. We support long running
+``Runs`` by providing support for monitoring and status updates.

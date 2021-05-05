@@ -9,13 +9,17 @@ from globus_automate_client.cli.auth import DEFAULT_TOKEN_FILE
 
 # Monkey patching out the unsafe load capability
 # Only use safe_load for our purposes
-del yaml.unsafe_load
+try:
+    del yaml.unsafe_load
+except AttributeError:
+    pass
 
 
 help = f"""
 CLI for Globus Automate
 
-By default, this CLI keeps all its config and cached tokens in {DEFAULT_TOKEN_FILE}
+By default, this CLI keeps all its config and cached tokens in
+{DEFAULT_TOKEN_FILE.name} in the user's home directory.
 """
 
 app = typer.Typer(help=help, short_help="Globus Automate CLI")
