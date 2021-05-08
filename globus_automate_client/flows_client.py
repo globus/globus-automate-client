@@ -209,13 +209,13 @@ class FlowsClient(BaseClient):
         visible_to: List[str] = [],
         runnable_by: List[str] = [],
         administered_by: List[str] = [],
+        subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
         validate_input_schema: bool = True,
         **kwargs,
     ) -> GlobusHTTPResponse:
-        """
-        Deploys a Flow definition to the Flows service, making the Flow
+        """Deploys a Flow definition to the Flows service, making the Flow
         available for execution on the Globus Automate Flows Service.
 
         :param flow_definition: A mapping corresponding to a Globus Flows
@@ -240,6 +240,9 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
+        :param subscription_id: The Globus Subscription which will be used to make this
+        flow managed.
+
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
             done on input to this Flow.
@@ -249,6 +252,7 @@ class FlowsClient(BaseClient):
 
         :param validate_input_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to deploy the Flow.
+
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
@@ -260,6 +264,7 @@ class FlowsClient(BaseClient):
         temp_body["visible_to"] = visible_to
         temp_body["runnable_by"] = runnable_by
         temp_body["administered_by"] = administered_by
+        temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
@@ -276,6 +281,7 @@ class FlowsClient(BaseClient):
         visible_to: List[str] = [],
         runnable_by: List[str] = [],
         administered_by: List[str] = [],
+        subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
         validate_input_schema: bool = True,
@@ -310,6 +316,9 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
+        :param subscription_id: The Globus Subscription which will be used to make this
+        flow managed.
+
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
             done on input to this Flow.
@@ -330,6 +339,7 @@ class FlowsClient(BaseClient):
         temp_body["visible_to"] = visible_to
         temp_body["runnable_by"] = runnable_by
         temp_body["administered_by"] = administered_by
+        temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}

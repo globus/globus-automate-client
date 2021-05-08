@@ -154,6 +154,10 @@ def flow_deploy(
         "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
+    subscription_id: Optional[str] = typer.Option(
+        None,
+        help="The Globus Subscription which will be used to make this flow managed.",
+    ),
     validate: bool = typer.Option(
         True,
         help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
@@ -188,6 +192,7 @@ def flow_deploy(
             visible_to,
             runnable_by,
             administered_by,
+            subscription_id,
             input_schema_dict,
             validate_definition=validate,
         )
@@ -254,6 +259,10 @@ def flow_update(
         "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
+    subscription_id: Optional[str] = typer.Option(
+        None,
+        help="The Globus Subscription which will be used to make this flow managed.",
+    ),
     validate: bool = typer.Option(
         True,
         help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
@@ -289,6 +298,7 @@ def flow_update(
             visible_to,
             runnable_by,
             administered_by,
+            subscription_id,
             input_schema_dict,
             validate_definition=validate,
         )
