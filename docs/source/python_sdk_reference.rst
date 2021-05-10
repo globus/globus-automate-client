@@ -8,15 +8,15 @@ and invoking Globus Actions and Flows. Below, we provide information on helper
 functions available for creating authenticated Action and
 Flow clients as well as documentation on the methods available to those clients.
 
-Actions
-^^^^^^^
+Actions Client
+^^^^^^^^^^^^^^
 
 .. autoclass:: globus_automate_client.action_client.ActionClient
     :members:
     :member-order: bysource
 
-Flows
-^^^^^
+Flows Client
+^^^^^^^^^^^^
 
 .. autoclass:: globus_automate_client.flows_client.FlowsClient
    :members:

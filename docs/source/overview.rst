@@ -109,3 +109,44 @@ possible on a ``Run`` and vice versa.
 ``Globus Automate`` imposes no restrictions on how long a ``Run`` may execute or
 on the number of units of work defined in a ``Flow``. We support long running
 ``Runs`` by providing support for monitoring and status updates.
+
+Authentication and Authorization
+--------------------------------
+
+An important consideration in the ``Globus Automate`` platform is authentication
+and authorization. All interactions with ``Action Providers`` ``Actions`` and
+``Flows`` are authenticated by the ``Globus Auth``.
+
+For ``Action Providers`` and ``Flows``, authorization lists exist to control
+which identities can view its details and which identities can invoke an
+``Action`` of ``Run`` of the service. For ``Actions`` and ``Runs``,
+authorization lists exist to enforce which identities may view its execution
+details and which identities may modify the execution status. For these
+authorization lists, identities may be specified as individual Globus users or
+as Globus Groups. Thus, while the ``Globus Automate`` platform is open to all
+users with access, it is possible to carefully control which users have access
+to your resources.
+
+When authorization lists are in place, the values take the form of urns
+specifying individual users or groups of users based on Globus Groups. When
+specifiying a user in an authorization list, the principal value
+will be the user's UUID prefixed with ``urn:globus:auth:identity:``. When
+specifying a Globus Group in the list, the principal value needs to be the
+Group's UUID prefixed with ``urn:globus:groups:id:``.
+
+.. tip::
+
+    To determine a Globus user's ID, you can use the `globus` CLI:
+
+    .. code:: BASH
+
+        globus get-identities username@globus.org
+
+    To determine the Globus Group's ID, you can search for the Group in the
+    webapp.
+
+Two special values, ``public`` and ``all_authenticated_users`` may also be user
+in authorization lists. ``public`` indicates that the operation is allowed for
+requests that have no authorization, and ``all_authenticated_users`` indicates
+that any user who presents a ``Globus Auth`` credential in the form of an access
+token is permitted access.

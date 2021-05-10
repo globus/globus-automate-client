@@ -90,7 +90,7 @@ the ``Action Provider`` is not possible  without providing the
 ``--action-scope`` option.
 
 All of the ``Action Providers`` operated by the Globus team are described in the
-section :ref:`Globus Operated Action Providers`, which includes their URL and
+section :ref:`Globus Action Providers`, which includes their URL and
 tips on using the CLI for interactions with these ``Action Providers`` directly.
 As these ``Action Providers`` are publicly viewable, there is no need to provide
 the  ``--action-scope`` option when working with them from the CLI -- the CLI
@@ -360,7 +360,7 @@ Status document.
 Using the CLI with Flows
 ------------------------
 
-As described in the section on :ref:`flows_concept`, a Flow combines Actions and
+As described in the section on :ref:`Flows`, a Flow combines Actions and
 other operations into a more complex operation. When a Flow is invoked, it
 creates a ``Run`` and the ``Run``'s interface is very much like an Action's; it
 has ``run``, ``status``, ``cancel`` and ``release`` operations defined. Because

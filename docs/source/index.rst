@@ -32,14 +32,6 @@ to use it for its intended, experimental, purpose.
    :caption: Reference
 
    globus_action_providers
-   python_sdk_reference
    cli_reference
-
-.. toctree::
-   :maxdepth: 1
-   :titlesonly:
-   :caption: Redundant
-
-   concepts
-   using_cli_and_flows
+   python_sdk_reference
 
