@@ -404,7 +404,7 @@ class FlowsClient(BaseClient):
         self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
-            params.update(dict(roles=",".join(roles)))
+            params.update(dict(filter_roles=",".join(roles)))
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
