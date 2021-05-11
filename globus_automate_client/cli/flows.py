@@ -1,5 +1,6 @@
 import functools
 import json
+import uuid
 from enum import Enum
 from typing import Any, List, Mapping, Optional, Union
 
@@ -196,6 +197,23 @@ def flow_deploy(
             input_schema_dict,
             validate_definition=validate,
         )
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
+
+
+@app.command("get")
+def flow_get(
+    flow_id: uuid.UUID = typer.Argument(..., help="A deployed Flow's ID"),
+    verbose: bool = verbosity_option,
+    flows_endpoint: str = _flows_env_var_option,
+):
+    """
+    Get a Flow's definition as it exists on the Flows service.
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    try:
+        result = fc.get_flow(str(flow_id))
     except GlobusAPIError as err:
         result = err
     format_and_echo(result, verbose=verbose)
