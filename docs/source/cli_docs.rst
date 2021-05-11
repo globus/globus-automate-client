@@ -242,6 +242,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``delete``: Delete a Flow.
 -  ``deploy``: Deploy a new Flow.
 -  ``display``: Visualize a local or deployed Flow defintion.
+-  ``get``: Get a Flow’s definition as it exists on the…
 -  ``lint``: Parse and validate a Flow definition by…
 -  ``list``: List Flows for which you have access.
 -  ``run``: Run an instance of a Flow.
@@ -496,6 +497,8 @@ Deploy a new Flow.
    ‘urn:globus:auth:identity:’. The special value of
    ‘all_authenticated_users’ may be used to indicate that any
    authenticated user can invoke this flow. [repeatable]
+-  ``--subscription-id TEXT``: The Globus Subscription which will be
+   used to make this flow managed.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
@@ -526,6 +529,26 @@ You must have either created the Flow or be present in the Flow’s
    representing a JSON object or YAML definition.
 -  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
    [default: json]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow get``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a Flow’s definition as it exists on the Flows service.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow get [OPTIONS] FLOW_ID
+
+**Arguments**:
+
+-  ``FLOW_ID``: A deployed Flow’s ID [required]
+
+**Options**:
+
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -668,6 +691,8 @@ Update a Flow.
    ‘urn:globus:auth:identity:’. The special value of
    ‘all_authenticated_users’ may be used to indicate that any
    authenticated user can invoke this flow. [repeatable]
+-  ``--subscription-id TEXT``: The Globus Subscription which will be
+   used to make this flow managed.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity

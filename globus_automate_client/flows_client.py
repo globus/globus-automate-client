@@ -240,8 +240,8 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
-        :param subscription_id: The Globus Subscription which will be used to make this
-        flow managed.
+        :param subscription_id: The Globus Subscription which will be used to
+            make this flow managed.
 
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
@@ -316,8 +316,8 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
-        :param subscription_id: The Globus Subscription which will be used to make this
-        flow managed.
+        :param subscription_id: The Globus Subscription which will be used to
+            make this flow managed.
 
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
