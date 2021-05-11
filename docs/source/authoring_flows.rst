@@ -403,12 +403,15 @@ Example Input
 
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/result",
+        "source_path": "/~/my-file.txt",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/result",
+        "destination_path": "/~/my-moved.file.txt",
         "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1",
         "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1"
     }
+
+(Choose different ``source_path`` and ``destination_path`` as needed to run this
+example flow.)
 
 .. _example-flow-2-stage-transfer:
 
@@ -427,11 +430,11 @@ Example Input
 
     {
         "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/campus_source",
+        "source_path": "/share/godata/file1.txt",
         "intermediate_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "intermediate_path": "/~/dmz_temp",
+        "intermediate_path": "/~/file1-on-endpoint-2.txt",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/dataset_repository"
+        "destination_path": "/~/file1-copy.txt"
     }
 
 .. _example-flow-transfer-set-permissions:
@@ -453,9 +456,11 @@ Example Input
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/result",
-        "destination_path": "/~/result",
+        "source_path": "/share/godata/file1.txt",
+        "destination_path": "/~/my-file1-copy.txt",
         "transfer_label": "Transfer for Transfer With Permissions Flow",
         "user_id": "06a24bef-940e-418a-97bc-48229c64cc99",
         "user_email": "uriel@globus.org"
     }
+
+(Of course, adjust ``user_email`` as necessary if you want to test this flow.)
