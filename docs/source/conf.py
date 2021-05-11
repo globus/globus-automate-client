@@ -14,7 +14,14 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../../"))
-autodoc_mock_imports = ["globus_sdk", "jsonschema", "graphviz"]
+autodoc_mock_imports = [
+    "globus_sdk",
+    "jsonschema",
+    "graphviz",
+    "click",
+    "typer",
+    "rich",
+]
 autodoc_typehints = "description"
 
 # -- Project information -----------------------------------------------------
