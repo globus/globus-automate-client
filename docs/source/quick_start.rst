@@ -93,15 +93,17 @@ Or, to invalidate the authentication cache's contents first and then remove it:
     Automate services.
 
 Example Flows
-^^^^^^^^^^^^^
+-------------
 
 To get started with authoring flows, you may find it helpful to reference some
 examples. The following flows are publicly visible and demonstrate some simple
 and common operations you may want to copy into your own flows:
 
-- "Move" (flow ID `9123c20b-61e0-46e8-9469-92c999b6b8f2` at the time of
-  writing).
-- "2 Stage Transfer" (flow ID `79a4653f-f8da-43b6-a581-5d3b345ad575`).
-- "Transfer Set Permissions" (flow ID `cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c`).
+- :ref:`example-flow-move` (flow ID ``9123c20b-61e0-46e8-9469-92c999b6b8f2`` at
+  the time of writing).
+- :ref:`example-flow-2-stage-transfer` (flow ID
+  ``79a4653f-f8da-43b6-a581-5d3b345ad575``).
+- :ref:`example-flow-transfer-set-permissions` (flow ID
+  ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``).
 
 .. _pipx: https://pipxproject.github.io/pipx/installation/

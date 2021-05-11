@@ -378,3 +378,84 @@ An example structure for an ``ExpressionEval`` state is as follows:
     }
 
 All of the properties of the ``ExpressionEval`` state have the same meaning as described in the ``Action`` state. The ``ExpressionEval`` state cannot use the ``InputPath`` property (``Pass`` is appropriate if moving state from an ``InputPath`` to a ``ResultPath`` is needed), so ``Parameters`` must always be present. Just like in ``Action`` the ``Parameters`` may have constant, reference or expression types and portions of the state can be protected using a ``__Private_Parameters`` list. Like ``Action``, this state must have either a ``Next`` or an ``End: true``.
+
+.. _example-flows-details:
+
+Example Flows
+-------------
+
+.. _example-flow-move:
+
+"Move" Flow
+^^^^^^^^^^^
+
+Flow ID: ``9123c20b-61e0-46e8-9469-92c999b6b8f2``.
+
+A Flow which performs a 'move' operation on a directory by first transferring
+from a source to a destination and then deleting the directory from the source.
+The entire directory's contents, including files and subdirectories, will be
+moved to the destination and then removed from the source.
+
+Example Input
+"""""""""""""
+
+.. code-block:: json
+
+    {
+        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/result",
+        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "destination_path": "/~/result",
+        "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1",
+        "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1"
+    }
+
+.. _example-flow-2-stage-transfer:
+
+"2 Stage Transfer" Flow
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Flow ID: ``79a4653f-f8da-43b6-a581-5d3b345ad575``.
+
+Transfer from source to destination with an intermediate endpoint in-between.
+Remove from intermediate after completion.
+
+Example Input
+"""""""""""""
+
+.. code-block:: json
+
+    {
+        "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/campus_source",
+        "intermediate_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "intermediate_path": "/~/dmz_temp",
+        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "destination_path": "/~/dataset_repository"
+    }
+
+.. _example-flow-transfer-set-permissions:
+
+"Transfer Set Permissions" Flow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Flow ID: ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``.
+
+A Flow which performs a Transfer on a directory and then gives a user READ
+permissions permissions on the destination directory. The user running the Flow
+must have administration privileges over the destination endpoint.
+
+Example Input
+"""""""""""""
+
+.. code-block:: json
+
+    {
+        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/result",
+        "destination_path": "/~/result",
+        "transfer_label": "Transfer for Transfer With Permissions Flow",
+        "user_id": "06a24bef-940e-418a-97bc-48229c64cc99",
+        "user_email": "uriel@globus.org"
+    }
