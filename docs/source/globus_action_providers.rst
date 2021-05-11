@@ -1,22 +1,20 @@
 .. _globus_action_providers:
 
-Globus Operated Action Providers
-================================
+Globus Action Providers
+=======================
 
-Globus provides and operates a number of Action Providers which may be invoked
-directly, or may be used within Flows. Below is a brief summary of the Action
-Providers being operated including specific information on their URLs and a
-summary of their functionality. Specific input specifications are not provided
-as they may be retrieved from the Action Provider directly via introspection:
+Globus provides and operates a number of ``Action Providers`` which may be
+invoked directly or used within Flows. Below is a brief summary of the ``Action
+Providers`` being operated including specific information on their URLs, scopes,
+and a summary of their functionality. Specific input specifications are not
+provided as they may be retrieved from the ``Action Provider`` directly via
+introspection:
 
 .. code-block:: BASH
 
     globus-automate action introspect --action-url <action_url>
 
-
-.. note::
-    The ``action_url`` used specifies the target Action Provider and is provided
-    in this documentation.
+Or simply click on the URL to view the introspection results in a browser.
 
 .. note::
     When running Globus operated Action Providers the ``action`` subcommands
@@ -48,10 +46,12 @@ Subsequent invocations of ``/status`` will return the state ``ACTIVE`` until the
 number of seconds indicated in ``sleep_time`` have elapsed at which point the
 status will become ``SUCCEEDED``.
 
+.. literalinclude:: ../../examples/action_bodies/hello_world.json
+   :language: json
+   :caption: Example Input
 
 Globus Transfer - Transfer Data
 -------------------------------
-
 
 URL: `<https://actions.globus.org/transfer/transfer>`_
 
@@ -71,6 +71,10 @@ transfer should it be viewed directly in the Globus WebApp or via the
 Globus API or CLI. The body of the action status directly reflects the
 information returned when monitoring the transfer task using the
 Globus Transfer API.
+
+.. literalinclude:: ../../examples/action_bodies/transfer.json
+   :language: json
+   :caption: Example Input
 
 Globus Transfer - Delete Data
 -----------------------------
@@ -105,6 +109,18 @@ folder or file. The body of the request indicates whether the permission rule is
 As the Globus Transfer API returns a status directly (rather than a
 task identifier), the Action Provider behaves in a synchronous manner,
 returning the Transfer API result.
+
+.. literalinclude:: ../../examples/action_bodies/set_permission.json
+   :language: json
+   :caption: Example Input to Set Permissions
+
+.. literalinclude:: ../../examples/action_bodies/delete_permission.json
+   :language: json
+   :caption: Example Input to Delete Permissions
+
+.. literalinclude:: ../../examples/action_bodies/update_permission.json
+   :language: json
+   :caption: Example Input to Update Permissions
 
 Globus Transfer - List Directory Contents
 -----------------------------------------
@@ -145,6 +161,10 @@ the state of the ingest task in Globus Search. Since Globus Search
 does not support cancellation of tasks, this Action Provider also does
 not support cancellation of its Actions.
 
+.. literalinclude:: ../../examples/action_bodies/search_ingest.json
+   :language: json
+   :caption: Example Input
+
 Globus Search - Delete
 ----------------------
 
@@ -170,6 +190,14 @@ state of an Action will lookup the state of the ``task_id`` in Globus Search,
 ensuring the status remains up-to-date. Since Globus Search does not support
 cancellation of tasks, this Action Provider also does not support cancellation
 of its Actions.
+
+.. literalinclude:: ../../examples/action_bodies/search_delete_by_subject.json
+   :language: json
+   :caption: Example Input to Delete by Subject
+
+.. literalinclude:: ../../examples/action_bodies/search_delete_by_query.json
+   :language: json
+   :caption: Example Input to Delete by Query
 
 Send Notification - Email
 -------------------------
@@ -201,6 +229,14 @@ these credentials will not be stored. The Action Provider will return success as
 long as the email service accepts the message. It cannot guarantee successful
 delivery of the message including an inability to deliver the message due to an
 improper recipient address.
+
+.. literalinclude:: ../../examples/action_bodies/notification_email.json
+   :language: json
+   :caption: Example Input with Complex Templating
+
+.. literalinclude:: ../../examples/action_bodies/email.json
+   :language: json
+   :caption: Example Input with Simple Formatting
 
 Wait for User Option Selection
 ------------------------------
@@ -254,6 +290,17 @@ for the selected option. The body may also include input on the HTTP data passed
 when the option's URL was accessed including the query parameters and the body.
 To include those in the status, flags are set on the definition of the option.
 
+.. literalinclude:: ../../examples/action_bodies/web_option.json
+   :language: json
+   :caption: Example Input for Creating Options
+
+.. literalinclude:: ../../examples/action_bodies/web_option_landing_page.json
+   :language: json
+   :caption: Example Input for Creating Options on a Landing Page
+
+.. literalinclude:: ../../examples/action_bodies/web_option_landing_page_selectable_by.json
+   :language: json
+   :caption: Example Input for Creating Options on a Landing Page Limiting Selection
 
 Simple Expression Evaluation
 ----------------------------
@@ -316,25 +363,6 @@ provide the username and password (the "Basic Auth" credentials which is part of
 the name of the URL and scope string) as well as a flag indicating whether it
 should be used in the Datacite test service or the production service.
 
-Example Input:
-
-.. code-block:: JSON
-
-    {
-      "as_test": true,
-      "username": "<A Datacite Username>",
-      "password": "<A Datacite Password>",
-      "Doi": {
-        "id": "10.80206/ap_test",
-        "type": "dois",
-        "attributes": {
-          "doi": "10.80206/ap_test",
-          "creators": [{"name":"Globus Dev Team"}],
-          "titles": [
-            {"title": "Test Title"}
-          ],
-          "publisher": "Globus",
-          "publicationYear": "2020"
-        }
-      }
-    }
+.. literalinclude:: ../../examples/action_bodies/datacite.json
+   :language: json
+   :caption: Example Input
