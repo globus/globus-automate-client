@@ -8,6 +8,7 @@ from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.flows_client import (
     MANAGE_FLOWS_SCOPE,
     PROD_FLOWS_BASE_URL,
+    RUN_STATUS_SCOPE,
     FlowsClient,
 )
 
@@ -74,6 +75,7 @@ def cli_authorizer_callback(**kwargs):
 def create_flows_client(
     client_id: str = CLIENT_ID,
     base_url: str = PROD_FLOWS_BASE_URL,
+    scope: str = MANAGE_FLOWS_SCOPE,
     *,
     authorizer: t.Optional[GlobusAuthorizer] = None,
     authorizer_callback: t.Callable = cli_authorizer_callback,
@@ -89,6 +91,8 @@ def create_flows_client(
     specific Flow will similarly search for valid tokens in the local cache,
     triggering an interactive log-in if they cannot be found.
 
+    :param: scope: The Globus Auth scope to which the FlowsClient should be
+        created with consents to
     :param client_id: The Globus ID to associate with this instance of the
         FlowsClient
     :param base_url: The URL at which the Globus Automate Flows service is
@@ -114,7 +118,7 @@ def create_flows_client(
     """
     if authorizer is None:
         authorizer = authorizer_callback(
-            flow_url=base_url, flow_scope=MANAGE_FLOWS_SCOPE, client_id=client_id
+            flow_url=base_url, flow_scope=scope, client_id=client_id
         )
     return FlowsClient.new_client(
         client_id,
