@@ -477,6 +477,7 @@ def flow_display(
         try:
             flow_get = fc.get_flow(flow_id)
         except GlobusAPIError as err:
+            format_and_echo(err, verbose=verbose)
             raise typer.Exit(1)
         flow_definition = flow_get.data["definition"]
     else:
