@@ -8,7 +8,6 @@ from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.flows_client import (
     MANAGE_FLOWS_SCOPE,
     PROD_FLOWS_BASE_URL,
-    RUN_STATUS_SCOPE,
     FlowsClient,
 )
 
