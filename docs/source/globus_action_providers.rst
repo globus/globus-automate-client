@@ -1,5 +1,3 @@
-.. _globus_action_providers:
-
 Globus Action Providers
 =======================
 
@@ -50,6 +48,10 @@ status will become ``SUCCEEDED``.
    :language: json
    :caption: Example Input
 
+.. literalinclude:: ../../examples/cli/run_hello_world.sh
+   :language: BASH
+   :caption: Try It
+
 Globus Transfer - Transfer Data
 -------------------------------
 
@@ -59,9 +61,8 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
 Synchronous / Asynchronous: Either
 
-The Action Provider "transfer/transfer" uses the `Globus Transfer API
-<https://docs.globus.org/api/transfer/task_submit/>`_ to perform a
-transfer of data from one Globus Collection to another. The input
+The Action Provider "transfer/transfer" uses the `Globus Transfer Task API`_ to
+perform a transfer of data from one Globus Collection to another. The input
 includes both the source and destination collection ids and file paths
 within the collection where the source file or folder is located and
 the destination folder where the transfer should be placed. It also
@@ -87,8 +88,7 @@ Synchronous / Asynchronous: Asynchronous
 
 Globus Transfer / delete data works much like the "Transfer /
 transfer" provider. It takes a source collection and path as inputs
-and uses the `Globus Transfer API
-<https://docs.globus.org/api/transfer/task_submit/>`_ to intiate an
+and uses the `Globus Transfer Task API`_ to intiate an
 asynchronous delete operation. Also like the transfer operation,
 labels and recursive options may be set. The status body comes
 directly from the Task status in the Globus Transfer API.
@@ -102,9 +102,11 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permissi
 
 Synchronous / Asynchronous: Synchronous
 
-The set permission Action Provider uses the `Globus Transfer API
-<https://docs.globus.org/api/transfer/acl/>`_ to set or manage permissions on a
-folder or file. The body of the request indicates whether the permission rule is to be created, updated or deleted using the ``operation`` property. For update or delete, the ``rule_id`` of a previously created permission rule must also be provided.
+The set permission Action Provider uses the `Globus Transfer ACL API`_ to set or
+manage permissions on a folder or file. The body of the request indicates
+whether the permission rule is to be created, updated or deleted using the
+``operation`` property. For update or delete, the ``rule_id`` of a previously
+created permission rule must also be provided.
 
 As the Globus Transfer API returns a status directly (rather than a
 task identifier), the Action Provider behaves in a synchronous manner,
@@ -131,8 +133,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 
 Synchronous / Asynchronous: Synchronous
 
-The Globus Transfer ls Action Provider uses the `Globus Transfer API
-<https://docs.globus.org/api/transfer/file_operations/#list_directory_contents>`_
+The Globus Transfer ls Action Provider uses the `Globus Transfer Directory API`_
 to retrieve a listing of contents from an (endpoint, path) pair.
 Although providing a path is optional, the default path used depends
 on endpoint type and it is best to explicitly set a path. This Action
@@ -366,3 +367,7 @@ should be used in the Datacite test service or the production service.
 .. literalinclude:: ../../examples/action_bodies/datacite.json
    :language: json
    :caption: Example Input
+
+.. _Globus Transfer ACL API: https://docs.globus.org/api/transfer/acl/
+.. _Globus Transfer Task API: https://docs.globus.org/api/transfer/task_submit/
+.. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
