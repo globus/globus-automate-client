@@ -399,10 +399,8 @@ moved to the destination and then removed from the source.
 View this flow in the `Globus web app. <https://app.globus.org/flows/9123c20b-61e0-46e8-9469-92c999b6b8f2/definition>`_
 (You may need to log in first.)
 
-Example Input
-"""""""""""""
-
 .. code-block:: json
+    :caption: Example Input
 
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
@@ -428,10 +426,8 @@ Remove from intermediate after completion.
 
 View this flow in the `Globus web app. <https://app.globus.org/flows/79a4653f-f8da-43b6-a581-5d3b345ad575/definition>`_
 
-Example Input
-"""""""""""""
-
 .. code-block:: json
+    :caption: Example Input
 
     {
         "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
@@ -455,10 +451,8 @@ must have administration privileges over the destination endpoint.
 
 View this flow in the `Globus web app. <https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition>`_
 
-Example Input
-"""""""""""""
-
 .. code-block:: json
+    :caption: Example Input
 
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
