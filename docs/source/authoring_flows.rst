@@ -396,6 +396,9 @@ from a source to a destination and then deleting the directory from the source.
 The entire directory's contents, including files and subdirectories, will be
 moved to the destination and then removed from the source.
 
+View this flow in the `Globus web app. <https://app.globus.org/flows/9123c20b-61e0-46e8-9469-92c999b6b8f2/definition>`
+(You may need to log in first.)
+
 Example Input
 """""""""""""
 
@@ -423,6 +426,8 @@ Flow ID: ``79a4653f-f8da-43b6-a581-5d3b345ad575``.
 Transfer from source to destination with an intermediate endpoint in-between.
 Remove from intermediate after completion.
 
+View this flow in the `Globus web app. <https://app.globus.org/flows/79a4653f-f8da-43b6-a581-5d3b345ad575/definition>`
+
 Example Input
 """""""""""""
 
@@ -447,6 +452,8 @@ Flow ID: ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``.
 A Flow which performs a Transfer on a directory and then gives a user READ
 permissions permissions on the destination directory. The user running the Flow
 must have administration privileges over the destination endpoint.
+
+View this flow in the `Globus web app. <https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition>`
 
 Example Input
 """""""""""""
