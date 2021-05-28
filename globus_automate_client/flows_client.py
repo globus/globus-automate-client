@@ -404,7 +404,7 @@ class FlowsClient(BaseClient):
         self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
-            params.update(dict(filter_roles=",".join(roles)))
+            params["filter_roles"] = ",".join(roles)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
@@ -647,9 +647,9 @@ class FlowsClient(BaseClient):
         """
         params = {}
         if roles is not None and len(roles) > 0:
-            params.update(dict(filter_roles=",".join(roles)))
+            params["filter_roles"] = ",".join(roles)
         if statuses is not None and len(statuses) > 0:
-            params.update(dict(filter_status=",".join(statuses)))
+            params["filter_status"] = ",".join(statuses)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
@@ -727,9 +727,9 @@ class FlowsClient(BaseClient):
         """
         params = {}
         if statuses is not None and len(statuses) > 0:
-            params.update(dict(filter_status=",".join(statuses)))
+            params["filter_status"] = ",".join(statuses)
         if roles is not None and len(roles) > 0:
-            params.update(dict(filter_roles=",".join(roles)))
+            params["filter_roles"] = ",".join(roles)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
