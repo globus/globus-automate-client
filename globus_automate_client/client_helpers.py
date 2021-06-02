@@ -18,11 +18,9 @@ def create_action_client(
     """
     A helper function to handle creating a properly authenticated ``ActionClient``
     which can operate against *Globus Action Provider Interface* compliant Action
-    Providers. This helper will look for and store tokens on a local filesystem,
-    optionally triggering a log-in flow if the requested tokens are not found
-    locally. To create an ActionClient without referencing local storage or
-    triggering a login flow, instantiate an authorizer directly and use the
-    ``ActionClient.new_client`` classmethod.
+    Providers. This helper will create an ``ActionClient`` by searching for and
+    storing tokens on the local filesystem, potentially triggering a log-in flow
+    if the requested tokens are not found locally.
 
     Given the ``action_url`` for a specific ActionProvider, this function will
     attempt to create a valid ``ActionClient`` for interacting with that
@@ -33,8 +31,8 @@ def create_action_client(
     ``action_scope`` will be non-discoverable and authentication will fail.
 
     With the ``action_scope`` available, the function will search for a valid
-    token using the fair-research/native-login library. In the event that tokens
-    for the scope cannot be loaded, an interactive login will be triggered. Once
+    token in the local filesystem cache. In the event that tokens for the scope
+    cannot be loaded, an interactive login will be triggered. Once
     tokens have been loaded, an Authorizer is created and used to instantiate
     the ``ActionClient`` which can be used for operations against that Action
     Provider.
@@ -45,6 +43,14 @@ def create_action_client(
         for authenticating access to it
     :param client_id: The ID for the Native App Auth Client which will be
         triggering the login flow for this ActionClient
+
+    **Examples**
+        >>> from globus_automate_client import create_action_client
+        >>> # Create an ActionClient for the HelloWorld Action
+        >>> ac = create_action_client("https://actions.globus.org/hello_world")
+        >>> # Run an Action and check its results
+        >>> resp = ac.run({"echo_string": "Hello from SDK"})
+        >>> assert resp.data["status"] == "SUCCEEDED"
     """
     authorizer = get_cli_authorizer(
         action_url=action_url, action_scope=action_scope, client_id=client_id
@@ -69,18 +75,27 @@ def create_flows_client(
     """
     A helper function to handle creating a properly authenticated
     ``FlowsClient`` which can operate against the Globus Automate Flows service.
-    This function will attempt to load tokens for the MANAGE_FLOWS_SCOPE using
-    the fair-research/native-login library. In the event that tokens for the
-    scope cannot be loaded, an interactive login Flow will be triggered. Once
-    tokens have been loaded, an Authorizer is created and used to instantiate
-    the ``FlowsClient``. To create a FlowsClient without referencing local
-    storage or triggering a login flow, instantiate an authorizer directly and
-    use the ``FlowsClient.new_client`` classmethod.
+    This function will attempt to load tokens for the ``MANAGE_FLOWS_SCOPE``from
+    the local filesystem, triggering a log-in if the requested tokens are not
+    found locally. Once tokens have been loaded, an Authorizer is created and
+    used to instantiate the ``FlowsClient``. Attempts to interact with a
+    specific Flow will similarly search for valid tokens in the local cache,
+    triggering an interactive log-in if they cannot be found.
 
     :param client_id: The Globus ID to associate with this instance of the
         FlowsClient
     :param base_url: The URL at which the Globus Automate Flows service is
         located
+
+    **Examples**
+        >>> from globus_automate_client import create_flows_client
+        >>> # Create an authenticated FlowsClient that can run operations against the Flows
+        >>> # service
+        >>> fc = create_flows_client(CLIENT_ID)
+        >>> # Get a listing of runnable, deployed flows
+        >>> available_flows = fc.list_flows(["runnable_by"])
+        >>> for flow in available_flows.data["flows"]:
+        >>>     print(flow)
     """
     authorizer = get_cli_authorizer(
         action_url=base_url, action_scope=MANAGE_FLOWS_SCOPE, client_id=client_id

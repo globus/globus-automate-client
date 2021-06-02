@@ -1,5 +1,6 @@
 import functools
 import json
+import uuid
 from enum import Enum
 from typing import Any, List, Mapping, Optional, Union
 
@@ -25,7 +26,6 @@ from globus_automate_client.cli.constants import (
 from globus_automate_client.cli.helpers import (
     flow_log_runner,
     format_and_echo,
-    get_http_details,
     parse_query_options,
     process_input,
     request_runner,
@@ -34,14 +34,10 @@ from globus_automate_client.cli.helpers import (
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
-    PROD_FLOWS_BASE_URL,
     FlowValidationError,
     validate_flow_definition,
 )
-from globus_automate_client.graphviz_rendering import (
-    graphviz_format,
-    state_colors_for_log,
-)
+from globus_automate_client.graphviz_rendering import graphviz_format
 
 
 class FlowRole(str, Enum):
@@ -83,6 +79,12 @@ def _process_flow_input(flow_input: str, input_format) -> Mapping[str, Any]:
 
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
+
+_flows_env_var_option = typer.Option(
+    None,
+    hidden=True,
+    callback=flows_endpoint_envvar_callback,
+)
 
 
 @app.callback()
@@ -153,17 +155,17 @@ def flow_deploy(
         "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
+    subscription_id: Optional[str] = typer.Option(
+        None,
+        help="The Globus Subscription which will be used to make this flow managed.",
+    ),
     validate: bool = typer.Option(
         True,
         help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
     input_format: InputFormat = typer.Option(
         InputFormat.json,
@@ -199,6 +201,7 @@ def flow_deploy(
             visible_to,
             runnable_by,
             administered_by,
+            subscription_id,
             input_schema_dict,
             validate_definition=validate,
             dry_run=dry_run,
@@ -210,6 +213,23 @@ def flow_deploy(
         format_and_echo(result, json.dumps, verbose=verbose)
     elif input_format is InputFormat.yaml:
         format_and_echo(result, yaml.dump, verbose=verbose)
+
+
+@app.command("get")
+def flow_get(
+    flow_id: uuid.UUID = typer.Argument(..., help="A deployed Flow's ID"),
+    verbose: bool = verbosity_option,
+    flows_endpoint: str = _flows_env_var_option,
+):
+    """
+    Get a Flow's definition as it exists on the Flows service.
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    try:
+        result = fc.get_flow(str(flow_id))
+    except GlobusAPIError as err:
+        result = err
+    format_and_echo(result, verbose=verbose)
 
 
 @app.command("update")
@@ -270,17 +290,17 @@ def flow_update(
         "can invoke this flow. [repeatable]",
         callback=principal_or_all_authenticated_users_validator,
     ),
+    subscription_id: Optional[str] = typer.Option(
+        None,
+        help="The Globus Subscription which will be used to make this flow managed.",
+    ),
     validate: bool = typer.Option(
         True,
         help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
     input_format: InputFormat = typer.Option(
         InputFormat.json,
@@ -309,6 +329,7 @@ def flow_update(
             visible_to,
             runnable_by,
             administered_by,
+            subscription_id,
             input_schema_dict,
             validate_definition=validate,
         )
@@ -377,11 +398,7 @@ def flow_list(
         min=1,
         max=50,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     filters: Optional[List[str]] = typer.Option(
         None,
         "--filter",
@@ -452,11 +469,7 @@ def flow_display(
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -496,11 +509,7 @@ def flow_delete(
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -546,11 +555,7 @@ def flow_run(
         "'urn:globus:groups:id:' or 'urn:globus:auth:identity:' [repeatable]",
         callback=principal_validator,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
@@ -673,11 +678,7 @@ def flow_actions_list(
         "ordering criteria will be used to sort the data, subsequent ordering criteria "
         "will further sort ties. [repeatable]",
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -725,11 +726,7 @@ def flow_action_status(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -769,11 +766,7 @@ def flow_action_resume(
             "resume, and prompt for additional consent if needed."
         ),
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set, and the
@@ -811,11 +804,7 @@ def flow_action_release(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -842,11 +831,7 @@ def flow_action_cancel(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -916,11 +901,7 @@ def flow_action_log(
         "Only JSON and YAML output formats are supported.",
         show_default=True,
     ),
-    flows_endpoint: str = typer.Option(
-        PROD_FLOWS_BASE_URL,
-        hidden=True,
-        callback=flows_endpoint_envvar_callback,
-    ),
+    flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """

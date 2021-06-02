@@ -31,7 +31,10 @@ class ActionClient(BaseClient):
         """
         This property can be used to determine an ``ActionClient``'s
         ``action_scope``. Internally, this property will introspect the Action
-        Provider at the URL for which the ``ActionClient`` was created.
+        Provider at the URL for which the ``ActionClient`` was created. If the
+        ``Action Provider`` is not public, a valid ``Globus Authorizer`` will
+        have to have been provided on initialization to the ``ActionClient``.
+        Otherwise, this call will fail.
         """
         if not hasattr(self, "_action_scope"):
             resp = self.introspect()
@@ -76,6 +79,7 @@ class ActionClient(BaseClient):
             'urn:globus:auth:identity:'
         :param force_path: A URL to use for running this action, ignoring any
             previous configuration
+        :param label: Set a label for the Action that is run.
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
@@ -152,7 +156,8 @@ class ActionClient(BaseClient):
         per_page: Optional[int] = None,
     ) -> GlobusHTTPResponse:
         """
-        Retrieve an Action's execution log history.
+        Retrieve an Action's execution log history. Not all ``Action Providers``
+        support this operation.
 
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
@@ -191,9 +196,10 @@ class ActionClient(BaseClient):
 
         :param action_url: The url at which the target Action Provider is
             located.
-
         :param authorizer: The authorizer to use for validating requests to the
             Action Provider.
+        :param http_timeout: The amount of time to wait for connections to
+            the Action Provider to be made.
 
         **Examples**
             >>> authorizer = ...

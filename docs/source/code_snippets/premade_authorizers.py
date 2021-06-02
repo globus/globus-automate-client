@@ -30,7 +30,7 @@ def authorizer_retriever(
 # Create an AccessTokenAuthorizer using a token that has consents to the
 # MANAGE_FLOWS_SCOPE. This lets the FlowsClient perform operations against the
 # Flow's service i.e. create flow, update a flow, delete a flow
-flows_service_token = os.environ.get("ANOTHER_OR_THE_SAME_ACCESS_TOKEN")
+flows_service_token = os.environ.get("MANAGE_FLOWS_SCOPED_TOKEN")
 flows_service_authorizer = AccessTokenAuthorizer(flows_service_token)
 
 fc = FlowsClient.new_client(
@@ -42,13 +42,15 @@ fc = FlowsClient.new_client(
 my_flows = fc.list_flows()
 print(my_flows)
 
+# When running a specific Flow, the authorizer_retriever callback is called
+# internally to make the authenticated call to the Flow
 running_flow = fc.run_flow(
     "1e6b4406-ee3d-4bc5-9198-74128e108111", None, {"echo_string": "hey"}
 )
 print(running_flow)
 
 # It's possible to create an Authorizer and pass it as a kwarg to the flow
-# operation. This usage will not attempt to make use of the authorizer_callback:
+# operation. This usage will not use the authorizer_callback:
 running_flow_2 = fc.run_flow(
     "1e6b4406-ee3d-4bc5-9198-74128e108111",
     None,

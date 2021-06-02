@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import (
     Any,
@@ -26,6 +27,17 @@ from jsonschema import Draft7Validator
 from globus_automate_client import ActionClient
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
+
+_ENVIRONMENT_FLOWS_BASE_URLS = {
+    None: PROD_FLOWS_BASE_URL,
+    "prod": PROD_FLOWS_BASE_URL,
+    "production": PROD_FLOWS_BASE_URL,
+    "sandbox": "https://sandbox.flows.automate.globus.org",
+    "integration": "https://integration.flows.automate.globus.org",
+    "test": "https://test.flows.automate.globus.org",
+    "preview": "https://preview.flows.automate.globus.org",
+    "staging": "https://staging.flows.automate.globus.org",
+}
 
 MANAGE_FLOWS_SCOPE = (
     "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
@@ -155,6 +167,13 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
     return
 
 
+def _get_flows_base_url_for_environment():
+    environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
+    if environ not in _ENVIRONMENT_FLOWS_BASE_URLS:
+        raise ValueError(f"Unknown value for GLOBUS_SDK_ENVIRONMENT: {environ}")
+    return _ENVIRONMENT_FLOWS_BASE_URLS[environ]
+
+
 class FlowsClient(BaseClient):
     """
     This is a specialized type of the Globus Auth service's ``BaseClient`` used
@@ -190,14 +209,14 @@ class FlowsClient(BaseClient):
         visible_to: List[str] = [],
         runnable_by: List[str] = [],
         administered_by: List[str] = [],
+        subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
         validate_input_schema: bool = True,
         dry_run: bool = False,
         **kwargs,
     ) -> GlobusHTTPResponse:
-        """
-        Deploys a Flow definition to the Flows service, making the Flow
+        """Deploys a Flow definition to the Flows service, making the Flow
         available for execution on the Globus Automate Flows Service.
 
         :param flow_definition: A mapping corresponding to a Globus Flows
@@ -222,6 +241,9 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
+        :param subscription_id: The Globus Subscription which will be used to
+            make this flow managed.
+
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
             done on input to this Flow.
@@ -231,6 +253,7 @@ class FlowsClient(BaseClient):
 
         :param validate_input_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to deploy the Flow.
+
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
@@ -242,6 +265,7 @@ class FlowsClient(BaseClient):
         temp_body["visible_to"] = visible_to
         temp_body["runnable_by"] = runnable_by
         temp_body["administered_by"] = administered_by
+        temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
@@ -261,6 +285,7 @@ class FlowsClient(BaseClient):
         visible_to: List[str] = [],
         runnable_by: List[str] = [],
         administered_by: List[str] = [],
+        subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
         validate_input_schema: bool = True,
@@ -295,6 +320,9 @@ class FlowsClient(BaseClient):
         :param administered_by: A series of Globus identities which may update
             this Flow's definition
 
+        :param subscription_id: The Globus Subscription which will be used to
+            make this flow managed.
+
         :param input_schema: A mapping representing the JSONSchema used to
             validate input to this Flow. If not supplied, no validation will be
             done on input to this Flow.
@@ -315,6 +343,7 @@ class FlowsClient(BaseClient):
         temp_body["visible_to"] = visible_to
         temp_body["runnable_by"] = runnable_by
         temp_body["administered_by"] = administered_by
+        temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
@@ -359,7 +388,7 @@ class FlowsClient(BaseClient):
             where the retrieving identity has at least one of the listed roles on
             each Flow
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -379,21 +408,21 @@ class FlowsClient(BaseClient):
         self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
-            params.update(dict(roles=",".join(roles)))
+            params.update(dict(filter_roles=",".join(roles)))
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = str(per_page)
         if filters is not None:
             params.update(filters)
-        if orderings is not None:
+        if orderings:
             builder = []
             for field, value in orderings.items():
                 builder.append(f"{field} {value}")
             params["orderby"] = ",".join(builder)
         return self.get("/flows", params=params, **kwargs)
 
-    def delete_flow(self, flow_id: str, **kwargs):
+    def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
         Remove a Flow definition and its metadata from the Flows service
 
@@ -576,8 +605,8 @@ class FlowsClient(BaseClient):
     def list_flow_actions(
         self,
         flow_id: str,
-        flow_scope: Optional[str],
-        statuses: Optional[List[str]],
+        flow_scope: Optional[str] = None,
+        statuses: Optional[List[str]] = None,
         roles: Optional[List[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
@@ -613,7 +642,7 @@ class FlowsClient(BaseClient):
             - administered_by
 
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -635,8 +664,6 @@ class FlowsClient(BaseClient):
             argument, that gets used to run the Flow operation. Otherwise the
             authorizer_callback defined for the FlowsClient will be used.
         """
-        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-
         params = {}
         if statuses is not None and len(statuses) > 0:
             params.update(dict(filter_status=",".join(statuses)))
@@ -654,7 +681,10 @@ class FlowsClient(BaseClient):
                 builder.append(f"{field} {value}")
             params["orderby"] = ",".join(builder)
 
-        return self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        response = self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        self.authorizer = self.flow_management_authorizer
+        return response
 
     def flow_action_log(
         self,
@@ -687,7 +717,7 @@ class FlowsClient(BaseClient):
             in reverse-chronological order.
 
         :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flow's
+            return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
         :param per_page: The number of results to return per page. If
             supplied a pagination_token, this parameter has no effect.
@@ -708,7 +738,7 @@ class FlowsClient(BaseClient):
         client_id: str,
         authorizer_callback: AuthorizerCallbackType,
         authorizer: AllowedAuthorizersType,
-        base_url: str = PROD_FLOWS_BASE_URL,
+        base_url: Optional[str] = None,
         http_timeout: int = 10,
     ) -> _FlowsClient:
         """
@@ -719,22 +749,21 @@ class FlowsClient(BaseClient):
         process.
 
         :param client_id: The client_id to associate with this FlowsClient.
-
         :param authorizer_callback: A callable which is capable of returning an
             authorizer for a particular Flow. The callback should accept three
             keyword-args: flow_url, flow_scope, client_id. Using some, all, or
             none of these args, the callback should return a GlobusAuthorizer
             which provides access to the targetted Flow.
-
         :param authorizer: The authorizer to use for validating requests to the
             Flows service. This authorizer is used when interacting with the
             Flow's service, it is not used for interactive with a particular
             flow. Therefore, this authorizer should grant consent to the
             MANAGE_FLOWS_SCOPE. For interacting with a particular flow, set the
             authorizer_callback parameter.
-
         :param base_url: The url at which the target Action Provider is
             located.
+        :param http_timeout: The amount of time to wait for connections to
+            the Action Provider to be made.
 
         **Examples**
             >>> def cli_authorizer_callback(**kwargs):
@@ -748,6 +777,8 @@ class FlowsClient(BaseClient):
             >>> fc = FlowsClient.new_client(client_id, cli_authorizer_callback, auth)
             >>> print(fc.list_flows())
         """
+        if base_url is None:
+            base_url = _get_flows_base_url_for_environment()
         return cls(
             client_id,
             authorizer_callback,

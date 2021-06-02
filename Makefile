@@ -72,4 +72,7 @@ clean:
 	rm -rf dist
 
 docs:
+	poetry run typer globus_automate_client/cli/main.py utils docs --name "globus-automate" --output cli_docs.md;
+	pandoc --from markdown --to rst -o docs/source/cli_docs.rst cli_docs.md;
+	rm cli_docs.md;
 	poetry run make --directory=docs html
