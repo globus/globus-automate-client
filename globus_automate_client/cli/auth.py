@@ -1,10 +1,11 @@
+import copy
 import json
 import os
 import pathlib
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union
 
 import click
 import typer
@@ -57,7 +58,11 @@ TokensInTokenCache = Dict[str, Union[TokenSet, Dict[str, TokenSet]]]
 
 
 class TokenCache:
-    def __init__(self, token_store: str):
+    # A prefix we put in place in the token cache dict to create a key sub-dividing the
+    # cache based on a particular environment.
+    _environment_prefix = "__"
+
+    def __init__(self, token_store: Union[pathlib.Path, str]):
         self.token_store = token_store
         self.tokens: TokensInTokenCache = {}
         self.modified = False
@@ -68,9 +73,9 @@ class TokenCache:
         We will sub-key the full token set for environments other than production
         """
         environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
-        if environ in {None, "production", "prod"}:
+        if environ in {None, "production", "prod", "default"}:
             return self.tokens
-        environ_cache_key = "__" + environ
+        environ_cache_key = TokenCache._environment_prefix + environ
         if environ_cache_key not in self.tokens:
             self.tokens[environ_cache_key]: Dict[str, TokenSet] = {}
         return self.tokens[environ_cache_key]
@@ -109,7 +114,7 @@ class TokenCache:
     def _deserialize_from_file(file_tokens: Dict[str, Any]) -> TokensInTokenCache:
         deserialized: TokensInTokenCache = {}
         for k, v in file_tokens.items():
-            if k.startswith("__"):
+            if k.startswith(TokenCache._environment_prefix):
                 v = TokenCache._deserialize_from_file(v)
             else:
                 v = TokenSet(**v)
@@ -160,6 +165,26 @@ class TokenCache:
                     default=default,
                 )
         self.modified = False
+
+    def clear_tokens(
+        self,
+        environment_aware: bool = True,
+        callback: Optional[Callable[[str, TokenSet], bool]] = None,
+    ) -> None:
+        if environment_aware:
+            tokens = self.tokens_for_environment
+        else:
+            tokens = self.tokens
+        for scope, token_set in copy.copy(tokens).items():
+            if scope.startswith(TokenCache._environment_prefix):
+                continue
+            token_set: TokenSet = token_set  # type checking stuff
+            do_remove = True
+            if callback is not None:
+                do_remove = callback(scope, token_set)
+            if do_remove:
+                tokens.pop(scope)
+                self.modified = True
 
     def update_from_oauth_token_response(
         self, token_response: OAuthTokenResponse, original_scopes: Set[str]
@@ -222,7 +247,7 @@ def _do_login_for_scopes(
 
 def get_authorizers_for_scopes(
     scopes: List[str],
-    token_store: Optional[str] = None,
+    token_store: Optional[Union[pathlib.Path, str]] = None,
     client_id: str = CLIENT_ID,
     client_name: str = CLIENT_NAME,
     no_login: bool = False,
@@ -279,7 +304,7 @@ def get_authorizers_for_scopes(
 def get_authorizer_for_scope(
     scope: str, client_id: str = CLIENT_ID
 ) -> Optional[GlobusAuthorizer]:
-    authorizers = get_authorizers_for_scopes([scope], client_id=CLIENT_ID)
+    authorizers = get_authorizers_for_scopes([scope], client_id=client_id)
     return authorizers.get(_get_base_scope(scope))
 
 
@@ -295,32 +320,34 @@ def get_access_token_for_scope(scope: str) -> Optional[str]:
     return token
 
 
-def logout(token_store: str = DEFAULT_TOKEN_FILE) -> bool:
-    try:
-        os.remove(token_store)
-    except OSError:
-        click.echo("couldn't remove token cache file", err=True)
-        return False
+def logout(token_store: Union[pathlib.Path, str] = DEFAULT_TOKEN_FILE) -> bool:
+    cache = TokenCache(token_store)
+    cache.load_tokens()
+    cache.clear_tokens()
+    cache.save_tokens()
     return True
 
 
-def revoke_login(token_store: str = DEFAULT_TOKEN_FILE) -> bool:
+def revoke_login(token_store: Union[pathlib.Path, str] = DEFAULT_TOKEN_FILE) -> bool:
     client = _get_globus_sdk_native_client(CLIENT_ID, CLIENT_NAME)
     if not client:
         click.echo("failed to get auth client", err=True)
         return False
     cache = TokenCache(token_store)
     cache.load_tokens()
-    if not logout(token_store):
-        return False
-    for token_set in cache.tokens.values():
+
+    def revoker(scope: str, token_set: TokenSet) -> bool:
         client.oauth2_revoke_token(token_set.access_token)
         client.oauth2_revoke_token(token_set.refresh_token)
+        return True
+
+    cache.clear_tokens(callback=revoker)
+    cache.save_tokens()
     return True
 
 
 def get_current_user(
-    no_login: bool = False, token_store: str = DEFAULT_TOKEN_FILE
+    no_login: bool = False, token_store: Union[pathlib.Path, str] = DEFAULT_TOKEN_FILE
 ) -> Optional[Dict[str, Any]]:
     """
     When `no_login` is set, returns `None` if not logged in.
