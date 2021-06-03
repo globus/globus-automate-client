@@ -213,6 +213,7 @@ class FlowsClient(BaseClient):
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
         validate_input_schema: bool = True,
+        dry_run: bool = False,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """Deploys a Flow definition to the Flows service, making the Flow
@@ -268,7 +269,10 @@ class FlowsClient(BaseClient):
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
-        return self.post("/flows", req_body, **kwargs)
+        url = "/flows"
+        if dry_run:
+            url = "/flows/dry-run"
+        return self.post(url, req_body, **kwargs)
 
     def update_flow(
         self,
@@ -461,6 +465,7 @@ class FlowsClient(BaseClient):
         flow_input: Mapping,
         manage_by: Optional[List[str]] = None,
         monitor_by: Optional[List[str]] = None,
+        dry_run: bool = False,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -493,7 +498,11 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
-        return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, **kwargs)
+        if dry_run:
+            path = flow_url + "/dry-run"
+            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, force_path=path, **kwargs)
+        else:
+            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, **kwargs)
 
     def flow_action_status(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs

@@ -59,6 +59,7 @@ class ActionClient(BaseClient):
         manage_by: Optional[Iterable[str]] = None,
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
+        force_path: Optional[str] = None,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -76,6 +77,8 @@ class ActionClient(BaseClient):
             view the state of this Action. The principal value is the user's or
             group's UUID prefixed with either 'urn:globus:groups:id:' or
             'urn:globus:auth:identity:'
+        :param force_path: A URL to use for running this action, ignoring any
+            previous configuration
         :param label: Set a label for the Action that is run.
         """
         if request_id is None:
@@ -86,6 +89,8 @@ class ActionClient(BaseClient):
             monitor_by = list(set(monitor_by))
 
         path = self.qjoin_path("run")
+        if force_path:
+            path = force_path
         body = {
             "request_id": str(request_id),
             "body": body,

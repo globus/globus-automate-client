@@ -176,6 +176,14 @@ def flow_deploy(
         case_sensitive=False,
         show_default=True,
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help=(
+            "Do a dry run of deploying the flow to test your definition without"
+            " actually making changes."
+        ),
+    ),
 ):
     """
     Deploy a new Flow.
@@ -197,10 +205,15 @@ def flow_deploy(
             subscription_id,
             input_schema_dict,
             validate_definition=validate,
+            dry_run=dry_run,
         )
     except GlobusAPIError as err:
         result = err
-    format_and_echo(result, verbose=verbose)
+    # Match up output format with input format
+    if input_format is InputFormat.json:
+        format_and_echo(result, json.dumps, verbose=verbose)
+    elif input_format is InputFormat.yaml:
+        format_and_echo(result, yaml.dump, verbose=verbose)
 
 
 @app.command("get")
@@ -574,6 +587,14 @@ def flow_run(
         help="Continuously poll this Action until it reaches a completed state.",
         show_default=True,
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help=(
+            "Do a dry run with your input to this flow to test the input without"
+            " actually running anything."
+        ),
+    ),
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
@@ -588,6 +609,7 @@ def flow_run(
         monitor_by=monitor_by,
         manage_by=manage_by,
         label=label,
+        dry_run=dry_run,
     )
 
     with live_content:
