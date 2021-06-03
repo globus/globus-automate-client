@@ -1,4 +1,6 @@
-from typing import Optional
+import typing as t
+
+from globus_sdk.authorizers import GlobusAuthorizer
 
 from globus_automate_client.action_client import ActionClient
 from globus_automate_client.cli.auth import CLIENT_ID, get_cli_authorizer
@@ -12,7 +14,7 @@ from globus_automate_client.flows_client import (
 
 def create_action_client(
     action_url: str,
-    action_scope: Optional[str] = None,
+    action_scope: t.Optional[str] = None,
     client_id: str = CLIENT_ID,
 ) -> ActionClient:
     """
@@ -70,7 +72,12 @@ def cli_authorizer_callback(**kwargs):
 
 
 def create_flows_client(
-    client_id: str = CLIENT_ID, base_url: str = PROD_FLOWS_BASE_URL
+    client_id: str = CLIENT_ID,
+    base_url: str = PROD_FLOWS_BASE_URL,
+    *,
+    authorizer: t.Optional[GlobusAuthorizer] = None,
+    authorizer_callback: t.Callable = cli_authorizer_callback,
+    http_timeout: int = 10
 ) -> FlowsClient:
     """
     A helper function to handle creating a properly authenticated
@@ -86,23 +93,33 @@ def create_flows_client(
         FlowsClient
     :param base_url: The URL at which the Globus Automate Flows service is
         located
+    :param authorizer: An authorizer providing access to the Flows service.
+        If not provided, it will be created using the ``authorizer_callback``
+    :param authorizer_callback: A callback used to dynamically return
+        GlobusAuthorizers. If not provided, the Globus Automate CLI callback
+        will be used which triggers interactive logins and stores tokens
+        locally
+    :param http_timeout: Close any requests taking longer than this
+        parameter's value
 
     **Examples**
         >>> from globus_automate_client import create_flows_client
         >>> # Create an authenticated FlowsClient that can run operations against the Flows
         >>> # service
-        >>> fc = create_flows_client(CLIENT_ID)
+        >>> fc = create_flows_client()
         >>> # Get a listing of runnable, deployed flows
         >>> available_flows = fc.list_flows(["runnable_by"])
         >>> for flow in available_flows.data["flows"]:
         >>>     print(flow)
     """
-    authorizer = get_cli_authorizer(
-        action_url=base_url, action_scope=MANAGE_FLOWS_SCOPE, client_id=client_id
-    )
+    if authorizer is None:
+        authorizer = authorizer_callback(
+            flow_url=base_url, flow_scope=MANAGE_FLOWS_SCOPE, client_id=client_id
+        )
     return FlowsClient.new_client(
         client_id,
-        authorizer_callback=cli_authorizer_callback,
-        authorizer=authorizer,
         base_url=base_url,
+        authorizer=authorizer,
+        authorizer_callback=authorizer_callback,
+        http_timeout=http_timeout,
     )
