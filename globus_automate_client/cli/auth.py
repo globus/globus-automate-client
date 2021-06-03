@@ -58,6 +58,10 @@ TokensInTokenCache = Dict[str, Union[TokenSet, Dict[str, TokenSet]]]
 
 
 class TokenCache:
+    # A prefix we put in place in the token cache dict to create a key sub-dividing the
+    # cache based on a particular environment.
+    _environment_prefix = "__"
+
     def __init__(self, token_store: Union[pathlib.Path, str]):
         self.token_store = token_store
         self.tokens: TokensInTokenCache = {}
@@ -71,7 +75,7 @@ class TokenCache:
         environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
         if environ in {None, "production", "prod", "default"}:
             return self.tokens
-        environ_cache_key = "__" + environ
+        environ_cache_key = TokenCache._environment_prefix + environ
         if environ_cache_key not in self.tokens:
             self.tokens[environ_cache_key]: Dict[str, TokenSet] = {}
         return self.tokens[environ_cache_key]
@@ -110,7 +114,7 @@ class TokenCache:
     def _deserialize_from_file(file_tokens: Dict[str, Any]) -> TokensInTokenCache:
         deserialized: TokensInTokenCache = {}
         for k, v in file_tokens.items():
-            if k.startswith("__"):
+            if k.startswith(TokenCache._environment_prefix):
                 v = TokenCache._deserialize_from_file(v)
             else:
                 v = TokenSet(**v)
@@ -172,7 +176,7 @@ class TokenCache:
         else:
             tokens = self.tokens
         for scope, token_set in copy.copy(tokens).items():
-            if scope.startswith("__"):
+            if scope.startswith(TokenCache._environment_prefix):
                 continue
             token_set: TokenSet = token_set  # type checking stuff
             do_remove = True
