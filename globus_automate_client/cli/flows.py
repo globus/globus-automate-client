@@ -34,6 +34,7 @@ from globus_automate_client.cli.helpers import (
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
+    RUN_STATUS_SCOPE,
     FlowValidationError,
     validate_flow_definition,
 )
@@ -477,7 +478,7 @@ def flow_display(
             flow_get = fc.get_flow(flow_id)
         except GlobusAPIError as err:
             format_and_echo(err, verbose=verbose)
-            typer.Exit(1)
+            raise typer.Exit(1)
         flow_definition = flow_get.data["definition"]
     else:
         flow_definition = json.loads(flow_definition)
@@ -916,6 +917,77 @@ def flow_action_log(
             dumper(resp, flow_def)
         else:
             format_and_echo(resp, verbose=verbose)
+
+
+@app.command("action-enumerate")
+def flow_action_enumerate(
+    roles: List[ActionRole] = typer.Option(
+        [],
+        "--role",
+        help="Display Actions where you have the selected role. [repeatable]",
+    ),
+    statuses: List[ActionStatus] = typer.Option(
+        [],
+        "--status",
+        help="Display Actions with the selected status. [repeatable]",
+    ),
+    marker: str = typer.Option(
+        None,
+        "--marker",
+        "-m",
+        help="A pagination token for iterating through returned data.",
+    ),
+    per_page: int = typer.Option(
+        None,
+        "--per-page",
+        "-p",
+        help="The page size to return. Only valid when used without providing a marker.",
+        min=1,
+        max=50,
+    ),
+    filters: Optional[List[str]] = typer.Option(
+        None,
+        "--filter",
+        help="A filtering criteria in the form 'key=value' to apply to the "
+        "resulting Action listing. The key indicates the filter, the value "
+        "indicates the pattern to match. Multiple patterns for a single key may "
+        "be specified as a comma seperated string, the results for which will "
+        "represent a logical OR. If multiple filters are applied, the returned "
+        "data will be the result of a logical AND between them. [repeatable]",
+    ),
+    orderings: Optional[List[str]] = typer.Option(
+        None,
+        "--orderby",
+        help="An ordering criteria in the form 'key=value' to apply to the resulting "
+        "Flow listing. The key indicates the field to order on, and the value is "
+        "either ASC, for ascending order, or DESC, for descending order. The first "
+        "ordering criteria will be used to sort the data, subsequent ordering criteria "
+        "will further sort ties. [repeatable]",
+    ),
+    flows_endpoint: str = _flows_env_var_option,
+    verbose: bool = verbosity_option,
+):
+    """
+    Retrieve all Flow Runs you have access to view.
+    """
+    parsed_filters = parse_query_options(filters)
+    parsed_orderings = parse_query_options(orderings)
+    statuses_str = [s.value for s in statuses]
+    roles_str = [r.value for r in roles]
+
+    fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
+    try:
+        resp = fc.enumerate_actions(
+            statuses=statuses_str,
+            roles=roles_str,
+            marker=marker,
+            per_page=per_page,
+            filters=parsed_filters,
+            orderings=parsed_orderings,
+        )
+    except GlobusAPIError as err:
+        resp = err
+    format_and_echo(resp, verbose=verbose)
 
 
 def _format_and_display_flow(

@@ -404,7 +404,7 @@ class FlowsClient(BaseClient):
         self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
-            params.update(dict(filter_roles=",".join(roles)))
+            params["filter_roles"] = ",".join(roles)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
@@ -593,6 +593,76 @@ class FlowsClient(BaseClient):
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.cancel(flow_action_id)
 
+    def enumerate_actions(
+        self,
+        roles: Optional[List[str]] = None,
+        statuses: Optional[List[str]] = None,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
+        filters: Optional[dict] = None,
+        orderings: Optional[dict] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        Retrieve a listing of Actions the caller has access to. This operation
+        requires the supplied Authorizer to have the RUN_STATUS_SCOPE.
+
+        :param roles:
+            A list of roles specifying the level of access you have
+            for a Flow. Valid values are:
+
+            - created_by
+            - visible_to
+            - runnable_by
+            - administered_by
+
+            Each value in the ``roles`` list is Or-ed to retrieve a listing of Flows
+            where the retrieving identity has at least one of the listed roles on
+            each Flow
+        :param statuses: A list of statuses used to filter the Actions that are
+            returned by the listing. Returned Actions are guaranteed to have one
+            of the specified ``statuses``. Valid values are:
+
+            - SUCCEEDED
+            - FAILED
+            - ACTIVE
+            - INACTIVE
+        :param marker: A pagination_token indicating the page of results to
+            return and how many entries to return. This is created by the Flows
+            service and returned by operations that support pagination.
+        :param per_page: The number of results to return per page. If
+            supplied a pagination_token, this parameter has no effect.
+        :param filters: A filtering criteria to apply to the resulting Flow
+            listing. The keys indicate the filter, the values indicate the
+            pattern to match. The returned data will be the result of a logical
+            AND between the filters. Patterns may be comma separated to produce
+            the result of a logical OR.
+        :param orderings: An ordering criteria to apply to the resulting
+            Flow listing. The keys indicate the field to order on, and
+            the value can be either ASC, for ascending order, or DESC, for
+            descending order. The first ordering criteria will be used to sort
+            the data, subsequent ordering criteria will be applied for ties.
+            Note: To ensure orderings are applied in the correct order, use an
+            OrderedDict if trying to apply multiple orderings.
+        """
+        params = {}
+        if roles is not None and len(roles) > 0:
+            params["filter_roles"] = ",".join(roles)
+        if statuses is not None and len(statuses) > 0:
+            params["filter_status"] = ",".join(statuses)
+        if marker is not None:
+            params["pagination_token"] = marker
+        if per_page is not None and marker is None:
+            params["per_page"] = str(per_page)
+        if filters is not None:
+            params.update(filters)
+        if orderings:
+            builder = []
+            for field, value in orderings.items():
+                builder.append(f"{field} {value}")
+            params["orderby"] = ",".join(builder)
+        return self.get(f"/runs", params=params, **kwargs)
+
     def list_flow_actions(
         self,
         flow_id: str,
@@ -657,9 +727,9 @@ class FlowsClient(BaseClient):
         """
         params = {}
         if statuses is not None and len(statuses) > 0:
-            params.update(dict(filter_status=",".join(statuses)))
+            params["filter_status"] = ",".join(statuses)
         if roles is not None and len(roles) > 0:
-            params.update(dict(filter_roles=",".join(roles)))
+            params["filter_roles"] = ",".join(roles)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
