@@ -156,6 +156,10 @@ class TokenCache:
 
         if self.modified:
             with open(self.token_store, "w") as f:
+                if isinstance(self.token_store, pathlib.Path):
+                    self.token_store.chmod(0o600)
+                else:
+                    os.chmod(self.token_store, 0o600)
                 jsonable = TokenCache._make_jsonable(self.tokens)
                 json.dump(
                     jsonable,
