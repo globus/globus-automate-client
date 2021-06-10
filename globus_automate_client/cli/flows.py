@@ -211,9 +211,9 @@ def flow_deploy(
         result = err
     # Match up output format with input format
     if input_format is InputFormat.json:
-        format_and_echo(result, json.dumps, verbose=verbose)
+        format_and_echo(result, OutputFormat.json.get_dumper(), verbose=verbose)
     elif input_format is InputFormat.yaml:
-        format_and_echo(result, yaml.dump, verbose=verbose)
+        format_and_echo(result, OutputFormat.yaml.get_dumper(), verbose=verbose)
 
 
 @app.command("get")
