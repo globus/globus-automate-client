@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.11.4"
+version = "0.11.5"
 description = "Experimental client for the in-development Globus Automate services"
 authors = [
     "Jim Pruyne <pruyne@globus.org>",
