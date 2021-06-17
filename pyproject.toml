@@ -27,6 +27,7 @@ classifiers = [
   ]
 
 readme = "README.rst"
+license = "Apache-2.0"
 
 [tool.poetry.scripts]
 globus-automate = "globus_automate_client.cli.main:app"
