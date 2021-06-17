@@ -5,7 +5,7 @@ from .flows_client import FlowsClient, validate_flow_definition
 from .graphviz_rendering import graphviz_format, state_colors_for_log
 from .queues_client import QueuesClient, create_queues_client
 
-__version__ = "0.11.4"
+__version__ = "0.11.5"
 
 __all__ = (
     "ActionClient",
