@@ -378,7 +378,7 @@ def flow_lint(
 @app.command("list")
 def flow_list(
     roles: List[FlowRole] = typer.Option(
-        [FlowRole.created_by],
+        [],
         "--role",
         "-r",
         help="Display Flows where you have the selected role. [repeatable]",
