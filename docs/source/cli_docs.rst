@@ -234,6 +234,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 **Commands**:
 
 -  ``action-cancel``: Cancel an active execution for a particular…
+-  ``action-enumerate``: Retrieve all Flow Runs you have access to…
 -  ``action-list``: List a Flow definition’s discrete…
 -  ``action-log``: Get a log of the steps executed by a Flow…
 -  ``action-release``: Remove execution history for a particular…
@@ -270,6 +271,43 @@ invocation.
    [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow action-enumerate``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieve all Flow Runs you have access to view.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow action-enumerate [OPTIONS]
+
+**Options**:
+
+-  ``--role [created_by|monitor_by|manage_by]``: Display Actions where
+   you have the selected role. [repeatable] [default: ]
+-  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
+   the selected status. [repeatable] [default: ]
+-  ``-m, --marker TEXT``: A pagination token for iterating through
+   returned data.
+-  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
+   when used without providing a marker.
+-  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
+   apply to the resulting Action listing. The key indicates the filter,
+   the value indicates the pattern to match. Multiple patterns for a
+   single key may be specified as a comma seperated string, the results
+   for which will represent a logical OR. If multiple filters are
+   applied, the returned data will be the result of a logical AND
+   between them. [repeatable]
+-  ``--orderby TEXT``: An ordering criteria in the form ‘key=value’ to
+   apply to the resulting Flow listing. The key indicates the field to
+   order on, and the value is either ASC, for ascending order, or DESC,
+   for descending order. The first ordering criteria will be used to
+   sort the data, subsequent ordering criteria will further sort ties.
+   [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -503,6 +541,8 @@ Deploy a new Flow.
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-i, --input [json|yaml]``: Input format. [default: json]
+-  ``--dry-run``: Do a dry run of deploying the flow to test your
+   definition without actually making changes. [default: False]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow display``
@@ -644,6 +684,8 @@ the Flow.
 -  ``-l, --label TEXT``: Optional label to mark this run.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
+-  ``--dry-run``: Do a dry run with your input to this flow to test the
+   input without actually running anything. [default: False]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow update``
