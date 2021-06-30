@@ -466,6 +466,7 @@ class FlowsClient(BaseClient):
         manage_by: Optional[List[str]] = None,
         monitor_by: Optional[List[str]] = None,
         dry_run: bool = False,
+        label: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -490,6 +491,8 @@ class FlowsClient(BaseClient):
             or group's UUID prefixed with either 'urn:globus:groups:id:' or
             'urn:globus:auth:identity:'
 
+        :param label: An optional label which can be used to identify this run
+
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
@@ -500,9 +503,9 @@ class FlowsClient(BaseClient):
         ac = ActionClient.new_client(flow_url, authorizer)
         if dry_run:
             path = flow_url + "/dry-run"
-            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, force_path=path, **kwargs)
+            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, force_path=path, label=label, **kwargs)
         else:
-            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, **kwargs)
+            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, label=label, **kwargs)
 
     def flow_action_status(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs

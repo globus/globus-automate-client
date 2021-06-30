@@ -3,11 +3,11 @@ import os
 from globus_sdk import AccessTokenAuthorizer
 
 from globus_automate_client import FlowsClient
+from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.flows_client import (
     MANAGE_FLOWS_SCOPE,
     AllowedAuthorizersType,
 )
-from globus_automate_client.token_management import CLIENT_ID
 
 
 def authorizer_retriever(
