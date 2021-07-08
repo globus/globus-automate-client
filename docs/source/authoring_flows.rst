@@ -404,9 +404,9 @@ View this flow in the `Globus web app. <https://app.globus.org/flows/9123c20b-61
 
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/my-file.txt",
+        "source_path": "/~/source-directory",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/my-moved.file.txt",
+        "destination_path": "/~/destination-directory",
         "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1",
         "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1"
     }
@@ -430,12 +430,12 @@ View this flow in the `Globus web app. <https://app.globus.org/flows/79a4653f-f8
     :caption: Example Input
 
     {
-        "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/share/godata/file1.txt",
+        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/source-directory",
         "intermediate_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "intermediate_path": "/~/file1-on-endpoint-2.txt",
+        "intermediate_path": "/~/intermediate-directory-which-will-be-removed",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/file1-copy.txt"
+        "destination_path": "/~/destination-directory",
     }
 
 .. _example-flow-transfer-set-permissions:
@@ -445,9 +445,10 @@ View this flow in the `Globus web app. <https://app.globus.org/flows/79a4653f-f8
 
 Flow ID: ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``.
 
-A Flow which performs a Transfer on a directory and then gives a user READ
-permissions permissions on the destination directory. The user running the Flow
-must have administration privileges over the destination endpoint.
+A Flow which performs a Transfer on a directory, gives a user READ permissions
+on the destination directory and notifies the user of their new data via email.
+The user running the Flow must have administration privileges over the
+destination endpoint.
 
 View this flow in the `Globus web app. <https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition>`_
 
@@ -456,10 +457,10 @@ View this flow in the `Globus web app. <https://app.globus.org/flows/cdcd6d1a-b1
 
     {
         "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/share/godata",
         "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/share/godata/file1.txt",
-        "destination_path": "/~/my-file1-copy.txt",
-        "transfer_label": "Transfer for Transfer With Permissions Flow",
+        "destination_path": "/~/my-godata",
+        "transfer_label": "Transfer for Transfer Set Permissions Flow",
         "user_id": "06a24bef-940e-418a-97bc-48229c64cc99",
         "user_email": "uriel@globus.org"
     }
