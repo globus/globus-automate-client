@@ -360,7 +360,7 @@ class FlowsClient(BaseClient):
             details
         """
         self.authorizer = self.flow_management_authorizer
-        path = self.qjoin_path(flow_id)
+        path = self.qjoin_path("/flows/", flow_id)
         return self.get(path, **kwargs)
 
     def list_flows(
@@ -503,9 +503,22 @@ class FlowsClient(BaseClient):
         ac = ActionClient.new_client(flow_url, authorizer)
         if dry_run:
             path = flow_url + "/dry-run"
-            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, force_path=path, label=label, **kwargs)
+            return ac.run(
+                flow_input,
+                manage_by=manage_by,
+                monitor_by=monitor_by,
+                force_path=path,
+                label=label,
+                **kwargs,
+            )
         else:
-            return ac.run(flow_input, manage_by=manage_by, monitor_by=monitor_by, label=label, **kwargs)
+            return ac.run(
+                flow_input,
+                manage_by=manage_by,
+                monitor_by=monitor_by,
+                label=label,
+                **kwargs,
+            )
 
     def flow_action_status(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs
