@@ -324,7 +324,7 @@ containing the following properties:
 +===============+=====================================================================================+
 | flow_id       | The id of the deployed Flow that is executing                                       |
 +---------------+-------------------------------------------------------------------------------------+
-| action_id     | The unique id assigned to **this execution** of the Flow                            |
+| run_id        | The unique id assigned to **this execution** of the Flow                            |
 +---------------+-------------------------------------------------------------------------------------+
 | username      | The Globus Auth username for the user invoking the Flow                             |
 +---------------+-------------------------------------------------------------------------------------+
