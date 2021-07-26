@@ -1,13 +1,9 @@
 Globus Automate - CLI and Python SDK
 ====================================
 
-This is an experimental, unsupported command line interface and Python package
+This is the command line interface and Python package
 for working with Globus Automate, primarily Globus Flows, any service
 implementing the Globus Action Provider Interface, and Globus Queues.
-
-As this is experimental, no support is implied or provided for any sort of use
-of this package. It is published for ease of distribution among those planning
-to use it for its intended, experimental, purpose.
 
 .. toctree::
    :maxdepth: 1
@@ -22,7 +18,7 @@ to use it for its intended, experimental, purpose.
 .. toctree::
     :maxdepth: 1
     :titlesonly:
-    :caption: Advanced
+    :caption: Authoring Flows
 
     authoring_flows
 

@@ -1,13 +1,22 @@
 import json
 import os
 import pathlib
+import re
 from errno import ENAMETOOLONG
-from typing import AbstractSet, List
+from typing import AbstractSet, List, Optional
 from urllib.parse import urlparse
 from uuid import UUID
 
 import typer
 import yaml
+from globus_sdk import AuthClient
+
+from .auth import get_authorizer_for_scope
+
+_uuid_regex = (
+    "([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})"
+)
+_principal_urn_regex = f"^urn:globus:(auth:identity|groups:id):{_uuid_regex}$"
 
 
 def url_validator_callback(url: str) -> str:
@@ -37,31 +46,32 @@ def _base_principal_validator(
     Globus ID beginnings. It will optionally determine if a provided principal
     exists in a set of "special" values.
     """
-    groups_beginning = "urn:globus:groups:id:"
     auth_beginning = "urn:globus:auth:identity:"
 
+    auth_client: Optional[AuthClient] = None
+
+    valid_principals = []
+
+    invalid_principals = []
     for p in principals:
-        if special_vals and p in special_vals:
-            continue
+        if special_vals and p in special_vals or re.match(_principal_urn_regex, p):
+            valid_principals.append(p)
+        else:  # Try to do a lookup of the identity
+            if auth_client is None:
+                auth = get_authorizer_for_scope(
+                    "urn:globus:auth:scope:auth.globus.org:view_identities"
+                )
+                auth_client = AuthClient(authorizer=auth)
+            auth_resp = auth_client.get_identities(usernames=p)
+            identities = auth_resp.data.get("identities", [])
+            if len(identities) == 0:
+                invalid_principals.append(p)
+            for identity in identities:
+                valid_principals.append(auth_beginning + identity["id"])
 
-        valid_beggining = False
-        for beggining in [groups_beginning, auth_beginning]:
-            if p.startswith(beggining):
-                uuid = p[len(beggining) :]
-                try:
-                    UUID(uuid, version=4)
-                except ValueError:
-                    raise typer.BadParameter(
-                        f"Principal could not be parsed as a valid identifier: {p}"
-                    )
-                else:
-                    valid_beggining = True
-        if not valid_beggining:
-            raise typer.BadParameter(
-                f"Principal could not be parsed as a valid identifier: {p}"
-            )
-
-    return principals
+    if invalid_principals:
+        raise ValueError(f"Invalid principal value {'; '.join(invalid_principals)}")
+    return valid_principals
 
 
 def principal_validator(principals: List[str]) -> List[str]:

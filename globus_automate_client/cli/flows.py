@@ -1,7 +1,9 @@
 import functools
 import json
+import sys
 import uuid
 from enum import Enum
+from itertools import chain
 from typing import Any, List, Mapping, Optional, Union
 
 import typer
@@ -42,16 +44,41 @@ from globus_automate_client.graphviz_rendering import graphviz_format
 
 
 class FlowRole(str, Enum):
+    flow_viewer = "flow_viewer"
+    flow_starter = "flow_starter"
+    flow_administrator = "flow_administrator"
+    flow_owner = "flow_owner"
+
+
+class FlowRoleDeprecated(str, Enum):
     created_by = "created_by"
     visible_to = "visible_to"
     runnable_by = "runnable_by"
     administered_by = "administered_by"
 
 
+# Adapted from https://stackoverflow.com/questions/33679930/how-to-extend-python-enum
+FlowRoleAllNames = Enum(
+    "FlowRoleAllNames", [(i.name, i.value) for i in chain(FlowRole, FlowRoleDeprecated)]
+)
+
+
 class ActionRole(str, Enum):
+    run_monitor = "run_monitor"
+    run_manager = "run_manager"
+    run_owner = "run_owner"
+
+
+class ActionRoleDeprecated(str, Enum):
     created_by = "created_by"
     monitor_by = "monitor_by"
     manage_by = "manage_by"
+
+
+ActionRoleAllNames = Enum(
+    "ActionRoleAllNames",
+    [(i.name, i.value) for i in chain(ActionRole, ActionRoleDeprecated)],
+)
 
 
 class ActionStatus(str, Enum):
@@ -86,6 +113,28 @@ _flows_env_var_option = typer.Option(
     hidden=True,
     callback=flows_endpoint_envvar_callback,
 )
+
+_principal_description = (
+    "The principal value is the user's Globus Auth username or their identity "
+    "UUID in the form urn:globus:auth:identity:<UUID>. A Globus Group may also be "
+    "used using the form urn:globus:groups:id:<GROUP_UUID>."
+)
+
+
+def _make_role_param(
+    roles_list: Optional[Union[List[FlowRoleAllNames], List[ActionRoleAllNames]]]
+) -> [Mapping[str, Any]]:
+    if roles_list is None:
+        return {"role": None}
+    elif len(roles_list) == 1:
+        return {"role": roles_list[0].value}
+    else:
+        typer.secho(
+            "Warning: Use of multiple --role options is deprecated",
+            sys.stderr,
+            fg=typer.colors.YELLOW,
+        )
+        return {"roles": [r.value for r in roles_list]}
 
 
 @app.callback()
@@ -132,33 +181,65 @@ def flow_deploy(
         "--keyword",
         help="A keyword which may categorize or help discover the Flow. [repeatable]",
     ),
+    flow_viewer: List[str] = typer.Option(
+        None,
+        help=(
+            "A principal which may view this Flow. "
+            + _principal_description
+            + " The special value of 'public' may be used to "
+            "indicate that any user can view this Flow. [repeatable]"
+        ),
+        callback=principal_or_public_validator,
+        hidden=False,
+    ),
+    # viewer and visible_to are aliases for the full flow_viewer
+    viewer: List[str] = typer.Option(
+        None,
+        callback=principal_or_public_validator,
+        hidden=True,
+    ),
     visible_to: List[str] = typer.Option(
         None,
-        help="A principal which may view this Flow. The principal value is the user's "
-        "or group's UUID prefixed with either 'urn:globus:groups:id:' or "
-        "'urn:globus:auth:identity:'. The special value of 'public' may be used to "
-        "indicate that any user can view this Flow. [repeatable]",
         callback=principal_or_public_validator,
+        hidden=True,
     ),
-    administered_by: List[str] = typer.Option(
+    flow_starter: List[str] = typer.Option(
         None,
-        help="A principal which may update the deployed Flow. The principal value is the "
-        "user's or group's UUID prefixed with either 'urn:globus:groups:id:' or "
-        "'urn:globus:auth:identity:'. [repeatable]",
-        callback=principal_validator,
+        help=(
+            "A principal which may run an instance of the deployed Flow. "
+            + _principal_description
+            + "The special value of "
+            "'all_authenticated_users' may be used to indicate that any authenticated user "
+            "can invoke this flow. [repeatable]"
+        ),
+        callback=principal_or_all_authenticated_users_validator,
+    ),
+    # starter and runnable_by are aliases for the full flow_starter
+    starter: List[str] = typer.Option(
+        None, callback=principal_or_all_authenticated_users_validator, hidden=True
     ),
     runnable_by: List[str] = typer.Option(
+        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+    ),
+    flow_administrator: List[str] = typer.Option(
         None,
-        help="A principal which may run an instance of the deployed Flow. The principal "
-        "value is the user's or group's UUID prefixed with either "
-        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:'. The special value of "
-        "'all_authenticated_users' may be used to indicate that any authenticated user "
-        "can invoke this flow. [repeatable]",
-        callback=principal_or_all_authenticated_users_validator,
+        help=(
+            "A principal which may update the deployed Flow. "
+            + _principal_description
+            + "[repeatable]"
+        ),
+        callback=principal_validator,
+    ),
+    # administrator and administered_by are aliases for the full flow_administrator
+    administrator: List[str] = typer.Option(
+        None, callback=principal_validator, hidden=True
+    ),
+    administered_by: List[str] = typer.Option(
+        None, callback=principal_validator, hidden=True
     ),
     subscription_id: Optional[str] = typer.Option(
         None,
-        help="The Globus Subscription which will be used to make this flow managed.",
+        help="The Id of the Globus Subscription which will be used to make this flow managed.",
     ),
     validate: bool = typer.Option(
         True,
@@ -267,29 +348,53 @@ def flow_update(
         "--keyword",
         help="A keyword which may categorize or help discover the Flow. [repeatable]",
     ),
-    visible_to: List[str] = typer.Option(
+    flow_viewer: List[str] = typer.Option(
         None,
-        help="A principal which may view this Flow. The principal value is the user's "
-        "or group's UUID prefixed with either 'urn:globus:groups:id:' or "
-        "'urn:globus:auth:identity:'. The special value of 'public' may be used to "
+        help="A principal which may view this Flow. "
+        + _principal_description
+        + "The special value of 'public' may be used to "
         "indicate that any user can view this Flow. [repeatable]",
         callback=principal_or_public_validator,
     ),
-    administered_by: List[str] = typer.Option(
+    viewer: List[str] = typer.Option(
+        None, callback=principal_or_public_validator, hidden=True
+    ),
+    visible_to: List[str] = typer.Option(
+        None, callback=principal_or_public_validator, hidden=True
+    ),
+    flow_starter: List[str] = typer.Option(
         None,
-        help="A principal which may update the deployed Flow. The principal value is the "
-        "user's or group's UUID prefixed with either 'urn:globus:groups:id:' or "
-        "'urn:globus:auth:identity:' [repeatable]",
-        callback=principal_validator,
+        help="A principal which may run an instance of the deployed Flow. "
+        + _principal_description
+        + " The special value of "
+        "'all_authenticated_users' may be used to indicate that any "
+        "authenticated user can invoke this flow. [repeatable]",
+        callback=principal_or_all_authenticated_users_validator,
+    ),
+    starter: List[str] = typer.Option(
+        None, callback=principal_or_all_authenticated_users_validator, hidden=True
     ),
     runnable_by: List[str] = typer.Option(
+        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+    ),
+    flow_administrator: List[str] = typer.Option(
         None,
-        help="A principal which may run an instance of the deployed Flow. The principal "
-        "value is the user's or group's UUID prefixed with either "
-        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:'. The special value of "
-        "'all_authenticated_users' may be used to indicate that any authenticated user "
-        "can invoke this flow. [repeatable]",
-        callback=principal_or_all_authenticated_users_validator,
+        help="A principal which may update the deployed Flow. "
+        + _principal_description
+        + "[repeatable]",
+        callback=principal_validator,
+    ),
+    administrator: List[str] = typer.Option(
+        None, callback=principal_validator, hidden=True
+    ),
+    administered_by: List[str] = typer.Option(
+        None, callback=principal_validator, hidden=True
+    ),
+    assume_ownership: bool = typer.Option(
+        False,
+        "--assume-ownership",
+        help="Assume the ownership of the Flow. This can only be performed by user's "
+        "in the flow_administrators role.",
     ),
     subscription_id: Optional[str] = typer.Option(
         None,
@@ -327,9 +432,9 @@ def flow_update(
             subtitle,
             description,
             keywords,
-            visible_to,
-            runnable_by,
-            administered_by,
+            flow_viewer,
+            flow_starter,
+            flow_administrator,
             subscription_id,
             input_schema_dict,
             validate_definition=validate,
@@ -377,11 +482,19 @@ def flow_lint(
 
 @app.command("list")
 def flow_list(
-    roles: List[FlowRole] = typer.Option(
-        [],
+    roles: List[FlowRoleAllNames] = typer.Option(
+        [FlowRole.flow_owner.value],
         "--role",
         "-r",
-        help="Display Flows where you have the selected role. [repeatable]",
+        help=(
+            "Display Flows where you have at least the selected role. "
+            "Precedence of roles is: flow_viewer, flow_starter, flow_administrator, "
+            "flow_owner. Thus, by specifying, for example, flow_starter, all flows "
+            "for which you hvae flow_starter, flow_administrator, or flow_owner roles "
+            "will be displayed. Values visible_to, runnable_by, administered_by and "
+            "created_by are deprecated. [repeatable use deprecated as the lowest "
+            "precedence value provided will determine the flows displayed.]"
+        ),
         case_sensitive=False,
         show_default=True,
     ),
@@ -437,12 +550,13 @@ def flow_list(
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
+        role_param = _make_role_param(roles)
         response = fc.list_flows(
-            roles=[r.value for r in roles],
             marker=marker,
             per_page=per_page,
             filters=parsed_filters,
             orderings=parsed_orderings,
+            **role_param,
         )
     except GlobusAPIError as err:
         response = err
@@ -462,6 +576,15 @@ def flow_display(
         callback=input_validator,
         show_default=False,
     ),
+    definition_only: bool = typer.Option(
+        False,
+        "--definition-only",
+        help=(
+            "If present, only the steps of the Flow will be displayed when flow_id "
+            "is provided. Otherwise all fields related to the flow will be "
+            "displayed in the specified output format."
+        ),
+    ),
     output_format: FlowDisplayFormat = typer.Option(
         FlowDisplayFormat.json,
         "--format",
@@ -475,7 +598,7 @@ def flow_display(
 ):
     """
     Visualize a local or deployed Flow defintion. If providing a Flows's ID, You
-    must have either created the Flow or be present in the Flow's "visible_to"
+    must have either created the Flow or be present in the Flow's "flow_viewers"
     list to view it.
     """
     if not flow_definition and not flow_id:
@@ -492,7 +615,9 @@ def flow_display(
         except GlobusAPIError as err:
             format_and_echo(err, verbose=verbose)
             raise typer.Exit(1)
-        flow_definition = flow_get.data["definition"]
+        flow_definition = flow_get.data
+        if definition_only:
+            flow_definition = flow_definition["definition"]
     else:
         flow_definition = json.loads(flow_definition)
 
@@ -514,8 +639,7 @@ def flow_delete(
     verbose: bool = verbosity_option,
 ):
     """
-    Delete a Flow. You must either have created the Flow
-    or be in the Flow's "administered_by" list.
+    Delete a Flow. You must be in the Flow's "flow_administrators" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
@@ -530,7 +654,7 @@ def flow_delete(
 def flow_run(
     flow_id: str = typer.Argument(...),
     flow_input: str = typer.Option(
-        None,
+        ...,
         help=(
             "JSON or YAML formatted input to the Flow. May be provided as a filename "
             "or a raw string."
@@ -542,19 +666,25 @@ def flow_run(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    manage_by: List[str] = typer.Option(
+    run_manager: List[str] = typer.Option(
         None,
-        help="A principal which may change the execution of the Flow instace. The "
-        "principal value is the user's or group's UUID prefixed with either "
-        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:' [repeatable]",
+        help="A principal which may change the execution of the Flow instance. "
+        + _principal_description
+        + " [repeatable]",
+        callback=principal_validator,
+    ),
+    manage_by: List[str] = typer.Option(
+        None, callback=principal_validator, hidden=True
+    ),
+    run_monitor: List[str] = typer.Option(
+        None,
+        help="A principal which may monitor the execution of the Flow instance. "
+        + _principal_description
+        + " [repeatable]",
         callback=principal_validator,
     ),
     monitor_by: List[str] = typer.Option(
-        None,
-        help="A principal which may monitory the execution of the Flow instace. The "
-        "principal value is the user's or group's UUID prefixed with either "
-        "'urn:globus:groups:id:' or 'urn:globus:auth:identity:' [repeatable]",
-        callback=principal_validator,
+        None, callback=principal_validator, hidden=True
     ),
     flows_endpoint: str = _flows_env_var_option,
     verbose: bool = verbosity_option,
@@ -575,7 +705,7 @@ def flow_run(
         show_default=True,
     ),
     label: str = typer.Option(
-        None,
+        ...,
         "--label",
         "-l",
         help="Optional label to mark this run.",
@@ -598,6 +728,7 @@ def flow_run(
 ):
     """
     Run an instance of a Flow. The argument provides the initial state of the Flow.
+    You must be in the Flow's "flow_starters" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = _process_flow_input(flow_input, input_format)
@@ -625,11 +756,12 @@ def flow_run(
 
 
 @app.command("action-list")
+@app.command("run-list")
 def flow_actions_list(
     flow_id: str = typer.Option(
-        ...,
-        help="The ID for the Flow which triggered the Action.",
-        prompt=True,
+        None,
+        help="The ID for the Flow which triggered the Action. If not present runs "
+        "from all Flows will be displayed.",
     ),
     flow_scope: str = typer.Option(
         None,
@@ -639,7 +771,14 @@ def flow_actions_list(
     roles: List[ActionRole] = typer.Option(
         None,
         "--role",
-        help="Display Actions where you have the selected role. [repeatable]",
+        help=(
+            "Display Actions/Runs where you have at least the selected role. "
+            "Precedence of roles is: run_monitor, run_manager, "
+            "run_owner. Thus, by specifying, for example, run_manager, all runs "
+            "for which you hvae run_manager or run_owner roles "
+            "will be displayed. [repeatable use deprecated as the lowest precedence "
+            "value provided will determine the flows displayed.]"
+        ),
     ),
     statuses: List[ActionStatus] = typer.Option(
         None,
@@ -692,22 +831,21 @@ def flow_actions_list(
     # This None check and check makes me unhappy but is necessary for mypy to
     # be happy with the enums. If we can figure out what defaults flows uses
     # for flow role/status queries, we can set those here and be done
-    statuses_str, roles_str = None, None
+    statuses_str = None
     if statuses is not None:
         statuses_str = [s.value for s in statuses]
-    if roles is not None:
-        roles_str = [r.value for r in roles]
+    role_param = _make_role_param(roles)
 
     try:
         result = fc.list_flow_actions(
             flow_id,
             flow_scope,
             statuses=statuses_str,
-            roles=roles_str,
             marker=marker,
             per_page=per_page,
             filters=parsed_filters,
             orderings=parsed_orderings,
+            **role_param,
         )
     except GlobusAPIError as err:
         result = err
@@ -715,12 +853,12 @@ def flow_actions_list(
 
 
 @app.command("action-status")
+@app.command("run-status")
 def flow_action_status(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
-        ...,
+        None,
         help="The ID for the Flow which triggered the Action.",
-        prompt=True,
     ),
     flow_scope: str = typer.Option(
         None,
@@ -748,6 +886,7 @@ def flow_action_status(
 
 
 @app.command("action-resume")
+@app.command("run-resume")
 def flow_action_resume(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
@@ -774,7 +913,6 @@ def flow_action_resume(
     Flow Action is in an INACTIVE state due to requiring additional Consent, the required
     Consent will be determined and you may be prompted to allow Consent using the Globus
     Auth web interface.
-
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
@@ -793,6 +931,7 @@ def flow_action_resume(
 
 
 @app.command("action-release")
+@app.command("run-release")
 def flow_action_release(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
@@ -810,6 +949,7 @@ def flow_action_release(
 ):
     """
     Remove execution history for a particular Flow definition's invocation.
+    After this, no further information about the run can be accessed.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     try:
@@ -820,6 +960,7 @@ def flow_action_release(
 
 
 @app.command("action-cancel")
+@app.command("run-cancel")
 def flow_action_cancel(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
@@ -847,6 +988,7 @@ def flow_action_cancel(
 
 
 @app.command("action-log")
+@app.command("run-log")
 def flow_action_log(
     action_id: str = typer.Argument(...),
     flow_id: str = typer.Option(
@@ -942,14 +1084,21 @@ def flow_action_log(
 
 
 @app.command("action-enumerate")
+@app.command("run-enumerate")
 def flow_action_enumerate(
-    roles: List[ActionRole] = typer.Option(
-        [],
+    roles: List[ActionRoleAllNames] = typer.Option(
+        [ActionRole.run_owner.value],
         "--role",
-        help="Display Actions where you have the selected role. [repeatable]",
+        help="Display Actions/Runs where you have at least the selected role. "
+        "Precedence of roles is: run_monitor, run_manager, run_owner. "
+        "Thus, by specifying, for example, run_manager, all flows "
+        "for which you hvae run_manager or run_owner roles "
+        "will be displayed. Values monitored_by, managed_by and created_by "
+        "are deprecated. [repeatable use deprecated as the lowest "
+        "precedence value provided will determine the Actions/Runs displayed.]",
     ),
-    statuses: List[ActionStatus] = typer.Option(
-        [],
+    statuses: Optional[List[ActionStatus]] = typer.Option(
+        None,
         "--status",
         help="Display Actions with the selected status. [repeatable]",
     ),
@@ -994,18 +1143,20 @@ def flow_action_enumerate(
     """
     parsed_filters = parse_query_options(filters)
     parsed_orderings = parse_query_options(orderings)
-    statuses_str = [s.value for s in statuses]
-    roles_str = [r.value for r in roles]
-
+    if statuses:
+        statuses_str: Optional[List[str]] = [s.value for s in statuses]
+    else:
+        statuses_str = None
+    role_param = _make_role_param(roles)
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
     try:
         resp = fc.enumerate_actions(
             statuses=statuses_str,
-            roles=roles_str,
             marker=marker,
             per_page=per_page,
             filters=parsed_filters,
             orderings=parsed_orderings,
+            **role_param,
         )
     except GlobusAPIError as err:
         resp = err

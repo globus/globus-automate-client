@@ -27,7 +27,7 @@ autodoc_typehints = "description"
 # -- Project information -----------------------------------------------------
 
 project = "Globus Automate Client"
-copyright = "2020, University of Chicago"
+copyright = "2020-2021, University of Chicago"
 author = "Globus"
 
 # The full version, including alpha/beta/rc tags
