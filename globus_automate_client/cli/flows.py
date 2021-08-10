@@ -737,10 +737,12 @@ def flow_run(
         flow_id,
         flow_scope,
         flow_input_dict,
-        monitor_by=monitor_by,
-        manage_by=manage_by,
+        run_monitors=run_monitor,
+        run_managers=run_manager,
         label=label,
         dry_run=dry_run,
+        monitor_by=monitor_by,
+        manage_by=manage_by,
     )
 
     with live_content:
@@ -758,7 +760,7 @@ def flow_run(
 @app.command("action-list")
 @app.command("run-list")
 def flow_actions_list(
-    flow_id: str = typer.Option(
+    flow_id: Optional[str] = typer.Option(
         None,
         help="The ID for the Flow which triggered the Action. If not present runs "
         "from all Flows will be displayed.",
@@ -768,7 +770,7 @@ def flow_actions_list(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    roles: List[ActionRole] = typer.Option(
+    roles: List[ActionRoleAllNames] = typer.Option(
         None,
         "--role",
         help=(
@@ -838,8 +840,8 @@ def flow_actions_list(
 
     try:
         result = fc.list_flow_actions(
-            flow_id,
-            flow_scope,
+            flow_id=flow_id,
+            flow_scope=flow_scope,
             statuses=statuses_str,
             marker=marker,
             per_page=per_page,

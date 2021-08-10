@@ -172,7 +172,7 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
 def validate_input_schema(input_schema: Optional[Mapping[str, Any]]) -> None:
     if input_schema is None:
         raise FlowValidationError(["No input schema provided"])
-    validator = Draft7Validator.META_SCHEMA
+    validator = Draft7Validator(Draft7Validator.META_SCHEMA)
     errors = validator.iter_errors(input_schema)
     error_msgs = set()
     for error in errors:
@@ -299,9 +299,12 @@ class FlowsClient(BaseClient):
             flow_administrators, kwargs, "administered_by", "administrators"
         )
         temp_body["subscription_id"] = subscription_id
-        temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
+        # We do this after clearing false truthy values since an empty input schema is a
+        # valid thing
+        if input_schema is not None:
+            req_body["input_schema"] = input_schema
         url = "/flows"
         if dry_run:
             url = "/flows/dry-run"
@@ -556,6 +559,11 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
+        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by")
+        run_managers = merge_lists(run_managers, kwargs, "manage_by")
+
+        kwargs.pop("monitor_by", None)
+        kwargs.pop("manage_by", None)
         if dry_run:
             path = flow_url + "/dry-run"
             return ac.run(

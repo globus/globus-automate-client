@@ -13,7 +13,7 @@ def merge_lists(*args) -> t.Optional[t.List]:
     passed in the args prior to the dict.
     """
 
-    ret_list: t.Optional[t.List] = None
+    ret_set: t.Optional[t.Set] = None
     dict_val: t.Optional[t.Dict] = None
     for arg in args:
         list_for_arg: t.Optional[t.List] = None
@@ -26,8 +26,11 @@ def merge_lists(*args) -> t.Optional[t.List]:
         elif isinstance(arg, list):
             list_for_arg = arg
         if list_for_arg is not None:
-            if ret_list is None:
-                ret_list = list_for_arg
+            if ret_set is None:
+                ret_set = set(list_for_arg)
             else:
-                ret_list += list_for_arg
-    return ret_list
+                ret_set.update(list_for_arg)
+    if ret_set is None:
+        return None
+    else:
+        return list(ret_set)
