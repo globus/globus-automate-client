@@ -42,14 +42,14 @@ requirements.txt: poetry.lock
 
 # linting is flake8
 lint: develop
-	$(POETRY) run isort --check $(LINT_PATHS)
+	$(POETRY) run isort --check .
 	$(POETRY) run black --check $(LINT_PATHS)
 	$(POETRY) run flake8
 	$(POETRY) run mypy
 
 # formatting is black
 autoformat: develop
-	$(POETRY) run isort $(LINT_PATHS)
+	$(POETRY) run isort .
 	$(POETRY) run black $(LINT_PATHS)
 
 # typecheck with mypy

@@ -242,19 +242,12 @@ The values in the state of the flow may be used in the expression and are denote
       }
     }
 
-The ``state_val`` values can be specified in one of two ways with the first syntax being preferred for long term support in the service.
-
-1. Simple names of the properties in the state of the running flow allowing for indexing into lists and into embedded objects similar to Python. Thus, the following would be a valid expression: ``foo + ' ' + object_val.sub_val1`` which would yield the string ``bar embedded``. Note the use of ``+`` to mean string concatenation and the dot-separated naming of the field of the object.
-
-2. The `JsonPath <https://goessner.net/articles/JsonPath/>`_ syntax
-may also be used where JSONPath expressions are surrounded using
-"back-quote" characters (\`). Thus, the same expression as above can also be written as:
-
-    \`$.foo\` + ' ' + \`$.object_val.embedded\`
-
-The full selection capability of JsonPath is supported, so
-entire list values, list indexing, list slicing and so on may be specified in
-the JsonPath.
+The ``state_val`` values can be specified as the simple names of the properties
+in the state of the running flow and allows for indexing into lists and into
+embedded objects similar to Python. Thus, the following would be a valid
+expression: ``foo + ' ' + object_val.sub_val1`` which would yield the string
+``bar embedded``. Note the use of ``+`` to mean string concatenation and the
+dot-separated naming of the field of the object.
 
 Constants may also be used between operators, it is important to
 remember that within an expression, a string type value must be enclosed in
