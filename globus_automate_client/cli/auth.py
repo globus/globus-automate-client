@@ -385,7 +385,6 @@ def get_cli_authorizer(
     action_url: str,
     action_scope: Optional[str],
     client_id: str = CLIENT_ID,
-    query_for_additional_consent: bool = False,
 ) -> Optional[AccessTokenAuthorizer]:
     if action_scope is None:
         # We don't know the scope which makes it impossible to get a token,
