@@ -1,9 +1,8 @@
 import typing as t
 
 
-def merge_lists(*args) -> t.Optional[t.List]:
-    """
-    Merge/concatenate a set of lists passed in the args. If any value in the args list is
+def merge_lists(*args, pop_dict_lists: bool = True) -> t.Optional[t.List]:
+    """Merge/concatenate a set of lists passed in the args. If any value in the args list is
     None, it is ignored. If all values in the args list are None (or the args list is
     empty) None is returned.
 
@@ -11,6 +10,21 @@ def merge_lists(*args) -> t.Optional[t.List]:
     in the args list will be treated as keys into the dict and the value for those keys
     in the dict will be treated as lists to be concatenated as with the other lists
     passed in the args prior to the dict.
+
+    Intended use is for the case of setting up a merged list from a function that has
+    arguments as lists and potential (alias) kwargs that need to be merged. In such a
+    case, this could be called as:
+
+    merge_lists(list_arg, kwargs, "alias_list_name")
+
+    which would yield a list containing the list_args merged with any potential
+    alias_list_name from the kwargs.
+
+    Merging also includes performing de-duplication of values.
+
+    If pop_dict_lists is True (the default) lists found in the dict will also be removed
+    from the dict.
+
     """
 
     ret_set: t.Optional[t.Set] = None
@@ -20,7 +34,9 @@ def merge_lists(*args) -> t.Optional[t.List]:
         if isinstance(arg, dict):
             dict_val = arg
         elif dict_val is not None and arg in dict_val:
-            list_for_arg = dict_val[arg]
+            list_for_arg = dict_val.get(arg)
+            if pop_dict_lists:
+                dict_val.pop(arg, None)
             if not isinstance(list_for_arg, list):
                 list_for_arg = None
         elif isinstance(arg, list):

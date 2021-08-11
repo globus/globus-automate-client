@@ -438,6 +438,9 @@ def flow_update(
             subscription_id,
             input_schema_dict,
             validate_definition=validate,
+            visible_to=visible_to,
+            runnable_by=runnable_by,
+            administered_by=administered_by,
         )
     except GlobusAPIError as err:
         result = err

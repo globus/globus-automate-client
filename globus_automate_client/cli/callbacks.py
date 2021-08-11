@@ -56,7 +56,8 @@ def _base_principal_validator(
     for p in principals:
         if special_vals and p in special_vals or re.match(_principal_urn_regex, p):
             valid_principals.append(p)
-        else:  # Try to do a lookup of the identity
+        else:
+            # Try to do a lookup of the identity
             if auth_client is None:
                 auth = get_authorizer_for_scope(
                     "urn:globus:auth:scope:auth.globus.org:view_identities"
@@ -70,7 +71,9 @@ def _base_principal_validator(
                 valid_principals.append(auth_beginning + identity["id"])
 
     if invalid_principals:
-        raise ValueError(f"Invalid principal value {'; '.join(invalid_principals)}")
+        raise typer.BadParameter(
+            f"Invalid principal value {'; '.join(invalid_principals)}"
+        )
     return valid_principals
 
 
