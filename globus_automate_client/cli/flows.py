@@ -1200,6 +1200,8 @@ def flow_action_update(
     """
     Update a Run on the Flows service
     """
+    run_manager = run_manager if run_manager else None
+    run_monitor = run_monitor if run_monitor else None
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
     try:
         resp = fc.flow_action_update(
