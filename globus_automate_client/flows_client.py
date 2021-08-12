@@ -53,6 +53,9 @@ RUN_FLOWS_SCOPE = (
 RUN_STATUS_SCOPE = (
     "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_status"
 )
+RUN_MANAGE_SCOPE = (
+    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_manage"
+)
 NULL_SCOPE = "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/null"
 
 ALL_FLOW_SCOPES = (
@@ -60,6 +63,7 @@ ALL_FLOW_SCOPES = (
     VIEW_FLOWS_SCOPE,
     RUN_FLOWS_SCOPE,
     RUN_STATUS_SCOPE,
+    RUN_MANAGE_SCOPE,
 )
 
 _FlowsClient = TypeVar("_FlowsClient", bound="FlowsClient")
@@ -759,7 +763,11 @@ class FlowsClient(BaseClient):
             for field, value in orderings.items():
                 builder.append(f"{field} {value}")
             params["orderby"] = ",".join(builder)
-        return self.get(f"/runs", params=params, **kwargs)
+
+        self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
+        response = self.get(f"/runs", params=params, **kwargs)
+        self.authorizer = self.flow_management_authorizer
+        return response
 
     def enumerate_actions(
         self,
