@@ -871,6 +871,42 @@ class FlowsClient(BaseClient):
         self.authorizer = self.flow_management_authorizer
         return response
 
+    def flow_action_update(
+        self,
+        action_id: str,
+        run_managers: Optional[Iterable[str]] = None,
+        run_monitors: Optional[Iterable[str]] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        Update a Flow Action.
+
+        :param action_id: The UUID identifying the Action to update
+
+        :param run_managers: A list of Globus Auth URNs which will have the
+            ability to alter the execution of the Action. Supplying an empty
+            list will remove all existing managers.
+
+        :param run_monitors: A list of Globus Auth URNs which will have the
+            ability to view the execution of the Action. Supplying an empty list
+            will remove all existing monitors.
+
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        payload = {}
+        if run_managers is not None:
+            payload["run_managers"] = run_managers
+        if run_monitors is not None:
+            payload["run_monitors"] = run_monitors
+
+        self.authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
+        response = self.put(f"/runs/{action_id}", payload, **kwargs)
+        self.authorizer = self.flow_management_authorizer
+        return response
+
     def flow_action_log(
         self,
         flow_id: str,

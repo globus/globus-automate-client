@@ -1168,6 +1168,50 @@ def flow_action_enumerate(
     format_and_echo(resp, verbose=verbose)
 
 
+@app.command("action-update")
+@app.command("run-update")
+def flow_action_update(
+    action_id: str = typer.Argument(...),
+    run_manager: Optional[List[str]] = typer.Option(
+        None,
+        help="A principal which may change the execution of the Run."
+        + _principal_description
+        + " [repeatable]",
+        callback=principal_validator,
+    ),
+    run_monitor: Optional[List[str]] = typer.Option(
+        None,
+        help="A principal which may monitor the execution of the Run."
+        + _principal_description
+        + " [repeatable]",
+        callback=principal_validator,
+    ),
+    flows_endpoint: str = _flows_env_var_option,
+    verbose: bool = verbosity_option,
+    output_format: FlowDisplayFormat = typer.Option(
+        FlowDisplayFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
+):
+    """
+    Update a Run on the Flows service
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
+    try:
+        resp = fc.flow_action_update(
+            action_id,
+            run_managers=run_manager,
+            run_monitors=run_monitor,
+        )
+    except GlobusAPIError as err:
+        resp = err
+    format_and_echo(resp, dumper=output_format.get_dumper(), verbose=verbose)
+
+
 def _format_and_display_flow(
     flow_resp: Union[GlobusHTTPResponse, dict],
     output_format: FlowDisplayFormat,

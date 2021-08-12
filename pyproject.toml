@@ -59,6 +59,7 @@ epc = "^0.0.5"
 flake8 = "^3.9.2"
 black = "^21.7b0"
 mypy = "^0.910"
+types-PyYAML = "^5.4.6"
 
 [tool.isort]
 multi_line_output = 3
