@@ -60,7 +60,6 @@ detail below:
     {
       "Type": "Action",
       "ActionUrl": "<URL to the Action, as defined above for various Actions>",
-      "ActionScope": "<Scope String for the Action, as defined above for various Actions>",
       "WaitTime": 3600,
       "ExceptionOnActionFailure": true,
       "RunAs": "User",
@@ -88,6 +87,7 @@ detail below:
         }
       ],
       "Next": "FollowingState",
+      "ActionScope": "<Scope String for the Action, as defined above for various Actions>",
       "End": true
     }
 
@@ -98,8 +98,6 @@ in further sections below this enumeration.
 * ``Type`` (required): As with other States defined by the States Language, the ``Type`` indicates the type of this state. The value ``Action`` indicates that this state represents an Action invocation.
 
 *  ``ActionUrl`` (required): The base URL of the Action. As defined by the Action Interface, this URL has methods such as ``/run``, ``/status``, ``/cancel`` and so on defined to manage the life-cycle of an Action. The Action Flow state manages the life-cycle of the invoked Action using these methods and assumes that the specific operations are appended to the base URL defined in this property. For Globus operated actions, the base URLs are as defined previously in this document.
-
-*  ``ActionScope`` (optional): The scope string to be used when authenticating to access the Action. Users of the Flow in which this definition occurs will be required to consent to the Flow use of this scope on their behalf. This may be omitted when the Action, including another Flow, has a ``visible_to`` value including ``public`` in which case the Flows service will be able to introspect the Action via the ``ActionUrl`` and fill in the scope automatically. Any value provided here will override any use of introspection.
 
 *  ``WaitTime`` (optional, default value ``300``): The maximum amount time to wait for the Action to complete in seconds. Upon execution, the Flow will monitor the execution of the Action for the specified amount of time, and if it does not complete by this time it will abort the Action. See `Action Execution Monitoring`_ for additional information on this. The default value is ``300`` or Five Minutes.
 
@@ -123,6 +121,8 @@ in further sections below this enumeration.
 
 *   ``Catch``: When Actions end abnormally, an Exception is raised. A ``Catch`` property defines how the Exception should be handled by identifying the Exception name in the ``ErrorEquals`` property and identifying a ``Next`` state to transition to when the Exception occurs. If no ``Catch`` can handle an exception, the Flow execution will abort on the Exception. A variety of exception types are defined and are enumerated in `Managing Exceptions`_.
 
+*  ``ActionScope`` (optional): The scope string to be used when authenticating to access the Action. In most cases, this values is unneeded because the required scope can be determined by querying the Action Provider using the provided ``ActionUrl``. If you are using a non-standard compliant Action which does not publish its ``scope``, this can be provided to avoid attempting to query the non-compliant Action provider.
+
 *   ``Next`` or ``End`` (mutually exclusive, one required): These indicate how the Flow should proceed after the Action state. ``Next`` indicates the name of the following state of the flow, and ``End`` with a value ``true`` indicates that the Flow is complete after this state completes.
 
 Protecting Action and Flow State
@@ -140,7 +140,13 @@ both cases.
 
 For ``Parameters``, a list with special property name ``__Private_Parameters``
 may be placed in the ``Parameters`` object indicating which other Parameters
-should be protected. For simplicity, the values in the ``__Private_Parameters``
+should be protected. These values will be protected in two ways:
+
+* Users that lookup the Flow in the service will not see the ``Parameters`` which are specified in the ``__Private_Parameters`` list unless the have the ``flow_administrator`` or ``flow_owner`` role on the Flow.
+
+* When the state of a run of the Flow is returned, values for these ``Parameters`` will not be returned in the status or log of the Flow's execution.
+
+For simplicity, the values in the ``__Private_Parameters``
 list may include the "simple" name even when the parameter name is a Reference
 or Expression. For example, if a parameter value has the form ``"SecretValue.$":
 "$.Path.To.Secret"`` the value in the ``__Private_Parameters`` list may be
@@ -213,29 +219,40 @@ The syntax of an expression paramter takes the following form:
 .. code-block:: JSON
 
     {
-      "computed_param.=": "`$.JsonPathExpr1` <op> `$.JsonPathExpr2` <op> ..."
+      "computed_param.=": "<state_val1> <op> <state_val2> <op> ..."
     }
 
 
-The important parts of this expression are the references to the Flow state via
-`JsonPath <https://goessner.net/articles/JsonPath/>`_ expressions, and the
-operations and expression syntax that may be used. Values from the state are
-specified via a JsonPath expression which is surrounded by single "back-quote"
-characters (\`). The full selection capability of JsonPath is supported, so
-entire list values, list indexing, list slicing and so on may be specified in
-the JsonPath.
-
-Values in the expression may also be constant values. It is important to
-remember that within an expression, a string type value must be enclosed in
-quotes. Thus, the expression ``foo + bar`` will be an error as the unquoted
-values ``foo`` and ``bar`` don't represent either a constant or a JsonPath
-value, where as the expression ``"foo" + "bar"`` will result in the expected(?)
-output ``foobar``.
 
 The syntax for the expression largely follows what is expected in common
 expression languages. This includes common arithmetic operators on numeric
 values as well as operations on strings (e.g. string concatenation via a `+`
 operation) and on lists (similarly the `+` operator will concatenate lists).
+
+The values in the state of the flow may be used in the expression and are denoted as ``<state_valN>`` above. For the following description, assume that the input to (or current state of) a Flow Run is as follows:
+
+.. code-block:: JSON
+
+    {
+      "foo": "bar",
+      "list_val": [1, 2, 3],
+      "object_val": {
+        "sub_val1": "embedded",
+        "sub_val2": "also_embedded"
+      }
+    }
+
+The ``state_val`` values can be specified as the simple names of the properties
+in the state of the running flow and allows for indexing into lists and into
+embedded objects similar to Python. Thus, the following would be a valid
+expression: ``foo + ' ' + object_val.sub_val1`` which would yield the string
+``bar embedded``. Note the use of ``+`` to mean string concatenation and the
+dot-separated naming of the field of the object.
+
+Constants may also be used between operators, it is important to
+remember that within an expression, a string type value must be enclosed in
+quotes (either single quote characters as above which is often easier because they do not need to be escaped within a JSON string or double quotes).
+
 
 Identities and Roles, Scopes and Tokens
 ---------------------------------------
@@ -288,18 +305,13 @@ instantaneous compared to when the action "actually" completes. And, the longer
 the wait time, the longer the interval between "actual" completion and the poll
 detecting completion may be. This "slop" time is related to both the total run
 time for the Action and the exponential back-off factor increasing the time
-between polls. Presently, the factor is 1.1, though this is subject to change as
-the system is tuned. As a result, the maximum slop time is 10% of the total time
-the action takes to execute. Thus, for example, an action which takes 30 hours
-to run might not be observed as complete until 33 hours after it starts in the
-absolute worst case.
+between polls.
 
 When using the Flows service, it is important to remember that this slop time
 can occur. One may observe or receive other notification (such as an email for
 a Globus Transfer) that an Action has completed but the Flows service may not
 poll to discover the same state has been reached. This is an inherent property
-of the system. While the maximum slop time may, as stated, be tuned, there
-is presently no way to avoid it entirely.
+of the system.
 
 Managing Exceptions
 -------------------
@@ -310,7 +322,7 @@ Failures of Action states in the Flow are exposed via Exceptions which, as descr
 
 * ``ActionFailedException``: This indicates that the Action was able initiated but during execution the Action was considered to have failed by the return of an Action status with the value ``FAILED``. This exception will only be raised if the property ``ExceptionOnActionFailure`` is set to true. This allows the Action failure to be handled by checking the result or by causing an exception. Either approach is valid and different users and different use cases may lend themselves to either approach. In either case, the output will contain the same Action status structure a completed action will contain, but the ``status`` value will necessarily be ``FAILED``.
 
-* Action timed out: When the running time of the Action exceeds the ``WaitTime`` value a generic exception signaling the timeout is raised. As the exception does not have a specific name, it can be caught using the value ``States.ALL`` (as defined in the States Language definition) in the ``ErrorEquals`` list for the Catch. Indeed, the ``States.ALL`` value indicates any exception condition, so if handling all of the above exception conditions in the same manner is desired, then simply one handler with the ``States.ALL`` value can be used.
+* ``ActionTimeout``: When the ``WaitTime`` for an ``Action`` state is exceeded, this exception will be raised. The status of the most recent poll of the ``Action`` will be contained within the body of the exception.
 
 
 Pre-Populated Run-time State

@@ -4,10 +4,13 @@ VIRTUAL_ENV = .venv
 PYTHON_VERSION ?= python3.6
 POETRY ?= poetry
 
-.PHONY: lock test build clean help lint develop format typecheck lint_all api-docs docs
+.PHONY: all lock test build clean help lint develop format typecheck lint_all api-docs docs
+LINT_PATHS = globus_automate_client/
 
 # settings from .pytest.cfg file
 PYTEST_OPTS?=-c .pytest.cfg
+
+all: autoformat lint test docs
 
 help:
 	@echo "These are our make targets and what they do."
@@ -39,11 +42,15 @@ requirements.txt: poetry.lock
 
 # linting is flake8
 lint: develop
-	$(POETRY) run flake8 globus_automate_client
+	$(POETRY) run isort --check .
+	$(POETRY) run black --check $(LINT_PATHS)
+	$(POETRY) run flake8
+	$(POETRY) run mypy
 
 # formatting is black
-format: develop
-	$(POETRY) run black -q globus_automate_client tests
+autoformat: develop
+	$(POETRY) run isort .
+	$(POETRY) run black $(LINT_PATHS)
 
 # typecheck with mypy
 typecheck: develop
@@ -71,7 +78,7 @@ clean:
 	rm -rf tar-source
 	rm -rf dist
 
-docs:
+docs: develop
 	poetry run typer globus_automate_client/cli/main.py utils docs --name "globus-automate" --output cli_docs.md;
 	pandoc --from markdown --to rst -o docs/source/cli_docs.rst cli_docs.md;
 	rm cli_docs.md;

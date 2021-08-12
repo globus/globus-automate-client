@@ -1,15 +1,16 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.11.5"
-description = "Experimental client for the in-development Globus Automate services"
+version = "0.12"
+description = "Client for the Globus Flows service"
 authors = [
-    "Jim Pruyne <pruyne@globus.org>",
-    "Rudyard Richter <rudyard@globus.org>",
     "Uriel Mandujano <uriel@globus.org>",
+    "Rudyard Richter <rudyard@globus.org>",
+    "Jim Pruyne <pruyne@globus.org>",
     "Jake Lewis <jake@globus.org>"
 ]
 keywords = [
   "globus",
+  "flows",
   "automation",
   "workflow",
   "action_provider",
@@ -21,6 +22,7 @@ classifiers = [
   "License :: Free To Use But Restricted",
   "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
   "Topic :: Internet :: WWW/HTTP",
   "Topic :: Software Development :: Libraries :: Application Frameworks",
   "Topic :: Software Development :: Libraries :: Python Modules"
@@ -33,7 +35,7 @@ license = "Apache-2.0"
 globus-automate = "globus_automate_client.cli.main:app"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 globus-sdk = "^2.0"
 graphviz = "^0.12"
 typer = {extras = ["all"], version = "^0.3.0"}
@@ -42,21 +44,21 @@ PyYAML = "^5.3.1"
 rich = "^9.12.2"
 
 [tool.poetry.dev-dependencies]
+isort = "^5.9"
 pytest = "^5.0"
-python-language-server = {version = "^0.36", extras = ["rope", "pyflakes", "pycodestyle"]}
-pyls-black = "^0.4"
-pyls-isort = "^0.2"
-pyls-mypy = "^0.1"
 jupyter = "^1.0.0"
 sphinx = "^3.2.1"
 rstcheck = "^3.3.1"
 sphinx_material = "^0.0.30"
-importmagic = "^0.1.7"
-epc = "^0.0.5"
 furo = "^2021.4.11-beta.34"
 sphinx-copybutton = "^0.3.1"
 typer-cli = "^0.0.11"
 pypandoc = "^1.5"
+importmagic = "^0.1.7"
+epc = "^0.0.5"
+flake8 = "^3.9.2"
+black = "^21.7b0"
+mypy = "^0.910"
 
 [tool.isort]
 multi_line_output = 3
@@ -64,6 +66,13 @@ include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
+profile = "black"
+src_paths = ["globus_automate_client", "examples/sdk_scripts"]
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.mypy]
+python_version = "3.6"
+ignore_missing_imports = true

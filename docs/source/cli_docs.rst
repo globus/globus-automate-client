@@ -247,6 +247,13 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``lint``: Parse and validate a Flow definition by…
 -  ``list``: List Flows for which you have access.
 -  ``run``: Run an instance of a Flow.
+-  ``run-cancel``: Cancel an active execution for a particular…
+-  ``run-enumerate``: Retrieve all Flow Runs you have access to…
+-  ``run-list``: List a Flow definition’s discrete…
+-  ``run-log``: Get a log of the steps executed by a Flow…
+-  ``run-release``: Remove execution history for a particular…
+-  ``run-resume``: Resume a Flow in the INACTIVE state.
+-  ``run-status``: Display the status for a Flow definition’s…
 -  ``update``: Update a Flow.
 
 ``globus-automate flow action-cancel``
@@ -287,10 +294,16 @@ Retrieve all Flow Runs you have access to view.
 
 **Options**:
 
--  ``--role [created_by|monitor_by|manage_by]``: Display Actions where
-   you have the selected role. [repeatable] [default: ]
+-  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
+   Display Actions/Runs where you have at least the selected role.
+   Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
+   specifying, for example, run_manager, all flows for which you hvae
+   run_manager or run_owner roles will be displayed. Values
+   monitored_by, managed_by and created_by are deprecated. [repeatable
+   use deprecated as the lowest precedence value provided will determine
+   the Actions/Runs displayed.] [default: run_owner]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
-   the selected status. [repeatable] [default: ]
+   the selected status. [repeatable]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -325,11 +338,15 @@ List a Flow definition’s discrete invocations.
 **Options**:
 
 -  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
-   [required]
+   If not present runs from all Flows will be displayed.
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
--  ``--role [created_by|monitor_by|manage_by]``: Display Actions where
-   you have the selected role. [repeatable]
+-  ``--role [run_monitor|run_manager|run_owner]``: Display Actions/Runs
+   where you have at least the selected role. Precedence of roles is:
+   run_monitor, run_manager, run_owner. Thus, by specifying, for
+   example, run_manager, all runs for which you hvae run_manager or
+   run_owner roles will be displayed. [repeatable use deprecated as the
+   lowest precedence value provided will determine the flows displayed.]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
    the selected status. [repeatable]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
@@ -394,6 +411,7 @@ Get a log of the steps executed by a Flow definition’s invocation.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Remove execution history for a particular Flow definition’s invocation.
+After this, no further information about the run can be accessed.
 
 **Usage**:
 
@@ -462,7 +480,6 @@ Display the status for a Flow definition’s particular invocation.
 **Options**:
 
 -  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
-   [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
@@ -473,8 +490,7 @@ Display the status for a Flow definition’s particular invocation.
 ``globus-automate flow delete``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Delete a Flow. You must either have created the Flow or be in the Flow’s
-“administered_by” list.
+Delete a Flow. You must be in the Flow’s “flow_administrators” list.
 
 **Usage**:
 
@@ -520,23 +536,26 @@ Deploy a new Flow.
    Flow input. May be provided as a filename or a raw string.
 -  ``--keyword TEXT``: A keyword which may categorize or help discover
    the Flow. [repeatable]
--  ``--visible-to TEXT``: A principal which may view this Flow. The
-   principal value is the user’s or group’s UUID prefixed with either
-   ‘urn:globus:groups:id:’ or ‘urn:globus:auth:identity:’. The special
-   value of ‘public’ may be used to indicate that any user can view this
-   Flow. [repeatable]
--  ``--administered-by TEXT``: A principal which may update the deployed
-   Flow. The principal value is the user’s or group’s UUID prefixed with
-   either ‘urn:globus:groups:id:’ or ‘urn:globus:auth:identity:’.
+-  ``--flow-viewer TEXT``: A principal which may view this Flow. The
+   principal value is the user’s Globus Auth username or their identity
+   UUID in the form urn:globus:auth:identity:. A Globus Group may also
+   be used using the form urn:globus:groups:id:. The special value of
+   ‘public’ may be used to indicate that any user can view this Flow.
    [repeatable]
--  ``--runnable-by TEXT``: A principal which may run an instance of the
-   deployed Flow. The principal value is the user’s or group’s UUID
-   prefixed with either ‘urn:globus:groups:id:’ or
-   ‘urn:globus:auth:identity:’. The special value of
-   ‘all_authenticated_users’ may be used to indicate that any
-   authenticated user can invoke this flow. [repeatable]
--  ``--subscription-id TEXT``: The Globus Subscription which will be
-   used to make this flow managed.
+-  ``--flow-starter TEXT``: A principal which may run an instance of the
+   deployed Flow. The principal value is the user’s Globus Auth username
+   or their identity UUID in the form urn:globus:auth:identity:. A
+   Globus Group may also be used using the form
+   urn:globus:groups:id:.The special value of ‘all_authenticated_users’
+   may be used to indicate that any authenticated user can invoke this
+   flow. [repeatable]
+-  ``--flow-administrator TEXT``: A principal which may update the
+   deployed Flow. The principal value is the user’s Globus Auth username
+   or their identity UUID in the form urn:globus:auth:identity:. A
+   Globus Group may also be used using the form
+   urn:globus:groups:id:.[repeatable]
+-  ``--subscription-id TEXT``: The Id of the Globus Subscription which
+   will be used to make this flow managed.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
@@ -550,7 +569,7 @@ Deploy a new Flow.
 
 Visualize a local or deployed Flow defintion. If providing a Flows’s ID,
 You must have either created the Flow or be present in the Flow’s
-“visible_to” list to view it.
+“flow_viewers” list to view it.
 
 **Usage**:
 
@@ -567,6 +586,10 @@ You must have either created the Flow or be present in the Flow’s
 -  ``--flow-definition TEXT``: JSON or YAML representation of the Flow
    to display. May be provided as a filename or a raw string
    representing a JSON object or YAML definition.
+-  ``--definition-only``: If present, only the steps of the Flow will be
+   displayed when flow_id is provided. Otherwise all fields related to
+   the flow will be displayed in the specified output format. [default:
+   False]
 -  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
    [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
@@ -623,9 +646,15 @@ List Flows for which you have access.
 
 **Options**:
 
--  ``-r, --role [created_by|visible_to|runnable_by|administered_by]``:
-   Display Flows where you have the selected role. [repeatable]
-   [default: FlowRole.created_by]
+-  ``-r, --role [flow_viewer|flow_starter|flow_administrator|flow_owner|created_by|visible_to|runnable_by|administered_by]``:
+   Display Flows where you have at least the selected role. Precedence
+   of roles is: flow_viewer, flow_starter, flow_administrator,
+   flow_owner. Thus, by specifying, for example, flow_starter, all flows
+   for which you hvae flow_starter, flow_administrator, or flow_owner
+   roles will be displayed. Values visible_to, runnable_by,
+   administered_by and created_by are deprecated. [repeatable use
+   deprecated as the lowest precedence value provided will determine the
+   flows displayed.] [default: flow_owner]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -651,7 +680,7 @@ List Flows for which you have access.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Run an instance of a Flow. The argument provides the initial state of
-the Flow.
+the Flow. You must be in the Flow’s “flow_starters” list.
 
 **Usage**:
 
@@ -666,26 +695,259 @@ the Flow.
 **Options**:
 
 -  ``--flow-input TEXT``: JSON or YAML formatted input to the Flow. May
-   be provided as a filename or a raw string.
+   be provided as a filename or a raw string. [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
--  ``--manage-by TEXT``: A principal which may change the execution of
-   the Flow instace. The principal value is the user’s or group’s UUID
-   prefixed with either ‘urn:globus:groups:id:’ or
-   ‘urn:globus:auth:identity:’ [repeatable]
--  ``--monitor-by TEXT``: A principal which may monitory the execution
-   of the Flow instace. The principal value is the user’s or group’s
-   UUID prefixed with either ‘urn:globus:groups:id:’ or
-   ‘urn:globus:auth:identity:’ [repeatable]
+-  ``--run-manager TEXT``: A principal which may change the execution of
+   the Flow instance. The principal value is the user’s Globus Auth
+   username or their identity UUID in the form
+   urn:globus:auth:identity:. A Globus Group may also be used using the
+   form urn:globus:groups:id:. [repeatable]
+-  ``--run-monitor TEXT``: A principal which may monitor the execution
+   of the Flow instance. The principal value is the user’s Globus Auth
+   username or their identity UUID in the form
+   urn:globus:auth:identity:. A Globus Group may also be used using the
+   form urn:globus:groups:id:. [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
    [default: json]
 -  ``-i, --input [json|yaml]``: Input format. [default: json]
--  ``-l, --label TEXT``: Optional label to mark this run.
+-  ``-l, --label TEXT``: Optional label to mark this run. [required]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
 -  ``--dry-run``: Do a dry run with your input to this flow to test the
    input without actually running anything. [default: False]
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-cancel``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cancel an active execution for a particular Flow definition’s
+invocation.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-cancel [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+   [required]
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-enumerate``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieve all Flow Runs you have access to view.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-enumerate [OPTIONS]
+
+**Options**:
+
+-  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
+   Display Actions/Runs where you have at least the selected role.
+   Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
+   specifying, for example, run_manager, all flows for which you hvae
+   run_manager or run_owner roles will be displayed. Values
+   monitored_by, managed_by and created_by are deprecated. [repeatable
+   use deprecated as the lowest precedence value provided will determine
+   the Actions/Runs displayed.] [default: run_owner]
+-  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
+   the selected status. [repeatable]
+-  ``-m, --marker TEXT``: A pagination token for iterating through
+   returned data.
+-  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
+   when used without providing a marker.
+-  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
+   apply to the resulting Action listing. The key indicates the filter,
+   the value indicates the pattern to match. Multiple patterns for a
+   single key may be specified as a comma seperated string, the results
+   for which will represent a logical OR. If multiple filters are
+   applied, the returned data will be the result of a logical AND
+   between them. [repeatable]
+-  ``--orderby TEXT``: An ordering criteria in the form ‘key=value’ to
+   apply to the resulting Flow listing. The key indicates the field to
+   order on, and the value is either ASC, for ascending order, or DESC,
+   for descending order. The first ordering criteria will be used to
+   sort the data, subsequent ordering criteria will further sort ties.
+   [repeatable]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-list``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+List a Flow definition’s discrete invocations.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-list [OPTIONS]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+   If not present runs from all Flows will be displayed.
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``--role [run_monitor|run_manager|run_owner]``: Display Actions/Runs
+   where you have at least the selected role. Precedence of roles is:
+   run_monitor, run_manager, run_owner. Thus, by specifying, for
+   example, run_manager, all runs for which you hvae run_manager or
+   run_owner roles will be displayed. [repeatable use deprecated as the
+   lowest precedence value provided will determine the flows displayed.]
+-  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
+   the selected status. [repeatable]
+-  ``-m, --marker TEXT``: A pagination token for iterating through
+   returned data.
+-  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
+   when used without providing a marker.
+-  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
+   apply to the resulting Action listing. The key indicates the filter,
+   the value indicates the pattern to match. Multiple patterns for a
+   single key may be specified as a comma seperated string, the results
+   for which will represent a logical OR. If multiple filters are
+   applied, the returned data will be the result of a logical AND
+   between them. [repeatable]
+-  ``--orderby TEXT``: An ordering criteria in the form ‘key=value’ to
+   apply to the resulting Flow listing. The key indicates the field to
+   order on, and the value is either ASC, for ascending order, or DESC,
+   for descending order. The first ordering criteria will be used to
+   sort the data, subsequent ordering criteria will further sort ties.
+   [repeatable]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-log``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a log of the steps executed by a Flow definition’s invocation.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-log [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+   [required]
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``--reverse``: Display logs starting from most recent and proceeding
+   in reverse chronological order
+-  ``--limit INTEGER RANGE``: Set a maximum number of events from the
+   log to return
+-  ``-m, --marker TEXT``: A pagination token for iterating through
+   returned data.
+-  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
+   when used without providing a marker.
+-  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
+   [default: json]
+-  ``-w, --watch``: Continuously poll this Action until it reaches a
+   completed state. Using this option will report only the latest state
+   available.Only JSON and YAML output formats are supported. [default:
+   False]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-release``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Remove execution history for a particular Flow definition’s invocation.
+After this, no further information about the run can be accessed.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-release [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+   [required]
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-resume``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Resume a Flow in the INACTIVE state. If query-for-inactive-reason is
+set, and the Flow Action is in an INACTIVE state due to requiring
+additional Consent, the required Consent will be determined and you may
+be prompted to allow Consent using the Globus Auth web interface.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-resume [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+   [required]
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``--query-for-inactive-reason / --no-query-for-inactive-reason``:
+   Should the Action first be queried to determine the reason for the
+   resume, and prompt for additional consent if needed. [default: True]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-status``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Display the status for a Flow definition’s particular invocation.
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-status [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+-  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
+   requests.
+-  ``-w, --watch``: Continuously poll this Action until it reaches a
+   completed state. [default: False]
+-  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow update``
@@ -718,21 +980,27 @@ Update a Flow.
    Flow input. May be provided as a filename or a raw string.
 -  ``--keyword TEXT``: A keyword which may categorize or help discover
    the Flow. [repeatable]
--  ``--visible-to TEXT``: A principal which may view this Flow. The
-   principal value is the user’s or group’s UUID prefixed with either
-   ‘urn:globus:groups:id:’ or ‘urn:globus:auth:identity:’. The special
-   value of ‘public’ may be used to indicate that any user can view this
-   Flow. [repeatable]
--  ``--administered-by TEXT``: A principal which may update the deployed
-   Flow. The principal value is the user’s or group’s UUID prefixed with
-   either ‘urn:globus:groups:id:’ or ‘urn:globus:auth:identity:’
+-  ``--flow-viewer TEXT``: A principal which may view this Flow. The
+   principal value is the user’s Globus Auth username or their identity
+   UUID in the form urn:globus:auth:identity:. A Globus Group may also
+   be used using the form urn:globus:groups:id:.The special value of
+   ‘public’ may be used to indicate that any user can view this Flow.
    [repeatable]
--  ``--runnable-by TEXT``: A principal which may run an instance of the
-   deployed Flow. The principal value is the user’s or group’s UUID
-   prefixed with either ‘urn:globus:groups:id:’ or
-   ‘urn:globus:auth:identity:’. The special value of
-   ‘all_authenticated_users’ may be used to indicate that any
-   authenticated user can invoke this flow. [repeatable]
+-  ``--flow-starter TEXT``: A principal which may run an instance of the
+   deployed Flow. The principal value is the user’s Globus Auth username
+   or their identity UUID in the form urn:globus:auth:identity:. A
+   Globus Group may also be used using the form urn:globus:groups:id:.
+   The special value of ‘all_authenticated_users’ may be used to
+   indicate that any authenticated user can invoke this flow.
+   [repeatable]
+-  ``--flow-administrator TEXT``: A principal which may update the
+   deployed Flow. The principal value is the user’s Globus Auth username
+   or their identity UUID in the form urn:globus:auth:identity:. A
+   Globus Group may also be used using the form
+   urn:globus:groups:id:.[repeatable]
+-  ``--assume-ownership``: Assume the ownership of the Flow. This can
+   only be performed by user’s in the flow_administrators role.
+   [default: False]
 -  ``--subscription-id TEXT``: The Globus Subscription which will be
    used to make this flow managed.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary

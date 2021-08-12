@@ -9,6 +9,8 @@ from globus_sdk import (
 )
 from globus_sdk.base import BaseClient
 
+from .helpers import merge_lists
+
 _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
@@ -60,6 +62,7 @@ class ActionClient(BaseClient):
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
         force_path: Optional[str] = None,
+        **kwargs
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -80,13 +83,11 @@ class ActionClient(BaseClient):
         :param force_path: A URL to use for running this action, ignoring any
             previous configuration
         :param label: Set a label for the Action that is run.
+        :param run_monitors: May be used as an alias for ``monitor_by``
+        :param run_managers: May be used as an alias for ``manage_by``
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
-        if manage_by is not None:
-            manage_by = list(set(manage_by))
-        if monitor_by is not None:
-            monitor_by = list(set(monitor_by))
 
         path = self.qjoin_path("run")
         if force_path:
@@ -94,8 +95,8 @@ class ActionClient(BaseClient):
         body = {
             "request_id": str(request_id),
             "body": body,
-            "monitor_by": monitor_by,
-            "manage_by": manage_by,
+            "monitor_by": merge_lists(monitor_by, kwargs, "run_monitors"),
+            "manage_by": merge_lists(manage_by, kwargs, "run_managers"),
             "label": label,
         }
         # Remove None items from the temp_body

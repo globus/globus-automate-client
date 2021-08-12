@@ -26,6 +26,8 @@ from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
 
+from .helpers import merge_lists
+
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
 _ENVIRONMENT_FLOWS_BASE_URLS = {
@@ -167,6 +169,28 @@ def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
     return
 
 
+def validate_input_schema(input_schema: Optional[Mapping[str, Any]]) -> None:
+    if input_schema is None:
+        raise FlowValidationError(["No input schema provided"])
+    validator = Draft7Validator(Draft7Validator.META_SCHEMA)
+    errors = validator.iter_errors(input_schema)
+    error_msgs = set()
+    for error in errors:
+        if error.path:
+            # Elements of the error path may be integers or other non-string types,
+            # but we need strings for use with join()
+            error_path_for_message = ".".join([str(x) for x in error.path])
+            error_message = (
+                f"'{error_path_for_message}' invalid due to {error.message}: "
+                f" {error.context}"
+            )
+        else:
+            error_message = f"{error.message}: {error.context}"
+        error_msgs.add(error_message)
+    if error_msgs:
+        raise FlowValidationError(error_msgs)
+
+
 def _get_flows_base_url_for_environment():
     environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
     if environ not in _ENVIRONMENT_FLOWS_BASE_URLS:
@@ -205,14 +229,14 @@ class FlowsClient(BaseClient):
         title: str,
         subtitle: Optional[str] = None,
         description: Optional[str] = None,
-        keywords: List[str] = [],
-        visible_to: List[str] = [],
-        runnable_by: List[str] = [],
-        administered_by: List[str] = [],
+        keywords: Iterable[str] = (),
+        flow_viewers: Iterable[str] = (),
+        flow_starters: Iterable[str] = (),
+        flow_administrators: Iterable[str] = (),
         subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
-        validate_input_schema: bool = True,
+        validate_schema: bool = True,
         dry_run: bool = False,
         **kwargs,
     ) -> GlobusHTTPResponse:
@@ -232,13 +256,13 @@ class FlowsClient(BaseClient):
         :param keywords: A series of words which may help categorize or make the
             Flow discoverable
 
-        :param visible_to: A series of Globus identities which may discover and
+        :param flow_viewers: A series of Globus identities which may discover and
             view the Flow definition
 
-        :param runnable_by: A series of Globus identities which may run an
+        :param flow_starters: A series of Globus identities which may run an
             instance of this Flow
 
-        :param administered_by: A series of Globus identities which may update
+        :param flow_administrators: A series of Globus identities which may update
             this Flow's definition
 
         :param subscription_id: The Globus Subscription which will be used to
@@ -251,24 +275,36 @@ class FlowsClient(BaseClient):
         :param validate_definition: Set to ``True`` to validate the provided
             ``flow_definition`` before attempting to deploy the Flow.
 
-        :param validate_input_schema: Set to ``True`` to validate the provided
+        :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to deploy the Flow.
 
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
+        if validate_schema:
+            validate_input_schema(input_schema)
         self.authorizer = self.flow_management_authorizer
         temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
         temp_body["subtitle"] = subtitle
         temp_body["description"] = description
         temp_body["keywords"] = keywords
-        temp_body["visible_to"] = visible_to
-        temp_body["runnable_by"] = runnable_by
-        temp_body["administered_by"] = administered_by
+        # We'll accept some aliases for the role lists passed in kwargs
+        temp_body["flow_viewers"] = merge_lists(
+            flow_viewers, kwargs, "visible_to", "viewers"
+        )
+        temp_body["flow_starters"] = merge_lists(
+            flow_starters, kwargs, "runnable_by", "starters"
+        )
+        temp_body["flow_administrators"] = merge_lists(
+            flow_administrators, kwargs, "administered_by", "administrators"
+        )
         temp_body["subscription_id"] = subscription_id
-        temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
+        # We do this after clearing false truthy values since an empty input schema is a
+        # valid thing
+        if input_schema is not None:
+            req_body["input_schema"] = input_schema
         url = "/flows"
         if dry_run:
             url = "/flows/dry-run"
@@ -281,14 +317,14 @@ class FlowsClient(BaseClient):
         title: Optional[str] = None,
         subtitle: Optional[str] = None,
         description: Optional[str] = None,
-        keywords: List[str] = [],
-        visible_to: List[str] = [],
-        runnable_by: List[str] = [],
-        administered_by: List[str] = [],
+        keywords: Iterable[str] = (),
+        flow_viewers: Iterable[str] = (),
+        flow_starters: Iterable[str] = (),
+        flow_administrators: Iterable[str] = (),
         subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
-        validate_input_schema: bool = True,
+        validate_schema: bool = True,
         **kwargs,
     ) -> Optional[GlobusHTTPResponse]:
         """
@@ -311,13 +347,13 @@ class FlowsClient(BaseClient):
         :param keywords: A series of words which may help categorize or make the
             Flow discoverable
 
-        :param visible_to: A series of Globus identities which may discover and
+        :param flow_viewers: A series of Globus identities which may discover and
             view the Flow definition
 
-        :param runnable_by: A series of Globus identities which may run an
+        :param flow_starters: A series of Globus identities which may run an
             instance of this Flow
 
-        :param administered_by: A series of Globus identities which may update
+        :param flow_administrators: A series of Globus identities which may update
             this Flow's definition
 
         :param subscription_id: The Globus Subscription which will be used to
@@ -330,19 +366,27 @@ class FlowsClient(BaseClient):
         :param validate_definition: Set to ``True`` to validate the provided
             ``flow_definition`` before attempting to update the Flow.
 
-        :param validate_input_schema: Set to ``True`` to validate the provided
+        :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to update the Flow.
         """
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
+        if validate_schema and input_schema is not None:
+            validate_input_schema(input_schema)
         self.authorizer = self.flow_management_authorizer
         temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
         temp_body["subtitle"] = subtitle
         temp_body["description"] = description
         temp_body["keywords"] = keywords
-        temp_body["visible_to"] = visible_to
-        temp_body["runnable_by"] = runnable_by
-        temp_body["administered_by"] = administered_by
+        temp_body["flow_viewers"] = merge_lists(
+            flow_viewers, kwargs, "visible_to", "viewers"
+        )
+        temp_body["flow_starters"] = merge_lists(
+            flow_starters, kwargs, "runnable_by", "starters"
+        )
+        temp_body["flow_administrators"] = merge_lists(
+            flow_administrators, kwargs, "administered_by", "administrators"
+        )
         temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
@@ -365,28 +409,36 @@ class FlowsClient(BaseClient):
 
     def list_flows(
         self,
-        roles: Optional[List[str]] = None,
+        roles: Optional[Iterable[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
         filters: Optional[dict] = None,
         orderings: Optional[dict] = None,
+        role: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
-        """
-        Display all deployed Flows for which you have the selected role(s)
+        """Display all deployed Flows for which you have the selected role(s)
 
         :param roles:
-            A list of roles specifying the level of access you have
-            for a Flow. Valid values are:
+            .. deprecated:: 0.12
+               Use ``role`` instead
 
-            - created_by
-            - visible_to
-            - runnable_by
-            - administered_by
+            See description for ``role`` parameter. Providing multiple roles behaves as
+            if only a single ``role`` value is provided and displays the equivalent of
+            the most permissive role.
 
-            Each value in the ``roles`` list is Or-ed to retrieve a listing of Flows
-            where the retrieving identity has at least one of the listed roles on
-            each Flow
+        :param role: A role value specifying the minimum role-level permission which will
+            be displayed based on the follow precedence of role values:
+
+            - flow_viewer
+            - flow_starter
+            - flow_administrators
+            - flow_owner
+
+            Thus, if, for example, ``flow_starter`` is specified, flows for which the
+            user has the ``flow_starter``, ``flow_administrator`` or ``flow_owner`` roles
+            will be returned.
+
         :param marker: A pagination_token indicating the page of results to
             return and how many entries to return. This is created by the Flows
             service and returned by operations that support pagination.
@@ -404,11 +456,17 @@ class FlowsClient(BaseClient):
             the data, subsequent ordering criteria will be applied for ties.
             Note: To ensure orderings are applied in the correct order, use an
             OrderedDict if trying to apply multiple orderings.
+
         """
         self.authorizer = self.flow_management_authorizer
         params = {}
         if roles is not None and len(roles) > 0:
             params["filter_roles"] = ",".join(roles)
+        if role is not None:
+            params["filter_role"] = role
+            params.pop(
+                "filter_roles", None
+            )  # role takes precedence over roles (plural)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
@@ -463,8 +521,8 @@ class FlowsClient(BaseClient):
         flow_id: str,
         flow_scope: Optional[str],
         flow_input: Mapping,
-        manage_by: Optional[List[str]] = None,
-        monitor_by: Optional[List[str]] = None,
+        run_managers: Optional[Iterable[str]] = None,
+        run_monitors: Optional[Iterable[str]] = None,
         dry_run: bool = False,
         label: Optional[str] = None,
         **kwargs,
@@ -481,12 +539,12 @@ class FlowsClient(BaseClient):
         :param flow_input: A Flow-specific dictionary specifying the input
             required for the Flow to run.
 
-        :param manage_by: A series of Globus identities which may alter
+        :param run_managers: A series of Globus identities which may alter
             this Flow instance's execution. The principal value is the user's or
             group's UUID prefixed with either 'urn:globus:groups:id:' or
             'urn:globus:auth:identity:'
 
-        :param monitor_by: A series of Globus identities which may view this
+        :param run_monitors: A series of Globus identities which may view this
             Flow instance's execution state. The principal value is the user's
             or group's UUID prefixed with either 'urn:globus:groups:id:' or
             'urn:globus:auth:identity:'
@@ -501,12 +559,17 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
+        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by")
+        run_managers = merge_lists(run_managers, kwargs, "manage_by")
+
+        kwargs.pop("monitor_by", None)
+        kwargs.pop("manage_by", None)
         if dry_run:
             path = flow_url + "/dry-run"
             return ac.run(
                 flow_input,
-                manage_by=manage_by,
-                monitor_by=monitor_by,
+                manage_by=run_managers,
+                monitor_by=run_monitors,
                 force_path=path,
                 label=label,
                 **kwargs,
@@ -514,8 +577,8 @@ class FlowsClient(BaseClient):
         else:
             return ac.run(
                 flow_input,
-                manage_by=manage_by,
-                monitor_by=monitor_by,
+                manage_by=run_managers,
+                monitor_by=run_monitors,
                 label=label,
                 **kwargs,
             )
@@ -618,114 +681,48 @@ class FlowsClient(BaseClient):
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.cancel(flow_action_id)
 
-    def enumerate_actions(
+    def enumerate_runs(
         self,
-        roles: Optional[List[str]] = None,
-        statuses: Optional[List[str]] = None,
+        roles: Optional[Iterable[str]] = None,
+        statuses: Optional[Iterable[str]] = None,
         marker: Optional[str] = None,
         per_page: Optional[int] = None,
         filters: Optional[dict] = None,
         orderings: Optional[dict] = None,
+        role: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
-        Retrieve a listing of Actions the caller has access to. This operation
+        Retrieve a listing of Runs the caller has access to. This operation
         requires the supplied Authorizer to have the RUN_STATUS_SCOPE.
 
+        :param statuses: A list of statuses used to filter the Actions that are
+            returned by the listing. Returned Actions are guaranteed to have one
+            of the specified ``statuses``. Valid values are:
+
+            - SUCCEEDED
+            - FAILED
+            - ACTIVE
+            - INACTIVE
+
         :param roles:
-            A list of roles specifying the level of access you have
-            for a Flow. Valid values are:
+          .. deprecated:: 0.12
+             Use ``role`` instead
 
-            - created_by
-            - visible_to
-            - runnable_by
-            - administered_by
+            See description for ``role`` parameter. Providing multiple roles behaves as
+            if only a single ``role`` value is provided and displays the equivalent of
+            the most permissive role.
 
-            Each value in the ``roles`` list is Or-ed to retrieve a listing of Flows
-            where the retrieving identity has at least one of the listed roles on
-            each Flow
-        :param statuses: A list of statuses used to filter the Actions that are
-            returned by the listing. Returned Actions are guaranteed to have one
-            of the specified ``statuses``. Valid values are:
+        :param role: A role value specifying the minimum role-level permission on the runs which will
+            be returned based on the follow precedence of role values:
 
-            - SUCCEEDED
-            - FAILED
-            - ACTIVE
-            - INACTIVE
-        :param marker: A pagination_token indicating the page of results to
-            return and how many entries to return. This is created by the Flows
-            service and returned by operations that support pagination.
-        :param per_page: The number of results to return per page. If
-            supplied a pagination_token, this parameter has no effect.
-        :param filters: A filtering criteria to apply to the resulting Flow
-            listing. The keys indicate the filter, the values indicate the
-            pattern to match. The returned data will be the result of a logical
-            AND between the filters. Patterns may be comma separated to produce
-            the result of a logical OR.
-        :param orderings: An ordering criteria to apply to the resulting
-            Flow listing. The keys indicate the field to order on, and
-            the value can be either ASC, for ascending order, or DESC, for
-            descending order. The first ordering criteria will be used to sort
-            the data, subsequent ordering criteria will be applied for ties.
-            Note: To ensure orderings are applied in the correct order, use an
-            OrderedDict if trying to apply multiple orderings.
-        """
-        params = {}
-        if roles is not None and len(roles) > 0:
-            params["filter_roles"] = ",".join(roles)
-        if statuses is not None and len(statuses) > 0:
-            params["filter_status"] = ",".join(statuses)
-        if marker is not None:
-            params["pagination_token"] = marker
-        if per_page is not None and marker is None:
-            params["per_page"] = str(per_page)
-        if filters is not None:
-            params.update(filters)
-        if orderings:
-            builder = []
-            for field, value in orderings.items():
-                builder.append(f"{field} {value}")
-            params["orderby"] = ",".join(builder)
-        return self.get(f"/runs", params=params, **kwargs)
+            - run_monitor
+            - run_manager
+            - run_owner
 
-    def list_flow_actions(
-        self,
-        flow_id: str,
-        flow_scope: Optional[str] = None,
-        statuses: Optional[List[str]] = None,
-        roles: Optional[List[str]] = None,
-        marker: Optional[str] = None,
-        per_page: Optional[int] = None,
-        filters: Optional[dict] = None,
-        orderings: Optional[dict] = None,
-        **kwargs,
-    ) -> GlobusHTTPResponse:
-        """
-        List all Actions that were launched as part of a Flow's run
-
-        :param flow_id: The UUID identifying the Flow which launched the Action
-
-        :param flow_scope: The scope associated with the Flow ``flow_id``. If
-            not provided, the SDK will attempt to perform an introspection on
-            the Flow to determine its scope automatically
-
-        :param statuses: A list of statuses used to filter the Actions that are
-            returned by the listing. Returned Actions are guaranteed to have one
-            of the specified ``statuses``. Valid values are:
-
-            - SUCCEEDED
-            - FAILED
-            - ACTIVE
-            - INACTIVE
-
-        :param roles: A list of roles used to filter the Actions that are
-            returned by the listing. Returned Actions are guaranteed to have the
-            callers identity in the specified role. Valid values are:
-
-            - created_by
-            - visible_to
-            - runnable_by
-            - administered_by
+            Thus, if, for example, ``run_manager`` is specified, runs for which the
+            user has the ``run_manager``, or ``run_owner`` roles
+            will be returned.
 
         :param marker: A pagination_token indicating the page of results to
             return and how many entries to return. This is created by the Flows
@@ -745,16 +742,110 @@ class FlowsClient(BaseClient):
             Note: To ensure orderings are applied in the correct order, use an
             OrderedDict if trying to apply multiple orderings.
 
+        """
+        params = {}
+        if roles:
+            params["filter_roles"] = ",".join(roles)
+        if statuses:
+            params["filter_status"] = ",".join(statuses)
+        if marker is not None:
+            params["pagination_token"] = marker
+        if per_page is not None and marker is None:
+            params["per_page"] = str(per_page)
+        if filters is not None:
+            params.update(filters)
+        if orderings:
+            builder = []
+            for field, value in orderings.items():
+                builder.append(f"{field} {value}")
+            params["orderby"] = ",".join(builder)
+        return self.get(f"/runs", params=params, **kwargs)
+
+    def enumerate_actions(
+        self,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        An alias for ``enumerate_runs``
+        """
+        return self.enumerate_runs(**kwargs)
+
+    def list_flow_actions(
+        self,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        An alias for ``list_flow_runs``
+        """
+        return self.list_flow_runs(**kwargs)
+
+    def list_flow_runs(
+        self,
+        flow_id: Optional[str] = None,
+        flow_scope: Optional[str] = None,
+        statuses: Optional[Iterable[str]] = None,
+        roles: Optional[Iterable[str]] = None,
+        marker: Optional[str] = None,
+        per_page: Optional[int] = None,
+        filters: Optional[dict] = None,
+        orderings: Optional[dict] = None,
+        role: Optional[str] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """List all Runs for a particular Flow. If no flow_id is provided, all runs for all
+        Flows will be returned.
+
+        :param flow_id: The UUID identifying the Flow which launched the Run. If not
+            provided, all runs will be returned regardless of which Flow was used to start
+            the Run (equivalent to ``enumerate_runs``).
+
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to determine its scope automatically
+
+        :param  statuses: The same as in ``enumerate_runs``.
+
+        :param  roles: The same as in ``enumerate_runs``.
+            .. deprecated:: 0.12
+               Use ``role`` instead
+
+        :param  marker: The same as in ``enumerate_runs``.
+
+        :param  per_page: The same as in ``enumerate_runs``.
+
+        :param  filters: The same as in ``enumerate_runs``.
+
+        :param  orderings: The same as in ``enumerate_runs``.
+
+        :param  role: The same as in ``enumerate_runs``.
+
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
             authorizer_callback defined for the FlowsClient will be used.
+
         """
+        if flow_id is None:
+            return self.enumerate_runs(
+                roles=roles,
+                statuses=statuses,
+                marker=marker,
+                per_page=per_page,
+                filters=filters,
+                orderings=orderings,
+                role=role,
+            )
+
         params = {}
         if statuses is not None and len(statuses) > 0:
             params["filter_status"] = ",".join(statuses)
         if roles is not None and len(roles) > 0:
             params["filter_roles"] = ",".join(roles)
+        if role is not None:
+            params["filter_role"] = role
+            params.pop(
+                "filter_roles", None
+            )  # role takes precedence over roles (plural)
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
