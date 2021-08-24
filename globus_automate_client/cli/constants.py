@@ -1,9 +1,7 @@
 import enum
-import functools
-import json
+from itertools import chain
 
 import typer
-import yaml
 from globus_sdk import GlobusHTTPResponse
 
 from globus_automate_client.graphviz_rendering import (
@@ -12,41 +10,126 @@ from globus_automate_client.graphviz_rendering import (
 )
 
 
-class InputFormat(str, enum.Enum):
-    json = "json"
-    yaml = "yaml"
+class FlowRole(str, enum.Enum):
+    flow_viewer = "flow_viewer"
+    flow_starter = "flow_starter"
+    flow_administrator = "flow_administrator"
+    flow_owner = "flow_owner"
 
-    def get_dumper(self):
-        if self is self.json:
-            return json.dumps
-        elif self is self.yaml:
-            return yaml.dump
+
+class FlowRoleDeprecated(str, enum.Enum):
+    created_by = "created_by"
+    visible_to = "visible_to"
+    runnable_by = "runnable_by"
+    administered_by = "administered_by"
+
+
+# Adapted from https://stackoverflow.com/questions/33679930/how-to-extend-python-enum
+FlowRoleAllNames = enum.Enum(
+    "FlowRoleAllNames", [(i.name, i.value) for i in chain(FlowRole, FlowRoleDeprecated)]
+)
+
+
+class ActionRole(str, enum.Enum):
+    run_monitor = "run_monitor"
+    run_manager = "run_manager"
+    run_owner = "run_owner"
+
+
+class ActionRoleDeprecated(str, enum.Enum):
+    created_by = "created_by"
+    monitor_by = "monitor_by"
+    manage_by = "manage_by"
+
+
+ActionRoleAllNames = enum.Enum(
+    "ActionRoleAllNames",
+    [(i.name, i.value) for i in chain(ActionRole, ActionRoleDeprecated)],
+)
+
+
+class ActionStatus(str, enum.Enum):
+    succeeded = "SUCCEEDED"
+    failed = "FAILED"
+    active = "ACTIVE"
+    inactive = "INACTIVE"
 
 
 class OutputFormat(str, enum.Enum):
+    """
+    This class defines the generally supported output formats
+    """
+
     json = "json"
     yaml = "yaml"
 
-    def get_dumper(self):
-        if self is self.yaml:
-            return functools.partial(yaml.dump, indent=2)
-        return functools.partial(json.dumps, indent=2)
 
+class ListingOutputFormat(str, enum.Enum):
+    """
+    This class represents the different output formats for lists of data
+    """
 
-class FlowDisplayFormat(str, enum.Enum):
     json = "json"
-    graphviz = "graphviz"
+    yaml = "yaml"
+    table = "table"
+
+
+class RunLogOutputFormat(str, enum.Enum):
+    """
+    This class represents the different formats in which a Run's logs may be
+    displayed
+    """
+
+    json = "json"
+    yaml = "yaml"
+    table = "table"
     image = "image"
-    yaml = "yaml"
+    graphiz = "graphiz"
 
-    def get_dumper(self):
-        if self is self.yaml:
-            return functools.partial(yaml.dump, indent=2)
-        if self is self.graphviz:
-            return graphviz_text
-        if self is self.image:
-            return graphviz_image
-        return functools.partial(json.dumps, indent=2)
+    def visualize(self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse):
+        if self == "image":
+            self.graphviz_image(flow_log, flow_def)
+        elif self == "graphiz":
+            self.graphviz_text(flow_log, flow_def)
+
+    def graphviz_text(self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse):
+        definition = flow_def.data["definition"]
+        colors = state_colors_for_log(flow_log.data["entries"])
+        graphviz_out = graphviz_format(definition, colors)
+        typer.echo(graphviz_out.source)
+
+    def graphviz_image(
+        self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse
+    ):
+        definition = flow_def.data["definition"]
+        colors = state_colors_for_log(flow_log.data["entries"])
+        graphviz_out = graphviz_format(definition, colors)
+        graphviz_out.render("flows-output/graph", view=True, cleanup=True)
+
+
+class ImageOutputFormat(str, enum.Enum):
+    """
+    This class represents the different ways of visualizing a Flow
+    """
+
+    json = "json"
+    yaml = "yaml"
+    image = "image"
+    graphviz = "graphviz"
+
+    def visualize(self, flow_dict):
+        if self == "image":
+            self.graphviz_image(flow_dict)
+        elif self == "graphviz":
+            self.graphviz_text(flow_dict)
+
+    def graphviz_text(self, flow):
+        graphviz_out = graphviz_format(flow, None)
+        typer.echo(graphviz_out.source)
+
+    def graphviz_image(self, flow):
+        graphviz_out = graphviz_format(flow, None)
+        graphviz_out.render("flows-output/graph", view=True, cleanup=True)
 
 
 def graphviz_text(flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse):

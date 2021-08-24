@@ -2,20 +2,15 @@ import functools
 from typing import List
 
 import typer
-from globus_sdk import GlobusAPIError
 
 from globus_automate_client.cli.callbacks import (
     input_validator,
     principal_validator,
     url_validator_callback,
 )
-from globus_automate_client.cli.constants import InputFormat, OutputFormat
-from globus_automate_client.cli.helpers import (
-    format_and_echo,
-    process_input,
-    request_runner,
-    verbosity_option,
-)
+from globus_automate_client.cli.constants import OutputFormat
+from globus_automate_client.cli.helpers import process_input, verbosity_option
+from globus_automate_client.cli.rich_helpers import RequestRunner
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
 
@@ -49,11 +44,7 @@ def action_introspect(
     Introspect an Action Provider's schema.
     """
     ac = create_action_client(action_url, action_scope)
-    try:
-        result = ac.introspect()
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+    RequestRunner(ac.introspect, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("run")
@@ -107,14 +98,6 @@ def action_run(
         case_sensitive=False,
         show_default=True,
     ),
-    input_format: InputFormat = typer.Option(
-        InputFormat.json,
-        "--input",
-        "-i",
-        help="Input format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
     label: str = typer.Option(
         None,
         "--label",
@@ -132,20 +115,29 @@ def action_run(
     """
     Launch an Action.
     """
-    parsed_body = process_input(body, input_format)
+    parsed_body = process_input(body)
     ac = create_action_client(action_url, action_scope)
     method = functools.partial(
         ac.run, parsed_body, request_id, manage_by, monitor_by, label=label
     )
-
     with live_content:
-        # Set watch to false here to immediately return after running the Action
-        result = request_runner(method, output_format, verbose, False)
-
-        if watch and not isinstance(result, GlobusAPIError):
+        result = RequestRunner(
+            method,
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            run_once=True,
+        ).run_and_render()
+        if not result.is_api_error and watch:
             action_id = result.data.get("action_id")
             method = functools.partial(ac.status, action_id)
-            request_runner(method, output_format, verbose, watch)
+            RequestRunner(
+                method,
+                format=output_format,
+                verbose=verbose,
+                watch=watch,
+                run_once=False,
+            ).run_and_render()
 
 
 @app.command("status")
@@ -185,7 +177,9 @@ def action_status(
     ac = create_action_client(action_url, action_scope)
     method = functools.partial(ac.status, action_id)
     with live_content:
-        request_runner(method, output_format, verbose, watch)
+        RequestRunner(
+            method, format=output_format, verbose=verbose, watch=watch, run_once=False
+        ).run_and_render()
 
 
 @app.command("resume")
@@ -218,14 +212,28 @@ def action_resume(
         case_sensitive=False,
         show_default=True,
     ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state. ",
+        show_default=True,
+    ),
 ):
     """
     Resume an inactive Action by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope=action_scope)
-    try:
-        if query_for_inactive_reason:
-            result = ac.status(action_id)
+    if query_for_inactive_reason:
+        result = RequestRunner(
+            functools.partial(ac.status, action_id),
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            run_once=True,
+        ).run()
+
+        if not result.is_api_error:
             body = result.data
             status = body.get("status")
             details = body.get("details", {})
@@ -234,10 +242,22 @@ def action_resume(
                 required_scope = details.get("required_scope")
                 if required_scope is not None:
                     ac = create_action_client(action_url, action_scope=required_scope)
-        result = ac.resume(action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+
+    result = RequestRunner(
+        functools.partial(ac.resume, action_id),
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        run_once=True,
+    ).run_and_render()
+    if not result.is_api_error and watch:
+        with live_content:
+            RequestRunner(
+                functools.partial(ac.status, action_id),
+                format=output_format,
+                verbose=verbose,
+                watch=watch,
+            ).run_and_render()
 
 
 @app.command("cancel")
@@ -268,11 +288,10 @@ def action_cancel(
     Terminate a running Action by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    try:
-        result = ac.cancel(action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+    method = functools.partial(ac.cancel, action_id)
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=False, run_once=True
+    ).run_and_render()
 
 
 @app.command("release")
@@ -303,11 +322,10 @@ def action_release(
     Remove an Action's execution history by its ACTION_ID.
     """
     ac = create_action_client(action_url, action_scope)
-    try:
-        result = ac.release(action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, output_format.get_dumper(), verbose=verbose)
+    method = functools.partial(ac.release, action_id)
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=False, run_once=True
+    ).run_and_render()
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import functools
 from enum import Enum
 from typing import List
 
@@ -5,7 +6,9 @@ import typer
 
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import input_validator, principal_validator
-from globus_automate_client.cli.helpers import format_and_echo, verbosity_option
+from globus_automate_client.cli.constants import OutputFormat
+from globus_automate_client.cli.helpers import verbosity_option
+from globus_automate_client.cli.rich_helpers import RequestRunner
 from globus_automate_client.queues_client import create_queues_client
 
 
@@ -28,14 +31,24 @@ def queue_list(
         case_sensitive=False,
         show_default=True,
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     List Queues for which you have access.
     """
     qc = create_queues_client(CLIENT_ID)
-    queues = qc.list_queues(roles=[r.value for r in roles])
-    format_and_echo(queues, verbose=verbose)
+    method = functools.partial(qc.list_queues, roles=[r.value for r in roles])
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=False
+    ).run_and_render()
 
 
 @app.command("create")
@@ -74,14 +87,24 @@ def queue_create(
         max=1209600,
         show_default=True,
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Create a new Queue.
     """
     qc = create_queues_client(CLIENT_ID)
-    queues = qc.create_queue(label, admins, senders, receivers, delivery_timeout)
-    format_and_echo(queues, verbose=verbose)
+    method = functools.partial(
+        qc.create_queue, label, admins, senders, receivers, delivery_timeout
+    )
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("update")
@@ -120,34 +143,71 @@ def queue_update(
         min=1,
         max=1209600,
     ),
+    visibility_timeout: int = typer.Option(
+        30,
+        min=1,
+        max=43200,
+    ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Update a Queue's properties. Requires the admin role on the Queue.
     """
     qc = create_queues_client(CLIENT_ID)
-    queues = qc.update_queue(
-        queue_id, label, admins, senders, receivers, delivery_timeout
+    method = functools.partial(
+        qc.update_queue,
+        queue_id,
+        label,
+        admins,
+        senders,
+        receivers,
+        delivery_timeout,
+        visibility_timeout,
     )
-    format_and_echo(queues, verbose=verbose)
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("display")
 def queue_display(
     queue_id: str = typer.Argument(...),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Display the description of a Queue based on its id.
     """
     qc = create_queues_client(CLIENT_ID)
-    queue = qc.get_queue(queue_id)
-    format_and_echo(queue, verbose=verbose)
+    RequestRunner(
+        functools.partial(qc.get_queue, queue_id), format=output_format, verbose=verbose
+    ).run_and_render()
 
 
 @app.command("delete")
 def queue_delete(
     queue_id: str = typer.Argument(...),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
@@ -155,8 +215,11 @@ def queue_delete(
     created the Queue or have a role defined on the Queue.
     """
     qc = create_queues_client(CLIENT_ID)
-    queue = qc.delete_queue(queue_id)
-    format_and_echo(queue, verbose=verbose)
+    RequestRunner(
+        functools.partial(qc.delete_queue, queue_id),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
 
 
 @app.command("message-receive")
@@ -165,6 +228,14 @@ def queue_receive(
     max_messages: int = typer.Option(
         None, help="The maximum number of messages to retrieve from the Queue", min=0
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
@@ -172,8 +243,11 @@ def queue_receive(
     "receiver" role on the Queue to perform this action.
     """
     qc = create_queues_client(CLIENT_ID)
-    queue = qc.receive_messages(queue_id, max_messages=max_messages)
-    format_and_echo(queue, verbose=verbose)
+    RequestRunner(
+        functools.partial(qc.receive_messages, queue_id, max_messages=max_messages),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
 
 
 @app.command("message-send")
@@ -187,6 +261,14 @@ def queue_send(
         prompt=True,
         callback=input_validator,
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
@@ -194,8 +276,11 @@ def queue_send(
     on the Queue to perform this action.
     """
     qc = create_queues_client(CLIENT_ID)
-    message_send = qc.send_message(queue_id, message)
-    format_and_echo(message_send, verbose=verbose)
+    RequestRunner(
+        functools.partial(qc.send_message, queue_id, message),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
 
 
 @app.command("message-delete")
@@ -208,11 +293,22 @@ def queue_delete_message(
             "receive message. [repeatable]"
         ),
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.json,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """
     Notify a Queue that a message has been processed.
     """
     qc = create_queues_client(CLIENT_ID)
-    message_delete = qc.delete_messages(queue_id, receipt_handle)
-    format_and_echo(message_delete, verbose=verbose)
+    RequestRunner(
+        functools.partial(qc.delete_messages, queue_id, receipt_handle),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()

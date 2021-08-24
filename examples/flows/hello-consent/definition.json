@@ -1,0 +1,14 @@
+{
+    "StartAt": "HelloState",
+    "States": {
+        "HelloState": {
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "Parameters": {
+                "required_dependent_scope": "urn:globus:auth:scope:groups.api.globus.org:all"
+            },
+            "ResultPath": "$.FlowResult",
+            "End": true
+        }
+    }
+}

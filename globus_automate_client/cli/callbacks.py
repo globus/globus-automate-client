@@ -117,7 +117,8 @@ def flows_endpoint_envvar_callback(default_value: str) -> str:
 def input_validator(body: str) -> str:
     """
     Checks if input is a file and loads its contents, otherwise returns the
-    supplied string.
+    supplied string. This validator will also attempt to parse the string as a
+    dict, failing if the parsing fails.
     """
     # Callbacks are run regardless of whether an option was explicitly set.
     # Handle the scenario where the default value for an option is empty
@@ -142,6 +143,13 @@ def input_validator(body: str) -> str:
             # is a directory, so we have to assume the string is JSON and
             # continue
             pass
+    try:
+        json.loads(body)
+    except json.JSONDecodeError:
+        try:
+            yaml.safe_load(body)
+        except yaml.YAMLError:
+            raise typer.BadParameter(f"Unable to load input as JSON or YAML")
     return body
 
 

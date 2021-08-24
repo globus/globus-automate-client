@@ -330,7 +330,7 @@ class FlowsClient(BaseClient):
         validate_definition: bool = True,
         validate_schema: bool = True,
         **kwargs,
-    ) -> Optional[GlobusHTTPResponse]:
+    ) -> GlobusHTTPResponse:
         """
         Updates a deployed Flow's definition or metadata. This method will
         preserve the existing Flow's values for fields which are not
@@ -395,10 +395,7 @@ class FlowsClient(BaseClient):
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
-        if len(req_body) == 0:
-            return None
-        else:
-            return self.put(f"/flows/{flow_id}", req_body, **kwargs)
+        return self.put(f"/flows/{flow_id}", req_body, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -748,7 +745,9 @@ class FlowsClient(BaseClient):
 
         """
         params = {}
-        if roles:
+        if role:
+            params["filter_role"] = role
+        elif roles:
             params["filter_roles"] = ",".join(roles)
         if statuses:
             params["filter_status"] = ",".join(statuses)
