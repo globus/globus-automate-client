@@ -1,4 +1,6 @@
 import abc
+import collections
+import functools
 import json
 from time import sleep
 from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
@@ -6,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 import arrow
 import typer
 import yaml
-from globus_sdk import GlobusAPIError, GlobusHTTPResponse
+from globus_sdk import AuthClient, GlobusAPIError, GlobusHTTPResponse
 from requests import Response
 from rich.console import RenderableType, RenderGroup
 from rich.spinner import Spinner
@@ -14,6 +16,7 @@ from rich.table import Table
 from rich.text import Text
 from typing_extensions import Literal
 
+from .auth import get_authorizers_for_scopes
 from .constants import OutputFormat
 from .helpers import get_http_details
 from .rich_rendering import cli_content
@@ -32,6 +35,41 @@ def humanize_auth_urn(urn: str) -> str:
     return urn
 
 
+def identity_to_user(field: str, l: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Given a list of dict entries, this function will attempt to
+    """
+    # get_identities will fail if there's no data, so short circuit
+    if len(l) == 0:
+        return l
+
+    # Only do the conversion if the user is already logged in
+    authzs = get_authorizers_for_scopes(["openid"], no_login=True)
+    authorizer = authzs.get("openid")
+    if authorizer is None:
+        return l
+
+    # Collect IDs from the List data
+    creators: Dict[str, None] = collections.OrderedDict()
+    for item in l:
+        urn_id = item.get(field, "")
+        id = urn_id.split(":")[-1]
+        creators[id] = None
+
+    # Get id -> username mapping
+    ac = AuthClient(authorizer=authorizer)
+    resp = ac.get_identities(ids=creators.keys())
+    id_to_user = {i["id"]: i["username"] for i in resp.data["identities"]}
+
+    # Update items in list
+    for item in l:
+        urn_id = item.get(field, "")
+        id = urn_id.split(":")[-1]
+        if id in id_to_user:
+            item[field] = id_to_user[id]
+    return l
+
+
 class Field:
     """
     A generic class structure for transforming lists of data into a table. Each
@@ -48,7 +86,7 @@ class Field:
         name: The name of the field which contains the data for display
         default: A placeholder to use if the field is not available
         transformation: A callable that takes and returns a string. This is used
-            to format the data field
+            to format the data field in an item
         """
         self.name = name
         self.default = default
@@ -66,6 +104,7 @@ class DisplayFields(abc.ABC):
 
     fields: List[Field]
     path_to_data_list: str
+    prehook: Optional[Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]] = None
 
 
 class RunListDisplayFields(DisplayFields):
@@ -83,6 +122,7 @@ class RunListDisplayFields(DisplayFields):
         Field("flow_id", "<DELETED>"),
     ]
     path_to_data_list = "actions"
+    prehook = functools.partial(identity_to_user, "created_by")
 
 
 class RunEnumerateDisplayFields(RunListDisplayFields):
@@ -108,6 +148,7 @@ class FlowListDisplayFields(DisplayFields):
         Field("updated_at", "", humanize_datetimes),
     ]
     path_to_data_list = "flows"
+    prehook = functools.partial(identity_to_user, "flow_owner")
 
 
 class RunLogDisplayFields(DisplayFields):
@@ -292,6 +333,8 @@ class Renderer:
         list_of_data: List[Dict[str, Any]] = self.result.data[
             self.fields.path_to_data_list
         ]
+        if self.fields.prehook:
+            list_of_data = self.fields.prehook(list_of_data)
         for d in list_of_data:
             row_values = []
             for f in self.fields.fields:
