@@ -30,3 +30,4 @@ implementing the Globus Action Provider Interface, and Globus Queues.
    globus_action_providers
    cli_reference
    python_sdk_reference
+   example_flows
