@@ -7,7 +7,7 @@ States:
       intervention to complete.
     ActionUrl: https://actions.automate.globus.org/hello_world
     Parameters:
-      echo_string: urn:globus:auth:scope:groups.api.globus.org:all
+      required_dependent_scope: urn:globus:auth:scope:groups.api.globus.org:all
     ResultPath: $.FlowResult
     Next: FailState
 
