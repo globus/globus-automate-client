@@ -78,6 +78,7 @@ class QueuesClient(BaseClient):
         senders: Optional[List[str]] = None,
         receivers: Optional[List[str]] = None,
         delivery_timeout: Optional[int] = None,
+        visibility_timeout: Optional[int] = None,
         **kwargs,
     ) -> Optional[GlobusHTTPResponse]:
         body = dict(
@@ -87,6 +88,7 @@ class QueuesClient(BaseClient):
             senders=senders,
             receivers=receivers,
             delivery_timeout=delivery_timeout,
+            visibility_timeout=visibility_timeout,
         )
         # Remove the missing values from the update operation
         body = {k: v for k, v in body.items() if v is not None}

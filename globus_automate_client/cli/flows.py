@@ -1,19 +1,12 @@
 import functools
-import json
-import sys
 import uuid
-from enum import Enum
-from itertools import chain
-from typing import Any, List, Mapping, Optional, Union
+from typing import List, Optional
 
 import typer
-import yaml
-from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
     flow_input_validator,
-    flows_endpoint_envvar_callback,
     input_validator,
     principal_or_all_authenticated_users_validator,
     principal_or_public_validator,
@@ -21,17 +14,31 @@ from globus_automate_client.cli.callbacks import (
     url_validator_callback,
 )
 from globus_automate_client.cli.constants import (
-    FlowDisplayFormat,
-    InputFormat,
+    ActionRole,
+    ActionRoleAllNames,
+    ActionStatus,
+    FlowRole,
+    FlowRoleAllNames,
+    ImageOutputFormat,
+    ListingOutputFormat,
     OutputFormat,
+    RunLogOutputFormat,
 )
 from globus_automate_client.cli.helpers import (
-    flow_log_runner,
-    format_and_echo,
+    flows_env_var_option,
+    make_role_param,
+    output_format_option,
     parse_query_options,
     process_input,
-    request_runner,
     verbosity_option,
+)
+from globus_automate_client.cli.rich_helpers import (
+    FlowListDisplayFields,
+    LogCompletionDetetector,
+    RequestRunner,
+    RunEnumerateDisplayFields,
+    RunListDisplayFields,
+    RunLogDisplayFields,
 )
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
@@ -40,101 +47,15 @@ from globus_automate_client.flows_client import (
     FlowValidationError,
     validate_flow_definition,
 )
-from globus_automate_client.graphviz_rendering import graphviz_format
-
-
-class FlowRole(str, Enum):
-    flow_viewer = "flow_viewer"
-    flow_starter = "flow_starter"
-    flow_administrator = "flow_administrator"
-    flow_owner = "flow_owner"
-
-
-class FlowRoleDeprecated(str, Enum):
-    created_by = "created_by"
-    visible_to = "visible_to"
-    runnable_by = "runnable_by"
-    administered_by = "administered_by"
-
-
-# Adapted from https://stackoverflow.com/questions/33679930/how-to-extend-python-enum
-FlowRoleAllNames = Enum(
-    "FlowRoleAllNames", [(i.name, i.value) for i in chain(FlowRole, FlowRoleDeprecated)]
-)
-
-
-class ActionRole(str, Enum):
-    run_monitor = "run_monitor"
-    run_manager = "run_manager"
-    run_owner = "run_owner"
-
-
-class ActionRoleDeprecated(str, Enum):
-    created_by = "created_by"
-    monitor_by = "monitor_by"
-    manage_by = "manage_by"
-
-
-ActionRoleAllNames = Enum(
-    "ActionRoleAllNames",
-    [(i.name, i.value) for i in chain(ActionRole, ActionRoleDeprecated)],
-)
-
-
-class ActionStatus(str, Enum):
-    succeeded = "SUCCEEDED"
-    failed = "FAILED"
-    active = "ACTIVE"
-    inactive = "INACTIVE"
-
-
-def _process_flow_input(flow_input: str, input_format) -> Mapping[str, Any]:
-    flow_input_dict = {}
-
-    if flow_input is not None:
-        if input_format is InputFormat.json:
-            try:
-                flow_input_dict = json.loads(flow_input)
-            except json.JSONDecodeError as e:
-                raise typer.BadParameter(f"Invalid JSON for input schema: {e}")
-        elif input_format is InputFormat.yaml:
-            try:
-                flow_input_dict = yaml.safe_load(flow_input)
-            except yaml.YAMLError as e:
-                raise typer.BadParameter(f"Invalid YAML for input schema: {e}")
-
-    return flow_input_dict
-
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
-_flows_env_var_option = typer.Option(
-    None,
-    hidden=True,
-    callback=flows_endpoint_envvar_callback,
-)
 
 _principal_description = (
     "The principal value is the user's Globus Auth username or their identity "
     "UUID in the form urn:globus:auth:identity:<UUID>. A Globus Group may also be "
     "used using the form urn:globus:groups:id:<GROUP_UUID>."
 )
-
-
-def _make_role_param(
-    roles_list: Optional[Union[List[FlowRoleAllNames], List[ActionRoleAllNames]]]
-) -> [Mapping[str, Any]]:
-    if roles_list is None:
-        return {"role": None}
-    elif len(roles_list) == 1:
-        return {"role": roles_list[0].value}
-    else:
-        typer.secho(
-            "Warning: Use of multiple --role options is deprecated",
-            sys.stderr,
-            fg=typer.colors.YELLOW,
-        )
-        return {"roles": [r.value for r in roles_list]}
 
 
 @app.callback()
@@ -247,16 +168,9 @@ def flow_deploy(
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    input_format: InputFormat = typer.Option(
-        InputFormat.json,
-        "--input",
-        "-i",
-        help="Input format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
@@ -270,48 +184,40 @@ def flow_deploy(
     Deploy a new Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_dict = process_input(definition, input_format)
-    input_schema_dict = process_input(input_schema, input_format, " for input schema")
+    flow_dict = process_input(definition)
+    input_schema_dict = process_input(input_schema)
 
-    try:
-        result = fc.deploy_flow(
-            flow_dict,
-            title,
-            subtitle,
-            description,
-            keywords,
-            visible_to,
-            runnable_by,
-            administered_by,
-            subscription_id,
-            input_schema_dict,
-            validate_definition=validate,
-            dry_run=dry_run,
-        )
-    except GlobusAPIError as err:
-        result = err
-    # Match up output format with input format
-    if input_format is InputFormat.json:
-        format_and_echo(result, OutputFormat.json.get_dumper(), verbose=verbose)
-    elif input_format is InputFormat.yaml:
-        format_and_echo(result, OutputFormat.yaml.get_dumper(), verbose=verbose)
+    method = functools.partial(
+        fc.deploy_flow,
+        flow_dict,
+        title,
+        subtitle,
+        description,
+        keywords,
+        visible_to,
+        runnable_by,
+        administered_by,
+        subscription_id,
+        input_schema_dict,
+        validate_definition=validate,
+        dry_run=dry_run,
+    )
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("get")
 def flow_get(
     flow_id: uuid.UUID = typer.Argument(..., help="A deployed Flow's ID"),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
 ):
     """
     Get a Flow's definition as it exists on the Flows service.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        result = fc.get_flow(str(flow_id))
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+    method = functools.partial(fc.get_flow, str(flow_id))
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("update")
@@ -406,47 +312,36 @@ def flow_update(
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    input_format: InputFormat = typer.Option(
-        InputFormat.json,
-        "--input",
-        "-i",
-        help="Input format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Update a Flow.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_dict = process_input(definition, input_format)
-    input_schema_dict = process_input(input_schema, input_format, " for input schema")
+    flow_dict = process_input(definition)
+    input_schema_dict = process_input(input_schema)
 
-    try:
-        result = fc.update_flow(
-            flow_id,
-            flow_dict,
-            title,
-            subtitle,
-            description,
-            keywords,
-            flow_viewer,
-            flow_starter,
-            flow_administrator,
-            subscription_id,
-            input_schema_dict,
-            validate_definition=validate,
-            visible_to=visible_to,
-            runnable_by=runnable_by,
-            administered_by=administered_by,
-        )
-    except GlobusAPIError as err:
-        result = err
-    if result is None:
-        result = "No operation to perform"
-    format_and_echo(result, input_format.get_dumper(), verbose=verbose)
+    method = functools.partial(
+        fc.update_flow,
+        flow_id,
+        flow_dict,
+        title,
+        subtitle,
+        description,
+        keywords,
+        flow_viewer,
+        flow_starter,
+        flow_administrator,
+        subscription_id,
+        input_schema_dict,
+        validate_definition=validate,
+        visible_to=visible_to,
+        runnable_by=runnable_by,
+        administered_by=administered_by,
+    )
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("lint")
@@ -460,19 +355,11 @@ def flow_lint(
         prompt=True,
         callback=input_validator,
     ),
-    input_format: InputFormat = typer.Option(
-        InputFormat.json,
-        "--input",
-        "-i",
-        help="Input format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
 ):
     """
     Parse and validate a Flow definition by providing visual output.
     """
-    flow_dict = process_input(definition, input_format)
+    flow_dict = process_input(definition)
 
     try:
         validate_flow_definition(flow_dict)
@@ -486,7 +373,7 @@ def flow_lint(
 @app.command("list")
 def flow_list(
     roles: List[FlowRoleAllNames] = typer.Option(
-        [FlowRole.flow_owner.value],
+        [FlowRole.flow_owner],
         "--role",
         "-r",
         help=(
@@ -515,7 +402,7 @@ def flow_list(
         min=1,
         max=50,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     filters: Optional[List[str]] = typer.Option(
         None,
         "--filter",
@@ -536,12 +423,19 @@ def flow_list(
         "will further sort ties. [repeatable]",
     ),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
+    output_format: ListingOutputFormat = typer.Option(
+        ListingOutputFormat.table,
         "--format",
         "-f",
         help="Output display format.",
         case_sensitive=False,
+        show_default=True,
+    ),
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll for new Flows.",
         show_default=True,
     ),
 ):
@@ -550,21 +444,25 @@ def flow_list(
     """
     parsed_filters = parse_query_options(filters)
     parsed_orderings = parse_query_options(orderings)
+    role_param = make_role_param(roles)
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        role_param = _make_role_param(roles)
-        response = fc.list_flows(
-            marker=marker,
-            per_page=per_page,
-            filters=parsed_filters,
-            orderings=parsed_orderings,
-            **role_param,
-        )
-    except GlobusAPIError as err:
-        response = err
-
-    format_and_echo(response, output_format.get_dumper(), verbose=verbose)
+    method = functools.partial(
+        fc.list_flows,
+        marker=marker,
+        per_page=per_page,
+        filters=parsed_filters,
+        orderings=parsed_orderings,
+        **role_param,
+    )
+    with live_content:
+        RequestRunner(
+            method,
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            fields=FlowListDisplayFields,
+        ).run_and_render()
 
 
 @app.command("display")
@@ -579,25 +477,15 @@ def flow_display(
         callback=input_validator,
         show_default=False,
     ),
-    definition_only: bool = typer.Option(
-        False,
-        "--definition-only",
-        help=(
-            "If present, only the steps of the Flow will be displayed when flow_id "
-            "is provided. Otherwise all fields related to the flow will be "
-            "displayed in the specified output format."
-        ),
-    ),
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
+    output_format: ImageOutputFormat = typer.Option(
+        ImageOutputFormat.json,
         "--format",
         "-f",
         help="Output display format.",
         case_sensitive=False,
         show_default=True,
     ),
-    flows_endpoint: str = _flows_env_var_option,
-    verbose: bool = verbosity_option,
+    flows_endpoint: str = flows_env_var_option,
 ):
     """
     Visualize a local or deployed Flow defintion. If providing a Flows's ID, You
@@ -611,46 +499,52 @@ def flow_display(
             "Only one of FLOW_ID or --flow_definition should be set."
         )
 
-    if flow_id:
-        fc = create_flows_client(CLIENT_ID, flows_endpoint)
-        try:
-            flow_get = fc.get_flow(flow_id)
-        except GlobusAPIError as err:
-            format_and_echo(err, verbose=verbose)
-            raise typer.Exit(1)
-        flow_definition = flow_get.data
-        if definition_only:
-            flow_definition = flow_definition["definition"]
-    else:
-        flow_definition = json.loads(flow_definition)
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    rr = RequestRunner(
+        functools.partial(fc.get_flow, flow_id),
+        format=output_format,
+        verbose=False,
+        watch=False,
+    )
 
-    _format_and_display_flow(flow_definition, output_format, verbose=verbose)
+    if flow_id:
+        result = rr.run()
+        if result.is_api_error:
+            rr.format = (
+                output_format
+                if output_format in {ImageOutputFormat.json, ImageOutputFormat.yaml}
+                else ImageOutputFormat.json
+            )
+            rr.render(result)
+            raise typer.Exit(1)
+        else:
+            flow_dict = result.data["definition"]
+    else:
+        flow_dict = process_input(flow_definition)
+
+    if output_format in {ImageOutputFormat.json, ImageOutputFormat.yaml}:
+        rr.render_as_result(flow_dict)
+    else:
+        output_format.visualize(flow_dict)
 
 
 @app.command("delete")
 def flow_delete(
     flow_id: str = typer.Argument(...),
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
-    flows_endpoint: str = _flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
     Delete a Flow. You must be in the Flow's "flow_administrators" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        flow_del = fc.delete_flow(flow_id)
-    except GlobusAPIError as err:
-        format_and_echo(err, verbose=verbose)
-    else:
-        _format_and_display_flow(flow_del, output_format, verbose=verbose)
+    method = functools.partial(fc.delete_flow, flow_id)
+    RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
 
 
 @app.command("run")
@@ -689,24 +583,9 @@ def flow_run(
     monitor_by: List[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
-    input_format: InputFormat = typer.Option(
-        InputFormat.json,
-        "--input",
-        "-i",
-        help="Input format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     label: str = typer.Option(
         ...,
         "--label",
@@ -734,7 +613,7 @@ def flow_run(
     You must be in the Flow's "flow_starters" list.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    flow_input_dict = _process_flow_input(flow_input, input_format)
+    flow_input_dict = process_input(flow_input)
     method = functools.partial(
         fc.run_flow,
         flow_id,
@@ -747,17 +626,27 @@ def flow_run(
         monitor_by=monitor_by,
         manage_by=manage_by,
     )
-
     with live_content:
-        # Set watch to false here to immediately return after running the Action
-        response = request_runner(method, output_format, verbose, False)
+        result = RequestRunner(
+            method,
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            run_once=True,
+        ).run_and_render()
 
-        if watch and isinstance(response, GlobusHTTPResponse):
-            action_id = response.data.get("action_id")
+        if not result.is_api_error and watch:
+            action_id = result.data.get("action_id")
             method = functools.partial(
                 fc.flow_action_status, flow_id, flow_scope, action_id
             )
-            request_runner(method, output_format, verbose, watch)
+            RequestRunner(
+                method,
+                format=output_format,
+                verbose=verbose,
+                watch=watch,
+                run_once=False,
+            ).run_and_render()
 
 
 @app.command("action-list")
@@ -786,7 +675,7 @@ def flow_actions_list(
         ),
     ),
     statuses: List[ActionStatus] = typer.Option(
-        None,
+        [],
         "--status",
         help="Display Actions with the selected status. [repeatable]",
     ),
@@ -823,38 +712,52 @@ def flow_actions_list(
         "ordering criteria will be used to sort the data, subsequent ordering criteria "
         "will further sort ties. [repeatable]",
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll for new Actions.",
+        show_default=True,
+    ),
+    output_format: ListingOutputFormat = typer.Option(
+        ListingOutputFormat.table,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
 ):
     """
     List a Flow definition's discrete invocations.
     """
     parsed_filters = parse_query_options(filters)
     parsed_orderings = parse_query_options(orderings)
+    statuses_str = [s.value for s in statuses]
+    role_param = make_role_param(roles)
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-
-    # This None check and check makes me unhappy but is necessary for mypy to
-    # be happy with the enums. If we can figure out what defaults flows uses
-    # for flow role/status queries, we can set those here and be done
-    statuses_str = None
-    if statuses is not None:
-        statuses_str = [s.value for s in statuses]
-    role_param = _make_role_param(roles)
-
-    try:
-        result = fc.list_flow_actions(
-            flow_id=flow_id,
-            flow_scope=flow_scope,
-            statuses=statuses_str,
-            marker=marker,
-            per_page=per_page,
-            filters=parsed_filters,
-            orderings=parsed_orderings,
-            **role_param,
-        )
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+    callable = functools.partial(
+        fc.list_flow_actions,
+        flow_id=flow_id,
+        flow_scope=flow_scope,
+        statuses=statuses_str,
+        marker=marker,
+        per_page=per_page,
+        filters=parsed_filters,
+        orderings=parsed_orderings,
+        **role_param,
+    )
+    with live_content:
+        RequestRunner(
+            callable,
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            fields=RunListDisplayFields,
+        ).run_and_render()
 
 
 @app.command("action-status")
@@ -870,7 +773,7 @@ def flow_action_status(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -878,6 +781,7 @@ def flow_action_status(
         help="Continuously poll this Action until it reaches a completed state.",
         show_default=True,
     ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -885,9 +789,10 @@ def flow_action_status(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     method = functools.partial(fc.flow_action_status, flow_id, flow_scope, action_id)
-
     with live_content:
-        request_runner(method, OutputFormat.json, verbose, watch)
+        RequestRunner(
+            method, format=output_format, verbose=verbose, watch=watch
+        ).run_and_render()
 
 
 @app.command("action-resume")
@@ -911,7 +816,15 @@ def flow_action_resume(
             "resume, and prompt for additional consent if needed."
         ),
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll this Action until it reaches a completed state.",
+        show_default=True,
+    ),
     verbose: bool = verbosity_option,
 ):
     """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set, and the
@@ -920,19 +833,39 @@ def flow_action_resume(
     Auth web interface.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        if query_for_inactive_reason:
-            result = fc.flow_action_status(flow_id, flow_scope, action_id)
+    if query_for_inactive_reason:
+        result = RequestRunner(
+            functools.partial(fc.flow_action_status, flow_id, flow_scope, action_id),
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            run_once=True,
+        ).run_and_render()
+        if not result.is_api_error:
             body = result.data
             status = body.get("status")
             details = body.get("details", {})
             code = details.get("code")
             if status == "INACTIVE" and code == "ConsentRequired":
                 flow_scope = details.get("required_scope")
-        result = fc.flow_action_resume(flow_id, flow_scope, action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+
+    with live_content:
+        result = RequestRunner(
+            functools.partial(fc.flow_action_resume, flow_id, flow_scope, action_id),
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            run_once=True,
+        ).run_and_render()
+        if not result.is_api_error and watch:
+            RequestRunner(
+                functools.partial(
+                    fc.flow_action_status, flow_id, flow_scope, action_id
+                ),
+                format=output_format,
+                verbose=verbose,
+                watch=watch,
+            ).run_and_render()
 
 
 @app.command("action-release")
@@ -949,7 +882,8 @@ def flow_action_release(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -957,11 +891,10 @@ def flow_action_release(
     After this, no further information about the run can be accessed.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        result = fc.flow_action_release(flow_id, flow_scope, action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+    method = functools.partial(fc.flow_action_release, flow_id, flow_scope, action_id)
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=False
+    ).run_and_render()
 
 
 @app.command("action-cancel")
@@ -978,18 +911,18 @@ def flow_action_cancel(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
     Cancel an active execution for a particular Flow definition's invocation.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    try:
-        result = fc.flow_action_cancel(flow_id, flow_scope, action_id)
-    except GlobusAPIError as err:
-        result = err
-    format_and_echo(result, verbose=verbose)
+    method = functools.partial(fc.flow_action_cancel, flow_id, flow_scope, action_id)
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=False
+    ).run_and_render()
 
 
 @app.command("action-log")
@@ -1032,8 +965,8 @@ def flow_action_log(
         min=1,
         max=50,
     ),
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
+    output_format: RunLogOutputFormat = typer.Option(
+        RunLogOutputFormat.table,
         "--format",
         "-f",
         help="Output display format.",
@@ -1049,7 +982,7 @@ def flow_action_log(
         "Only JSON and YAML output formats are supported.",
         show_default=True,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -1066,33 +999,36 @@ def flow_action_log(
         marker,
         per_page,
     )
-
-    if watch and output_format in {FlowDisplayFormat.json, FlowDisplayFormat.yaml}:
-        with live_content:
-            flow_log_runner(method, output_format, verbose, watch)
-        raise typer.Exit()
-
-    try:
-        resp = method()
-    except GlobusAPIError as err:
-        resp = err
-
-    if output_format in {FlowDisplayFormat.json, FlowDisplayFormat.yaml}:
-        format_and_echo(resp, output_format.get_dumper(), verbose=verbose)
-    else:
-        if isinstance(resp, GlobusHTTPResponse):
-            flow_def = fc.get_flow(flow_id)
-            dumper = output_format.get_dumper()
-            dumper(resp, flow_def)
+    rr = RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        fields=RunLogDisplayFields,
+        detetector=LogCompletionDetetector,
+    )
+    with live_content:
+        if output_format in {
+            RunLogOutputFormat.json,
+            RunLogOutputFormat.yaml,
+            RunLogOutputFormat.table,
+        }:
+            rr.run_and_render()
         else:
-            format_and_echo(resp, verbose=verbose)
+            result = rr.run()
+            if not result.is_api_error:
+                flow_def = fc.get_flow(flow_id)
+                output_format.visualize(result.result, flow_def)
+            else:
+                rr.format = RunLogOutputFormat.json
+                rr.render(result)
 
 
 @app.command("action-enumerate")
 @app.command("run-enumerate")
 def flow_action_enumerate(
     roles: List[ActionRoleAllNames] = typer.Option(
-        [ActionRole.run_owner.value],
+        [ActionRole.run_owner],
         "--role",
         help="Display Actions/Runs where you have at least the selected role. "
         "Precedence of roles is: run_monitor, run_manager, run_owner. "
@@ -1102,8 +1038,8 @@ def flow_action_enumerate(
         "are deprecated. [repeatable use deprecated as the lowest "
         "precedence value provided will determine the Actions/Runs displayed.]",
     ),
-    statuses: Optional[List[ActionStatus]] = typer.Option(
-        None,
+    statuses: List[ActionStatus] = typer.Option(
+        [],
         "--status",
         help="Display Actions with the selected status. [repeatable]",
     ),
@@ -1140,7 +1076,22 @@ def flow_action_enumerate(
         "ordering criteria will be used to sort the data, subsequent ordering criteria "
         "will further sort ties. [repeatable]",
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        "-w",
+        help="Continuously poll for new Actions.",
+        show_default=True,
+    ),
+    output_format: ListingOutputFormat = typer.Option(
+        ListingOutputFormat.table,
+        "--format",
+        "-f",
+        help="Output display format.",
+        case_sensitive=False,
+        show_default=True,
+    ),
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -1148,24 +1099,26 @@ def flow_action_enumerate(
     """
     parsed_filters = parse_query_options(filters)
     parsed_orderings = parse_query_options(orderings)
-    if statuses:
-        statuses_str: Optional[List[str]] = [s.value for s in statuses]
-    else:
-        statuses_str = None
-    role_param = _make_role_param(roles)
+    statuses_str = [s.value for s in statuses]
+    role_param = make_role_param(roles)
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
-    try:
-        resp = fc.enumerate_actions(
-            statuses=statuses_str,
-            marker=marker,
-            per_page=per_page,
-            filters=parsed_filters,
-            orderings=parsed_orderings,
-            **role_param,
-        )
-    except GlobusAPIError as err:
-        resp = err
-    format_and_echo(resp, verbose=verbose)
+    method = functools.partial(
+        fc.enumerate_actions,
+        statuses=statuses_str,
+        marker=marker,
+        per_page=per_page,
+        filters=parsed_filters,
+        orderings=parsed_orderings,
+        **role_param,
+    )
+    with live_content:
+        RequestRunner(
+            method,
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+            fields=RunEnumerateDisplayFields,
+        ).run_and_render()
 
 
 @app.command("action-update")
@@ -1186,16 +1139,9 @@ def flow_action_update(
         + " [repeatable]",
         callback=principal_validator,
     ),
-    flows_endpoint: str = _flows_env_var_option,
+    flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: FlowDisplayFormat = typer.Option(
-        FlowDisplayFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Update a Run on the Flows service
@@ -1203,36 +1149,16 @@ def flow_action_update(
     run_manager = run_manager if run_manager else None
     run_monitor = run_monitor if run_monitor else None
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
-    try:
-        resp = fc.flow_action_update(
+    RequestRunner(
+        functools.partial(
+            fc.flow_action_update,
             action_id,
             run_managers=run_manager,
             run_monitors=run_monitor,
-        )
-    except GlobusAPIError as err:
-        resp = err
-    format_and_echo(resp, dumper=output_format.get_dumper(), verbose=verbose)
-
-
-def _format_and_display_flow(
-    flow_resp: Union[GlobusHTTPResponse, dict],
-    output_format: FlowDisplayFormat,
-    verbose=False,
-):
-    """
-    Diplays a flow as either JSON, graphviz, or an image
-    """
-    if output_format in (FlowDisplayFormat.json, FlowDisplayFormat.yaml):
-        format_and_echo(flow_resp, output_format.get_dumper())
-    elif output_format in (FlowDisplayFormat.graphviz, FlowDisplayFormat.image):
-        if isinstance(flow_resp, GlobusHTTPResponse):
-            flow_resp = flow_resp.data["definition"]
-
-        graphviz_out = graphviz_format(flow_resp)
-        if output_format == FlowDisplayFormat.graphviz:
-            typer.echo(graphviz_out.source)
-        else:
-            graphviz_out.render("flows-output/graph", view=True, cleanup=True)
+        ),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
 
 
 if __name__ == "__main__":
