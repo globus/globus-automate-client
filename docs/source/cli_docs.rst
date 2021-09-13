@@ -240,6 +240,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``action-release``: Remove execution history for a particular…
 -  ``action-resume``: Resume a Flow in the INACTIVE state.
 -  ``action-status``: Display the status for a Flow definition’s…
+-  ``action-update``: Update a Run on the Flows service
 -  ``delete``: Delete a Flow.
 -  ``deploy``: Deploy a new Flow.
 -  ``display``: Visualize a local or deployed Flow defintion.
@@ -254,6 +255,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``run-release``: Remove execution history for a particular…
 -  ``run-resume``: Resume a Flow in the INACTIVE state.
 -  ``run-status``: Display the status for a Flow definition’s…
+-  ``run-update``: Update a Run on the Flows service
 -  ``update``: Update a Flow.
 
 ``globus-automate flow action-cancel``
@@ -341,12 +343,13 @@ List a Flow definition’s discrete invocations.
    If not present runs from all Flows will be displayed.
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
--  ``--role [run_monitor|run_manager|run_owner]``: Display Actions/Runs
-   where you have at least the selected role. Precedence of roles is:
-   run_monitor, run_manager, run_owner. Thus, by specifying, for
-   example, run_manager, all runs for which you hvae run_manager or
-   run_owner roles will be displayed. [repeatable use deprecated as the
-   lowest precedence value provided will determine the flows displayed.]
+-  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
+   Display Actions/Runs where you have at least the selected role.
+   Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
+   specifying, for example, run_manager, all runs for which you hvae
+   run_manager or run_owner roles will be displayed. [repeatable use
+   deprecated as the lowest precedence value provided will determine the
+   flows displayed.]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
    the selected status. [repeatable]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
@@ -485,6 +488,38 @@ Display the status for a Flow definition’s particular invocation.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow action-update``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update a Run on the Flows service
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow action-update [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--run-manager TEXT``: A principal which may change the execution of
+   the Run.The principal value is the user’s Globus Auth username or
+   their identity UUID in the form urn:globus:auth:identity:. A Globus
+   Group may also be used using the form urn:globus:groups:id:.
+   [repeatable]
+-  ``--run-monitor TEXT``: A principal which may monitor the execution
+   of the Run.The principal value is the user’s Globus Auth username or
+   their identity UUID in the form urn:globus:auth:identity:. A Globus
+   Group may also be used using the form urn:globus:groups:id:.
+   [repeatable]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
+   [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow delete``
@@ -804,12 +839,13 @@ List a Flow definition’s discrete invocations.
    If not present runs from all Flows will be displayed.
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
--  ``--role [run_monitor|run_manager|run_owner]``: Display Actions/Runs
-   where you have at least the selected role. Precedence of roles is:
-   run_monitor, run_manager, run_owner. Thus, by specifying, for
-   example, run_manager, all runs for which you hvae run_manager or
-   run_owner roles will be displayed. [repeatable use deprecated as the
-   lowest precedence value provided will determine the flows displayed.]
+-  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
+   Display Actions/Runs where you have at least the selected role.
+   Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
+   specifying, for example, run_manager, all runs for which you hvae
+   run_manager or run_owner roles will be displayed. [repeatable use
+   deprecated as the lowest precedence value provided will determine the
+   flows displayed.]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
    the selected status. [repeatable]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
@@ -948,6 +984,38 @@ Display the status for a Flow definition’s particular invocation.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
+-  ``--help``: Show this message and exit.
+
+``globus-automate flow run-update``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update a Run on the Flows service
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow run-update [OPTIONS] ACTION_ID
+
+**Arguments**:
+
+-  ``ACTION_ID``: [required]
+
+**Options**:
+
+-  ``--run-manager TEXT``: A principal which may change the execution of
+   the Run.The principal value is the user’s Globus Auth username or
+   their identity UUID in the form urn:globus:auth:identity:. A Globus
+   Group may also be used using the form urn:globus:groups:id:.
+   [repeatable]
+-  ``--run-monitor TEXT``: A principal which may monitor the execution
+   of the Run.The principal value is the user’s Globus Auth username or
+   their identity UUID in the form urn:globus:auth:identity:. A Globus
+   Group may also be used using the form urn:globus:groups:id:.
+   [repeatable]
+-  ``-v, --verbose``: Run with increased verbosity
+-  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
+   [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow update``

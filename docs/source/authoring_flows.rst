@@ -35,6 +35,7 @@ below) the same manor as defined in the States Language:
 * `Choice <https://states-language.net/spec.html#choice-state>`_
 
 * `Wait <https://states-language.net/spec.html#choice-state>`_
+* `Fail <https://states-language.net/spec.html#fail-state>`_
 
 .. note::
 
