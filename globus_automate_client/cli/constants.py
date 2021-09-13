@@ -93,18 +93,19 @@ class RunLogOutputFormat(str, enum.Enum):
             self.graphviz_text(flow_log, flow_def)
 
     def graphviz_text(self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse):
-        definition = flow_def.data["definition"]
-        colors = state_colors_for_log(flow_log.data["entries"])
-        graphviz_out = graphviz_format(definition, colors)
+        graphviz_out = self._as_graphiz(flow_log, flow_def)
         typer.echo(graphviz_out.source)
 
     def graphviz_image(
         self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse
     ):
+        graphviz_out = self._as_graphiz(flow_log, flow_def)
+        graphviz_out.render("flows-output/graph", view=True, cleanup=True)
+
+    def _as_graphiz(self, flow_log: GlobusHTTPResponse, flow_def: GlobusHTTPResponse):
         definition = flow_def.data["definition"]
         colors = state_colors_for_log(flow_log.data["entries"])
-        graphviz_out = graphviz_format(definition, colors)
-        graphviz_out.render("flows-output/graph", view=True, cleanup=True)
+        return graphviz_format(definition, colors)
 
 
 class ImageOutputFormat(str, enum.Enum):

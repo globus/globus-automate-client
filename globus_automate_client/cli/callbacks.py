@@ -144,12 +144,14 @@ def input_validator(body: str) -> str:
             # continue
             pass
     try:
-        json.loads(body)
+        parsed_body = json.loads(body)
     except json.JSONDecodeError:
         try:
-            yaml.safe_load(body)
+            parsed_body = yaml.safe_load(body)
         except yaml.YAMLError:
             raise typer.BadParameter(f"Unable to load input as JSON or YAML")
+    if not isinstance(parsed_body, dict):
+        raise typer.BadParameter(f"Unable to load input as JSON or YAML")
     return body
 
 

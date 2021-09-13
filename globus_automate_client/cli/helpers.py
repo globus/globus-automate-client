@@ -6,7 +6,11 @@ import yaml
 from globus_sdk import GlobusAPIError, GlobusHTTPResponse
 
 from globus_automate_client.cli.callbacks import flows_endpoint_envvar_callback
-from globus_automate_client.cli.constants import ActionRoleAllNames, FlowRoleAllNames
+from globus_automate_client.cli.constants import (
+    ActionRoleAllNames,
+    FlowRoleAllNames,
+    OutputFormat,
+)
 
 GlobusCallable = Callable[[], GlobusHTTPResponse]
 GlobusAPIResponse = Union[GlobusAPIError, GlobusHTTPResponse]
@@ -19,6 +23,15 @@ flows_env_var_option = typer.Option(
     None,
     hidden=True,
     callback=flows_endpoint_envvar_callback,
+)
+
+output_format_option: OutputFormat = typer.Option(
+    OutputFormat.json,
+    "--format",
+    "-f",
+    help="Output display format.",
+    case_sensitive=False,
+    show_default=True,
 )
 
 

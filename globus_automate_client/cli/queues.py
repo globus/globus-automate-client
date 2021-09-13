@@ -7,7 +7,7 @@ import typer
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import input_validator, principal_validator
 from globus_automate_client.cli.constants import OutputFormat
-from globus_automate_client.cli.helpers import verbosity_option
+from globus_automate_client.cli.helpers import output_format_option, verbosity_option
 from globus_automate_client.cli.rich_helpers import RequestRunner
 from globus_automate_client.queues_client import create_queues_client
 
@@ -31,14 +31,7 @@ def queue_list(
         case_sensitive=False,
         show_default=True,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -87,14 +80,7 @@ def queue_create(
         max=1209600,
         show_default=True,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -148,14 +134,7 @@ def queue_update(
         min=1,
         max=43200,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -178,14 +157,7 @@ def queue_update(
 @app.command("display")
 def queue_display(
     queue_id: str = typer.Argument(...),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -200,14 +172,7 @@ def queue_display(
 @app.command("delete")
 def queue_delete(
     queue_id: str = typer.Argument(...),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -228,14 +193,7 @@ def queue_receive(
     max_messages: int = typer.Option(
         None, help="The maximum number of messages to retrieve from the Queue", min=0
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -261,14 +219,7 @@ def queue_send(
         prompt=True,
         callback=input_validator,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -293,14 +244,7 @@ def queue_delete_message(
             "receive message. [repeatable]"
         ),
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """

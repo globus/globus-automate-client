@@ -9,7 +9,11 @@ from globus_automate_client.cli.callbacks import (
     url_validator_callback,
 )
 from globus_automate_client.cli.constants import OutputFormat
-from globus_automate_client.cli.helpers import process_input, verbosity_option
+from globus_automate_client.cli.helpers import (
+    output_format_option,
+    process_input,
+    verbosity_option,
+)
 from globus_automate_client.cli.rich_helpers import RequestRunner
 from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
@@ -31,14 +35,7 @@ def action_introspect(
         callback=url_validator_callback,
     ),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Introspect an Action Provider's schema.
@@ -90,14 +87,7 @@ def action_run(
         callback=principal_validator,
     ),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     label: str = typer.Option(
         None,
         "--label",
@@ -155,14 +145,7 @@ def action_status(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -204,14 +187,7 @@ def action_resume(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -275,14 +251,7 @@ def action_cancel(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Terminate a running Action by its ACTION_ID.
@@ -309,14 +278,7 @@ def action_release(
     ),
     action_id: str = typer.Argument(...),
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Remove an Action's execution history by its ACTION_ID.

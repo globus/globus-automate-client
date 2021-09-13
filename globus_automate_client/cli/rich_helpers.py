@@ -222,19 +222,16 @@ class Result:
     def __init__(
         self,
         response: Union[GlobusHTTPResponse, GlobusAPIError, str],
-        detetector: Optional[Type[CompletionDetetector]] = None,
+        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
     ):
         self.result = response
-        if detetector is None:
-            self.detetector: Type[CompletionDetetector] = ActionCompletionDetector
-        else:
-            self.detetector = detetector
+        self.detetector = detetector
 
         self.is_api_error = isinstance(response, GlobusAPIError)
         self.data: Dict[str, Any]
         if isinstance(response, str):
             self.data = {"result": response}
-        elif isinstance(response, GlobusAPIError):
+        elif self.is_api_error:
             self.data = response.raw_json if response.raw_json else response.raw_text
         else:
             self.data = response.data
@@ -390,7 +387,7 @@ class RequestRunner:
         watch: bool = False,
         run_once: bool = False,
         fields: Optional[Type[DisplayFields]] = None,
-        detetector: Optional[Type[CompletionDetetector]] = None,
+        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
     ):
         self.callable = callable
         self.format = format

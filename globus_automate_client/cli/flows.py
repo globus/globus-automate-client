@@ -27,6 +27,7 @@ from globus_automate_client.cli.constants import (
 from globus_automate_client.cli.helpers import (
     flows_env_var_option,
     make_role_param,
+    output_format_option,
     parse_query_options,
     process_input,
     verbosity_option,
@@ -169,14 +170,7 @@ def flow_deploy(
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
@@ -214,14 +208,7 @@ def flow_deploy(
 @app.command("get")
 def flow_get(
     flow_id: uuid.UUID = typer.Argument(..., help="A deployed Flow's ID"),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
     flows_endpoint: str = flows_env_var_option,
 ):
@@ -327,14 +314,7 @@ def flow_update(
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Update a Flow.
@@ -551,14 +531,7 @@ def flow_display(
 @app.command("delete")
 def flow_delete(
     flow_id: str = typer.Argument(...),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
@@ -612,14 +585,7 @@ def flow_run(
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     label: str = typer.Option(
         ...,
         "--label",
@@ -815,14 +781,7 @@ def flow_action_status(
         help="Continuously poll this Action until it reaches a completed state.",
         show_default=True,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     verbose: bool = verbosity_option,
 ):
     """
@@ -858,14 +817,7 @@ def flow_action_resume(
         ),
     ),
     flows_endpoint: str = flows_env_var_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -930,14 +882,7 @@ def flow_action_release(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
@@ -966,14 +911,7 @@ def flow_action_cancel(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
 ):
@@ -1203,14 +1141,7 @@ def flow_action_update(
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = typer.Option(
-        OutputFormat.json,
-        "--format",
-        "-f",
-        help="Output display format.",
-        case_sensitive=False,
-        show_default=True,
-    ),
+    output_format: OutputFormat = output_format_option,
 ):
     """
     Update a Run on the Flows service
