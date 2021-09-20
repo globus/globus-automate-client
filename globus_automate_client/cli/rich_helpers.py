@@ -21,6 +21,9 @@ from .constants import OutputFormat
 from .helpers import get_http_details
 from .rich_rendering import cli_content
 
+_title_max_width = 25
+_uuid_min_width = 36
+
 
 def humanize_datetimes(dt: str) -> str:
     return arrow.get(dt).humanize()
@@ -81,6 +84,8 @@ class Field:
         name: str,
         default: str,
         transformation: Optional[Callable[[str], str]] = None,
+        min_width: Optional[int] = None,
+        max_width: Optional[int] = None,
     ) -> None:
         """
         name: The name of the field which contains the data for display
@@ -91,6 +96,8 @@ class Field:
         self.name = name
         self.default = default
         self.transformation = transformation
+        self.min_width = min_width
+        self.max_width = max_width
 
 
 class DisplayFields(abc.ABC):
@@ -114,7 +121,7 @@ class RunListDisplayFields(DisplayFields):
     """
 
     fields = [
-        Field("action_id", ""),
+        Field("action_id", "", min_width=_uuid_min_width),
         Field("label", "<EMPTY>"),
         Field("status", ""),
         Field("start_time", "", humanize_datetimes),
@@ -141,11 +148,11 @@ class FlowListDisplayFields(DisplayFields):
     """
 
     fields = [
-        Field("title", ""),
-        Field("id", ""),
+        Field("title", "", max_width=_title_max_width),
+        Field("id", "", min_width=_uuid_min_width),
         Field("flow_owner", "", humanize_auth_urn),
-        Field("created_at", "", humanize_datetimes),
-        Field("updated_at", "", humanize_datetimes),
+        # Field("created_at", "", humanize_datetimes),
+        # Field("updated_at", "", humanize_datetimes),
     ]
     path_to_data_list = "flows"
     prehook = functools.partial(identity_to_user, "flow_owner")
@@ -325,7 +332,12 @@ class Renderer:
         assert self.fields is not None
         table = Table()
         for f in self.fields.fields:
-            table.add_column(f.name, style=self.table_style)
+            table.add_column(
+                f.name,
+                style=self.table_style,
+                min_width=f.min_width,
+                max_width=f.max_width,
+            )
 
         list_of_data: List[Dict[str, Any]] = self.result.data[
             self.fields.path_to_data_list
