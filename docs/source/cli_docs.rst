@@ -146,6 +146,8 @@ Resume an inactive Action by its ACTION_ID.
    resume, and prompt for additional consent if needed. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-w, --watch``: Continuously poll this Action until it reaches a
+   completed state. [default: False]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate action run``
@@ -179,7 +181,6 @@ Launch an Action.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-f, --format [json|yaml]``: Output display format. [default: json]
--  ``-i, --input [json|yaml]``: Input format. [default: json]
 -  ``-l, --label TEXT``: Optional label to mark this execution of the
    action.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
@@ -280,6 +281,7 @@ invocation.
    [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -303,9 +305,9 @@ Retrieve all Flow Runs you have access to view.
    run_manager or run_owner roles will be displayed. Values
    monitored_by, managed_by and created_by are deprecated. [repeatable
    use deprecated as the lowest precedence value provided will determine
-   the Actions/Runs displayed.] [default: run_owner]
+   the Actions/Runs displayed.] [default: ActionRole.run_owner]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
-   the selected status. [repeatable]
+   the selected status. [repeatable] [default: ]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -323,6 +325,9 @@ Retrieve all Flow Runs you have access to view.
    for descending order. The first ordering criteria will be used to
    sort the data, subsequent ordering criteria will further sort ties.
    [repeatable]
+-  ``-w, --watch``: Continuously poll for new Actions. [default: False]
+-  ``-f, --format [json|yaml|table]``: Output display format. [default:
+   table]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -351,7 +356,7 @@ List a Flow definition’s discrete invocations.
    deprecated as the lowest precedence value provided will determine the
    flows displayed.]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
-   the selected status. [repeatable]
+   the selected status. [repeatable] [default: ]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -370,6 +375,9 @@ List a Flow definition’s discrete invocations.
    sort the data, subsequent ordering criteria will further sort ties.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
+-  ``-w, --watch``: Continuously poll for new Actions. [default: False]
+-  ``-f, --format [json|yaml|table]``: Output display format. [default:
+   table]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow action-log``
@@ -401,8 +409,8 @@ Get a log of the steps executed by a Flow definition’s invocation.
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
    when used without providing a marker.
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
+-  ``-f, --format [json|yaml|table|image|graphiz]``: Output display
+   format. [default: table]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. Using this option will report only the latest state
    available.Only JSON and YAML output formats are supported. [default:
@@ -432,6 +440,7 @@ After this, no further information about the run can be accessed.
    [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -462,6 +471,9 @@ be prompted to allow Consent using the Globus Auth web interface.
 -  ``--query-for-inactive-reason / --no-query-for-inactive-reason``:
    Should the Action first be queried to determine the reason for the
    resume, and prompt for additional consent if needed. [default: True]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-w, --watch``: Continuously poll this Action until it reaches a
+   completed state. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -487,6 +499,7 @@ Display the status for a Flow definition’s particular invocation.
    requests.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -518,8 +531,7 @@ Update a Run on the Flows service
    Group may also be used using the form urn:globus:groups:id:.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow delete``
@@ -539,8 +551,7 @@ Delete a Flow. You must be in the Flow’s “flow_administrators” list.
 
 **Options**:
 
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -594,7 +605,7 @@ Deploy a new Flow.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-i, --input [json|yaml]``: Input format. [default: json]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--dry-run``: Do a dry run of deploying the flow to test your
    definition without actually making changes. [default: False]
 -  ``--help``: Show this message and exit.
@@ -621,13 +632,8 @@ You must have either created the Flow or be present in the Flow’s
 -  ``--flow-definition TEXT``: JSON or YAML representation of the Flow
    to display. May be provided as a filename or a raw string
    representing a JSON object or YAML definition.
--  ``--definition-only``: If present, only the steps of the Flow will be
-   displayed when flow_id is provided. Otherwise all fields related to
-   the flow will be displayed in the specified output format. [default:
-   False]
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
+-  ``-f, --format [json|yaml|image|graphviz]``: Output display format.
    [default: json]
--  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow get``
@@ -647,6 +653,7 @@ Get a Flow’s definition as it exists on the Flows service.
 
 **Options**:
 
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -665,7 +672,6 @@ Parse and validate a Flow definition by providing visual output.
 
 -  ``--definition TEXT``: JSON or YAML representation of the Flow to
    deploy. May be provided as a filename or a raw string. [required]
--  ``-i, --input [json|yaml]``: Input format. [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow list``
@@ -689,7 +695,7 @@ List Flows for which you have access.
    roles will be displayed. Values visible_to, runnable_by,
    administered_by and created_by are deprecated. [repeatable use
    deprecated as the lowest precedence value provided will determine the
-   flows displayed.] [default: flow_owner]
+   flows displayed.] [default: FlowRole.flow_owner]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -708,7 +714,9 @@ List Flows for which you have access.
    sort the data, subsequent ordering criteria will further sort ties.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-f, --format [json|yaml|table]``: Output display format. [default:
+   table]
+-  ``-w, --watch``: Continuously poll for new Flows. [default: False]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow run``
@@ -744,10 +752,8 @@ the Flow. You must be in the Flow’s “flow_starters” list.
    urn:globus:auth:identity:. A Globus Group may also be used using the
    form urn:globus:groups:id:. [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
--  ``-i, --input [json|yaml]``: Input format. [default: json]
--  ``-l, --label TEXT``: Optional label to mark this run. [required]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-l, --label TEXT``: Label to mark this run. [required]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
 -  ``--dry-run``: Do a dry run with your input to this flow to test the
@@ -776,6 +782,7 @@ invocation.
    [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -799,9 +806,9 @@ Retrieve all Flow Runs you have access to view.
    run_manager or run_owner roles will be displayed. Values
    monitored_by, managed_by and created_by are deprecated. [repeatable
    use deprecated as the lowest precedence value provided will determine
-   the Actions/Runs displayed.] [default: run_owner]
+   the Actions/Runs displayed.] [default: ActionRole.run_owner]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
-   the selected status. [repeatable]
+   the selected status. [repeatable] [default: ]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -819,6 +826,9 @@ Retrieve all Flow Runs you have access to view.
    for descending order. The first ordering criteria will be used to
    sort the data, subsequent ordering criteria will further sort ties.
    [repeatable]
+-  ``-w, --watch``: Continuously poll for new Actions. [default: False]
+-  ``-f, --format [json|yaml|table]``: Output display format. [default:
+   table]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -847,7 +857,7 @@ List a Flow definition’s discrete invocations.
    deprecated as the lowest precedence value provided will determine the
    flows displayed.]
 -  ``--status [SUCCEEDED|FAILED|ACTIVE|INACTIVE]``: Display Actions with
-   the selected status. [repeatable]
+   the selected status. [repeatable] [default: ]
 -  ``-m, --marker TEXT``: A pagination token for iterating through
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
@@ -866,6 +876,9 @@ List a Flow definition’s discrete invocations.
    sort the data, subsequent ordering criteria will further sort ties.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
+-  ``-w, --watch``: Continuously poll for new Actions. [default: False]
+-  ``-f, --format [json|yaml|table]``: Output display format. [default:
+   table]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow run-log``
@@ -897,8 +910,8 @@ Get a log of the steps executed by a Flow definition’s invocation.
    returned data.
 -  ``-p, --per-page INTEGER RANGE``: The page size to return. Only valid
    when used without providing a marker.
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
+-  ``-f, --format [json|yaml|table|image|graphiz]``: Output display
+   format. [default: table]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. Using this option will report only the latest state
    available.Only JSON and YAML output formats are supported. [default:
@@ -928,6 +941,7 @@ After this, no further information about the run can be accessed.
    [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -958,6 +972,9 @@ be prompted to allow Consent using the Globus Auth web interface.
 -  ``--query-for-inactive-reason / --no-query-for-inactive-reason``:
    Should the Action first be queried to determine the reason for the
    resume, and prompt for additional consent if needed. [default: True]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-w, --watch``: Continuously poll this Action until it reaches a
+   completed state. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -983,6 +1000,7 @@ Display the status for a Flow definition’s particular invocation.
    requests.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. [default: False]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1014,8 +1032,7 @@ Update a Run on the Flows service
    Group may also be used using the form urn:globus:groups:id:.
    [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-f, --format [json|graphviz|image|yaml]``: Output display format.
-   [default: json]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate flow update``
@@ -1074,7 +1091,7 @@ Update a Flow.
 -  ``--validate / --no-validate``: (EXPERIMENTAL) Perform rudimentary
    validation of the flow definition. [default: True]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-i, --input [json|yaml]``: Input format. [default: json]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--help``: Show this message and exit.
 
 ``globus-automate queue``
@@ -1130,6 +1147,7 @@ Create a new Queue.
    (in seconds) that the Queue Service should attempt to retry delivery
    of messages to the ‘receiver_url’ if delivery is not initially
    successful [default: 60]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1151,6 +1169,7 @@ or have a role defined on the Queue.
 
 **Options**:
 
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1171,6 +1190,7 @@ Display the description of a Queue based on its id.
 
 **Options**:
 
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1189,6 +1209,7 @@ List Queues for which you have access.
 
 -  ``-r, --role [admin|sender|receiver]``: Display Queues where you have
    the selected role. [repeatable] [default: QueueRole.admin]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1211,6 +1232,7 @@ Notify a Queue that a message has been processed.
 
 -  ``--receipt-handle TEXT``: A receipt_handle value returned by a
    previous call to receive message. [repeatable] [required]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1234,6 +1256,7 @@ Queue to perform this action.
 
 -  ``--max-messages INTEGER RANGE``: The maximum number of messages to
    retrieve from the Queue
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1257,6 +1280,7 @@ to perform this action.
 
 -  ``-m, --message TEXT``: Text of the message to send. Files may also
    be referenced. [required]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -1293,6 +1317,8 @@ Update a Queue’s properties. Requires the admin role on the Queue.
    (in seconds) that the Queue Service should attempt to retry delivery
    of messages to the ‘receiver_url’ if delivery is not initially
    successful [required]
+-  ``--visibility-timeout INTEGER RANGE``: [default: 30]
+-  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
