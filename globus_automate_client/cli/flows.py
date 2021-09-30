@@ -590,7 +590,7 @@ def flow_run(
         ...,
         "--label",
         "-l",
-        help="Optional label to mark this run.",
+        help="Label to mark this run.",
     ),
     watch: bool = typer.Option(
         False,
