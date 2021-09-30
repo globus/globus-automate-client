@@ -9,7 +9,7 @@
       "ActionUrl": "https://actions.automate.globus.org/hello_world",
       "Parameters": {
         "echo_string.$": "$.input.echo_string",
-        "sleep_time.$": "$.input.sleep"
+        "sleep_time.$": "$.input.sleep_time"
       },
       "ResultPath": "$.HelloResult",
       "End": true

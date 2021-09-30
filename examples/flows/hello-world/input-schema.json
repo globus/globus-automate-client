@@ -13,7 +13,7 @@
                 "echo_string": {
                     "type": "string"
                 },
-                "sleep": {
+                "sleep_time": {
                     "type": "integer"
                 }
             },
