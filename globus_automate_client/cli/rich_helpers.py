@@ -326,9 +326,10 @@ class Renderer:
         for f in self.fields.fields:
             table.add_column(f.name, style=self.table_style)
 
-        list_of_data: List[Dict[str, Any]] = self.result.data[
-            self.fields.path_to_data_list
-        ]
+        list_of_data: List[Dict[str, Any]] = self.result.data.get(
+            self.fields.path_to_data_list,
+            [],
+        )
         if self.fields.prehook:
             list_of_data = self.fields.prehook(list_of_data)
         for d in list_of_data:
