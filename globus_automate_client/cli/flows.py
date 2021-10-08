@@ -940,10 +940,10 @@ def flow_action_log(
         callback=url_validator_callback,
     ),
     reverse: bool = typer.Option(
-        # Defaulting to any boolean value will reverse output - so we use None
-        None,
+        False,
         "--reverse",
         help="Display logs starting from most recent and proceeding in reverse chronological order",
+        show_default=True,
     ),
     limit: int = typer.Option(
         None,
