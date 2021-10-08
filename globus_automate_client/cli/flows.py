@@ -948,7 +948,7 @@ def flow_action_log(
     limit: int = typer.Option(
         None,
         help="Set a maximum number of events from the log to return",
-        min=0,
+        min=1,
         max=100,
     ),
     marker: str = typer.Option(
