@@ -585,7 +585,18 @@ def flow_run(
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
-    output_format: OutputFormat = output_format_option,
+    output_format: ListingOutputFormat = typer.Option(
+        None,
+        "--format",
+        "-f",
+        help=(
+            "Output display format."
+            " If --watch is enabled then the default is 'table',"
+            " otherwise 'json' is the default."
+        ),
+        case_sensitive=False,
+        show_default=False,
+    ),
     label: str = typer.Option(
         ...,
         "--label",
@@ -596,7 +607,10 @@ def flow_run(
         False,
         "--watch",
         "-w",
-        help="Continuously poll this Action until it reaches a completed state.",
+        help=(
+            "Continuously poll this Action until it reaches a completed state."
+            " If enabled the default output format is 'table'."
+        ),
         show_default=True,
     ),
     dry_run: bool = typer.Option(
@@ -612,6 +626,14 @@ def flow_run(
     Run an instance of a Flow. The argument provides the initial state of the Flow.
     You must be in the Flow's "flow_starters" list.
     """
+
+    if not output_format:
+        # Default to JSON if the user did not specify an output format.
+        # However, if watch is enabled, default to tabular output.
+        output_format = ListingOutputFormat.json
+        if watch:
+            output_format = ListingOutputFormat.table
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_input_dict = process_input(flow_input)
     method = functools.partial(
@@ -632,21 +654,25 @@ def flow_run(
             format=output_format,
             verbose=verbose,
             watch=watch,
+            fields=RunLogDisplayFields,
             run_once=True,
         ).run_and_render()
 
         if not result.is_api_error and watch:
             action_id = result.data.get("action_id")
-            method = functools.partial(
-                fc.flow_action_status, flow_id, flow_scope, action_id
-            )
-            RequestRunner(
-                method,
-                format=output_format,
-                verbose=verbose,
+            return flow_action_log(
+                action_id=action_id,
+                flow_id=flow_id,
+                flow_scope=flow_scope,
+                reverse=False,
+                limit=100,
+                marker=None,
+                per_page=50,
+                output_format=output_format,
                 watch=watch,
-                run_once=False,
-            ).run_and_render()
+                flows_endpoint=flows_endpoint,
+                verbose=verbose,
+            )
 
 
 @app.command("action-list")
@@ -977,9 +1003,10 @@ def flow_action_log(
         False,
         "--watch",
         "-w",
-        help="Continuously poll this Action until it reaches a completed state. "
-        "Using this option will report only the latest state available."
-        "Only JSON and YAML output formats are supported.",
+        help=(
+            "Continuously poll this Action until it reaches a completed state."
+            " Using this option will report only the latest state available."
+        ),
         show_default=True,
     ),
     flows_endpoint: str = flows_env_var_option,
