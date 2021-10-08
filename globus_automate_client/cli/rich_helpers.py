@@ -208,9 +208,8 @@ class LogCompletionDetetector(CompletionDetetector):
 
     @classmethod
     def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
-        return (
-            isinstance(result, GlobusAPIError)
-            or result.data["entries"][-1]["code"] in self.terminals
+        return isinstance(result, GlobusAPIError) or any(
+            entry["code"] in self.terminals for entry in result.data["entries"]
         )
 
 
