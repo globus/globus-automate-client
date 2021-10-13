@@ -172,8 +172,11 @@ class ActionClient(BaseClient):
             supplied a pagination_token, this parameter has no effect. Not all
             ActionProviders will support this parameter.
         """
+
+        # *reverse_order* MUST BE None to prevent reversing the sort order.
+        # Any other value, including False, will reverse the sort order.
         params: Dict[str, Union[int, str]] = {
-            "reverse_order": reverse_order,
+            "reverse_order": reverse_order or None,
             "limit": limit,
         }
         if marker is not None:
