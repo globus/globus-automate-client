@@ -812,9 +812,11 @@ class FlowsClient(BaseClient):
 
         :param  statuses: The same as in ``enumerate_runs``.
 
-        :param  roles: The same as in ``enumerate_runs``.
-            .. deprecated:: 0.12
-               Use ``role`` instead
+        :param roles:
+            ..  deprecated:: 0.12
+                Use ``role`` instead
+
+            The same as in ``enumerate_runs``.
 
         :param  marker: The same as in ``enumerate_runs``.
 
