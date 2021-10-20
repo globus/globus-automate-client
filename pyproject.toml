@@ -6,24 +6,24 @@ authors = [
     "Uriel Mandujano <uriel@globus.org>",
     "Rudyard Richter <rudyard@globus.org>",
     "Jim Pruyne <pruyne@globus.org>",
-    "Jake Lewis <jake@globus.org>"
+    "Jake Lewis <jake@globus.org>",
 ]
 keywords = [
-  "globus",
-  "flows",
-  "automation",
-  "workflow",
-  "action_provider",
-  "command line"
-  ]
+    "globus",
+    "flows",
+    "automation",
+    "workflow",
+    "action_provider",
+    "command line",
+]
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.6",
-  "Topic :: Internet :: WWW/HTTP",
-  "Topic :: Software Development :: Libraries :: Application Frameworks",
-  "Topic :: Software Development :: Libraries :: Python Modules"
-  ]
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.6",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 readme = "README.rst"
 license = "Apache-2.0"
