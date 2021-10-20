@@ -171,7 +171,7 @@ Group's UUID prefixed with ``urn:globus:groups:id:``.
         globus get-identities username@globus.org
 
     To determine the Globus Group's ID, you can search for the Group in the
-    `Globus Web Application <https://app.globus.org/groups`_.
+    `Globus Web Application <https://app.globus.org/groups>`_.
 
 Two special values, ``public`` and ``all_authenticated_users`` may
 also be used in some authorization lists. ``public`` indicates that
