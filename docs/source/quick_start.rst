@@ -10,7 +10,7 @@ The Globus Automate CLI and SDK contains both a command-line tool
 ``globus-automate`` and a client library for interacting with Actions and Flows.
 It requires `Python <https://www.python.org/>`_ 3.6+. If a supported version of
 Python is not already installed on your system, see this `Python installation guide
-<http://docs.python-guide.org/en/latest/starting/installation/>`_.
+<https://docs.python-guide.org/starting/installation/>`_.
 
 For new users and users who want to primarily use the CLI interface into
 ``Globus Automate``, we highly recommend installing the package using pipx_:
