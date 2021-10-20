@@ -6,27 +6,25 @@ authors = [
     "Uriel Mandujano <uriel@globus.org>",
     "Rudyard Richter <rudyard@globus.org>",
     "Jim Pruyne <pruyne@globus.org>",
-    "Jake Lewis <jake@globus.org>"
+    "Jake Lewis <jake@globus.org>",
+    "Kurt McKee <kurt@globus.org>",
 ]
 keywords = [
-  "globus",
-  "flows",
-  "automation",
-  "workflow",
-  "action_provider",
-  "command line"
-  ]
+    "globus",
+    "flows",
+    "automation",
+    "workflow",
+    "action_provider",
+    "command line",
+]
 classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "License :: Free To Use But Restricted",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Topic :: Internet :: WWW/HTTP",
-  "Topic :: Software Development :: Libraries :: Application Frameworks",
-  "Topic :: Software Development :: Libraries :: Python Modules"
-  ]
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.6",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 readme = "README.rst"
 license = "Apache-2.0"
@@ -38,6 +36,7 @@ globus-automate = "globus_automate_client.cli.main:app"
 python = "^3.6.2"
 globus-sdk = "^2.0"
 graphviz = "^0.12"
+importlib-metadata = {version = "^4.8.1", python = "<3.8"}
 typer = {extras = ["all"], version = "^0.3.0"}
 jsonschema = "^3.2.0"
 PyYAML = "^5.3.1"
@@ -53,7 +52,7 @@ rstcheck = "^3.3.1"
 sphinx_material = "^0.0.30"
 furo = "^2021.4.11-beta.34"
 sphinx-copybutton = "^0.3.1"
-typer-cli = "^0.0.11"
+typer-cli = "^0.0.12"
 pypandoc = "^1.5"
 importmagic = "^0.1.7"
 epc = "^0.0.5"

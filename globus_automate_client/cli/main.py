@@ -1,7 +1,12 @@
+try:
+    from importlib.metadata import version as get_version
+except ImportError:
+    # Python < 3.8
+    from importlib_metadata import version as get_version
+
 import typer
 import yaml
 
-from globus_automate_client import __version__
 from globus_automate_client.cli import actions, flows, queues, session
 from globus_automate_client.cli.auth import DEFAULT_TOKEN_FILE
 
@@ -29,7 +34,7 @@ app.add_typer(session.app, name="session")
 
 def version_callback(display_version: bool):
     if display_version:
-        typer.echo(f"globus-automate {__version__}")
+        typer.echo(f"globus-automate {get_version('globus-automate-client')}")
         raise typer.Exit()
 
 
