@@ -90,7 +90,7 @@ the ``Action Provider`` is not possible  without providing the
 ``--action-scope`` option.
 
 All of the ``Action Providers`` operated by the Globus team are described in the
-section :ref:`Globus Action Providers`, which includes their URL and
+section :doc:`globus_action_providers`, which includes their URL and
 tips on using the CLI for interactions with these ``Action Providers`` directly.
 As these ``Action Providers`` are publicly viewable, there is no need to provide
 the  ``--action-scope`` option when working with them from the CLI -- the CLI
@@ -98,6 +98,9 @@ will look up the *scope string* automatically.
 
 As an example, we will work through the operations on the ``Hello World Action
 Provider`` at the URL ``https://actions.globus.org/hello_world``.
+
+
+..  _Introspection:
 
 Introspection
 ^^^^^^^^^^^^^
@@ -302,6 +305,9 @@ options, run the command with ``--help``:
     multiple times to provide multiple principals with read or write access on
     the Action.
 
+
+..  _Retrieving Status:
+
 Retrieving Status
 ^^^^^^^^^^^^^^^^^
 
@@ -321,6 +327,9 @@ as long as the Action exists on the ``Action Provider``.
 In out example, we asked the Action to "sleep" for 60 seconds. Therefore, the
 Action will remain in an ``ACTIVE`` state until 60 seconds have passed, at which
 point the status should be ``SUCCEEDED``.
+
+
+..  _Canceling and Releasing:
 
 Canceling and Releasing
 ^^^^^^^^^^^^^^^^^^^^^^^
