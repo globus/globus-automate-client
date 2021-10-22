@@ -6,7 +6,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
     Set,
@@ -764,7 +763,7 @@ class FlowsClient(BaseClient):
             params["orderby"] = ",".join(builder)
 
         self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
-        response = self.get(f"/runs", params=params, **kwargs)
+        response = self.get("/runs", params=params, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
