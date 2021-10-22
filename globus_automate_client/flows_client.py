@@ -21,7 +21,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient
+from globus_sdk import BaseClient
 from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient

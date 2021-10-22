@@ -7,7 +7,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient
+from globus_sdk import BaseClient
 
 from globus_automate_client.cli.auth import get_authorizer_for_scope
 
