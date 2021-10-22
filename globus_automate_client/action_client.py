@@ -7,7 +7,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient
+from globus_sdk import BaseClient
 
 from .helpers import merge_lists
 

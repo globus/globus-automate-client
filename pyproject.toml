@@ -34,7 +34,7 @@ globus-automate = "globus_automate_client.cli.main:app"
 
 [tool.poetry.dependencies]
 python = "^3.6.2"
-globus-sdk = "^2.0"
+globus-sdk = "^3.1"
 graphviz = "^0.12"
 importlib-metadata = {version = "^4.8.1", python = "<3.8"}
 typer = {extras = ["all"], version = "^0.3.0"}
@@ -62,6 +62,8 @@ mypy = "^0.910"
 types-PyYAML = "^5.4.6"
 types-requests = "^2.25.6"
 scriv = {extras = ["toml"], version = "^0.12.0"}
+tox = "^3.24.4"
+pre-commit = "^2.15.0"
 
 [tool.isort]
 multi_line_output = 3
