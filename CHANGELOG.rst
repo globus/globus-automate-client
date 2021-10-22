@@ -1,6 +1,15 @@
 CHANGELOG
 #########
 
+Unreleased changes
+==================
+
+Unreleased changes are documented in files in the `changelog.d`_ directory.
+
+..  _changelog.d: https://github.com/globus/globus-automate-client/tree/master/changelog.d
+
+..  scriv-insert-here
+
 0.12.2 — 2021-10-19
 ===================
 
