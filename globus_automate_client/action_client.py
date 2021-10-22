@@ -3,11 +3,11 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
 
 from globus_sdk import (
     AccessTokenAuthorizer,
+    BaseClient,
     ClientCredentialsAuthorizer,
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import BaseClient
 
 from .helpers import merge_lists
 

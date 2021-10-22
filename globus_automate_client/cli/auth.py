@@ -9,14 +9,18 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union
 
 import click
 import typer
-from globus_sdk import AuthClient, GlobusAPIError, NativeAppAuthClient
-from globus_sdk import OAuthTokenResponse
+from globus_sdk import (
+    AuthAPIError,
+    AuthClient,
+    GlobusAPIError,
+    NativeAppAuthClient,
+    OAuthTokenResponse,
+)
 from globus_sdk.authorizers import (
     AccessTokenAuthorizer,
     GlobusAuthorizer,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import AuthAPIError
 
 from globus_automate_client.action_client import ActionClient
 

@@ -3,11 +3,11 @@ from typing import Any, Dict, List, Optional
 
 from globus_sdk import (
     AccessTokenAuthorizer,
+    BaseClient,
     ClientCredentialsAuthorizer,
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import BaseClient
 
 from globus_automate_client.cli.auth import get_authorizer_for_scope
 
