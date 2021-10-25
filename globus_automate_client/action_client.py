@@ -29,6 +29,8 @@ class ActionClient(BaseClient):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        self._action_scope: Optional[str] = None
+
     @property
     def action_scope(self) -> str:
         """
@@ -39,7 +41,7 @@ class ActionClient(BaseClient):
         have to have been provided on initialization to the ``ActionClient``.
         Otherwise, this call will fail.
         """
-        if not hasattr(self, "_action_scope"):
+        if self._action_scope is None:
             resp = self.introspect()
             if resp.data is None:
                 self._action_scope = ""
