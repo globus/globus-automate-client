@@ -72,7 +72,7 @@ class TokenCache:
         self.modified = False
 
     @property
-    def tokens_for_environment(self) -> Dict[str, TokenSet]:
+    def tokens_for_environment(self):
         """
         We will sub-key the full token set for environments other than production
         """
@@ -142,7 +142,7 @@ class TokenCache:
             )
 
     @staticmethod
-    def _make_jsonable(tokens: TokensInTokenCache) -> Dict[str, Any]:
+    def _make_jsonable(tokens) -> Dict[str, Any]:
         serialized: Dict[str, Any] = {}
         for k, v in tokens.items():
             if isinstance(v, TokenSet):
