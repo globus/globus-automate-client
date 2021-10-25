@@ -33,9 +33,11 @@ class QueuesClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
-    def __init__(self, client_id, *args, **kwargs) -> None:
+    service_name: str = "queues"
+
+    def __init__(self, client_id, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.client_id = client_id
-        super().__init__(*args, **kwargs)
 
     def create_queue(
         self,
@@ -150,7 +152,6 @@ def create_queues_client(
     authorizer = get_authorizer_for_scope(QUEUES_ADMIN_SCOPE)
     return QueuesClient(
         client_id,
-        "queues_client",
         base_url=base_url,
         app_name="queues_client",
         authorizer=authorizer,

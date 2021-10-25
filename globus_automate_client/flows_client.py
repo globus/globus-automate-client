@@ -216,14 +216,15 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
+    service_name: str = "flows"
+
     def __init__(
         self,
         client_id: str,
         get_authorizer_callback: AuthorizerCallbackType,
-        *args,
         **kwargs,
     ) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self.client_id = client_id
         self.flow_management_authorizer: AllowedAuthorizersType = self.authorizer
         self.get_authorizer_callback = get_authorizer_callback
@@ -1041,7 +1042,6 @@ class FlowsClient(BaseClient):
         return cls(
             client_id,
             authorizer_callback,
-            "flows_client",
             app_name="Globus Automate SDK FlowsClient",
             base_url=base_url,
             authorizer=authorizer,
