@@ -1,5 +1,6 @@
 import uuid
 from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
+from urllib.parse import quote
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -62,7 +63,7 @@ class ActionClient(BaseClient):
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
         force_path: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -89,7 +90,7 @@ class ActionClient(BaseClient):
         if request_id is None:
             request_id = str(uuid.uuid4())
 
-        path = self.qjoin_path("run")
+        path = "/run"
         if force_path:
             path = force_path
         body = {
@@ -110,8 +111,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "status")
-        return self.get(path)
+
+        return self.get(f"{quote(action_id)}/status")
 
     def resume(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -125,8 +126,8 @@ class ActionClient(BaseClient):
             executed on this Action Provider.
 
         """
-        path = self.qjoin_path(action_id, "resume")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/resume")
 
     def cancel(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -135,8 +136,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "cancel")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/cancel")
 
     def release(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -145,8 +146,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "release")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/release")
 
     def log(
         self,
@@ -183,8 +184,7 @@ class ActionClient(BaseClient):
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = per_page
-        path = self.qjoin_path(action_id, "log")
-        return self.get(path, params=params)
+        return self.get(f"{quote(action_id)}/log", query_params=params)
 
     @classmethod
     def new_client(
