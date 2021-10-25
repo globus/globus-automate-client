@@ -285,7 +285,7 @@ def get_authorizers_for_scopes(
                     grant_response: OAuthTokenResponse, *args, **kwargs
                 ):
                     token_cache.update_from_oauth_token_response(
-                        grant_response, set([scope])
+                        grant_response, {scope}
                     )
 
                 authorizer = RefreshTokenAuthorizer(
