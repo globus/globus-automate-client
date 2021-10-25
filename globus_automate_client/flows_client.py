@@ -460,7 +460,7 @@ class FlowsClient(BaseClient):
         """
         self.authorizer = self.flow_management_authorizer
         params = {}
-        if roles is not None and len(roles) > 0:
+        if roles:
             params["filter_roles"] = ",".join(roles)
         if role is not None:
             params["filter_role"] = role
@@ -845,9 +845,9 @@ class FlowsClient(BaseClient):
             )
 
         params = {}
-        if statuses is not None and len(statuses) > 0:
+        if statuses:
             params["filter_status"] = ",".join(statuses)
-        if roles is not None and len(roles) > 0:
+        if roles:
             params["filter_roles"] = ",".join(roles)
         if role is not None:
             params["filter_role"] = role
