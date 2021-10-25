@@ -299,8 +299,6 @@ def get_authorizers_for_scopes(
                     expires_at=token_set.expiration_time,
                     on_refresh=refresh_handler,
                 )
-                # Force check that the token is not expired
-                authorizer.check_expiration_time()
             else:
                 authorizer = AccessTokenAuthorizer(token_set.access_token)
             authorizers[_get_base_scope(scope)] = authorizer
