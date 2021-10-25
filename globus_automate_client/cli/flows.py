@@ -164,7 +164,7 @@ def flow_deploy(
     ),
     validate: bool = typer.Option(
         True,
-        help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
+        help="(EXPERIMENTAL) Perform rudimentary validation of the flow definition.",
         case_sensitive=False,
         show_default=True,
     ),
