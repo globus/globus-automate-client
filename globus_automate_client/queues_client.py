@@ -47,7 +47,7 @@ class QueuesClient(BaseClient):
         **kwargs,
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_ADMIN_SCOPE)
-        body = {
+        data = {
             "data": {
                 "label": label,
                 "admins": admins,
@@ -56,7 +56,7 @@ class QueuesClient(BaseClient):
                 "delivery_timeout": delivery_timeout,
             }
         }
-        return self.post("/queues", body, **kwargs)
+        return self.post("/queues", data=data, **kwargs)
 
     def get_queue(self, queue_id: str) -> GlobusHTTPResponse:
         return self.get(f"/queues/{queue_id}")
@@ -68,7 +68,7 @@ class QueuesClient(BaseClient):
         params = {}
         if roles is not None and len(roles) > 0:
             params.update(dict(roles=",".join(roles)))
-        return self.get("/queues", params=params, **kwargs)
+        return self.get("/queues", query_params=params, **kwargs)
 
     def update_queue(
         self,
@@ -81,19 +81,19 @@ class QueuesClient(BaseClient):
         visibility_timeout: Optional[int] = None,
         **kwargs,
     ) -> Optional[GlobusHTTPResponse]:
-        body = dict(
-            id=queue_id,
-            label=label,
-            admins=admins,
-            senders=senders,
-            receivers=receivers,
-            delivery_timeout=delivery_timeout,
-            visibility_timeout=visibility_timeout,
-        )
+        body = {
+            "id": queue_id,
+            "label": label,
+            "admins": admins,
+            "senders": senders,
+            "receivers": receivers,
+            "delivery_timeout": delivery_timeout,
+            "visibility_timeout": visibility_timeout,
+        }
         # Remove the missing values from the update operation
         body = {k: v for k, v in body.items() if v is not None}
         if body:
-            return self.put(f"/queues/{queue_id}", {"data": body}, **kwargs)
+            return self.put(f"/queues/{queue_id}", data={"data": body}, **kwargs)
         else:
             return None
 
@@ -113,12 +113,12 @@ class QueuesClient(BaseClient):
         self.authorizer = get_authorizer_for_scope(QUEUES_SEND_SCOPE)
         if deduplication_id is None:
             deduplication_id = str(uuid.uuid4())
-        body = {
+        data = {
             "data": [
                 {"deduplication_id": deduplication_id, "message_body": message_body}
-            ]
+            ],
         }
-        return self.post(f"/queues/{queue_id}/messages", body)
+        return self.post(f"/queues/{queue_id}/messages", data=data)
 
     def receive_messages(
         self,
@@ -130,7 +130,7 @@ class QueuesClient(BaseClient):
         params: Dict[str, Any] = {"max_messages": max_messages}
         if receive_request_attempt_id is not None:
             params["receive_request_attempt_id"] = receive_request_attempt_id
-        return self.get(f"/queues/{queue_id}/messages", params=params)
+        return self.get(f"/queues/{queue_id}/messages", query_params=params)
 
     def delete_messages(
         self, queue_id: str, receipt_handles: List[str]

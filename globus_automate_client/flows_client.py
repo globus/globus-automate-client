@@ -312,7 +312,7 @@ class FlowsClient(BaseClient):
         url = "/flows"
         if dry_run:
             url = "/flows/dry-run"
-        return self.post(url, req_body, **kwargs)
+        return self.post(url, data=req_body, **kwargs)
 
     def update_flow(
         self,
@@ -394,8 +394,8 @@ class FlowsClient(BaseClient):
         temp_body["subscription_id"] = subscription_id
         temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
-        req_body = {k: v for k, v in temp_body.items() if v}
-        return self.put(f"/flows/{flow_id}", req_body, **kwargs)
+        data = {k: v for k, v in temp_body.items() if v}
+        return self.put(f"/flows/{flow_id}", data=data, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -478,7 +478,7 @@ class FlowsClient(BaseClient):
             for field, value in orderings.items():
                 builder.append(f"{field} {value}")
             params["orderby"] = ",".join(builder)
-        return self.get("/flows", params=params, **kwargs)
+        return self.get("/flows", query_params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -763,7 +763,7 @@ class FlowsClient(BaseClient):
             params["orderby"] = ",".join(builder)
 
         self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
-        response = self.get("/runs", params=params, **kwargs)
+        response = self.get("/runs", query_params=params, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
@@ -867,7 +867,7 @@ class FlowsClient(BaseClient):
             params["orderby"] = ",".join(builder)
 
         self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        response = self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        response = self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
@@ -903,7 +903,7 @@ class FlowsClient(BaseClient):
             payload["run_monitors"] = run_monitors
 
         self.authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
-        response = self.put(f"/runs/{action_id}", payload, **kwargs)
+        response = self.put(f"/runs/{quote(action_id)}", data=payload, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
