@@ -92,7 +92,7 @@ def create_flows_client(
     specific Flow will similarly search for valid tokens in the local cache,
     triggering an interactive log-in if they cannot be found.
 
-    :param: scope: The Globus Auth scope to which the FlowsClient should be
+    :param scope: The Globus Auth scope to which the FlowsClient should be
         created with consents to
     :param client_id: The Globus ID to associate with this instance of the
         FlowsClient
