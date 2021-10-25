@@ -26,8 +26,10 @@ class ActionClient(BaseClient):
         AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
     ]
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    service_name: str = "actions"
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         self._action_scope: Optional[str] = None
 
@@ -212,7 +214,6 @@ class ActionClient(BaseClient):
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
         return cls(
-            "action_client",
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
