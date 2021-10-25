@@ -139,10 +139,10 @@ class QueuesClient(BaseClient):
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_RECEIVE_SCOPE)
         body = {"data": [{"receipt_handle": rh} for rh in receipt_handles]}
-        return self._request(
+        return self.request(
             "DELETE",
             f"/queues/{queue_id}/messages",
-            json_body=body,
+            data=body,
         )
 
 
