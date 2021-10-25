@@ -26,6 +26,7 @@ class ActionClient(BaseClient):
         AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
     ]
 
+    base_path: str = ""
     service_name: str = "actions"
 
     def __init__(self, **kwargs) -> None:

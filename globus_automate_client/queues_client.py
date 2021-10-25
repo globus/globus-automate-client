@@ -33,6 +33,7 @@ class QueuesClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
+    base_path: str = ""
     service_name: str = "queues"
 
     def __init__(self, client_id, **kwargs) -> None:

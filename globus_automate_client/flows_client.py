@@ -216,6 +216,7 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
+    base_path: str = ""
     service_name: str = "flows"
 
     def __init__(
