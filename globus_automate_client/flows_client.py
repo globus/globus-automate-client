@@ -291,21 +291,21 @@ class FlowsClient(BaseClient):
         if validate_schema:
             validate_input_schema(input_schema)
         self.authorizer = self.flow_management_authorizer
-        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
-        temp_body["subtitle"] = subtitle
-        temp_body["description"] = description
-        temp_body["keywords"] = keywords
-        # We'll accept some aliases for the role lists passed in kwargs
-        temp_body["flow_viewers"] = merge_lists(
-            flow_viewers, kwargs, "visible_to", "viewers"
-        )
-        temp_body["flow_starters"] = merge_lists(
-            flow_starters, kwargs, "runnable_by", "starters"
-        )
-        temp_body["flow_administrators"] = merge_lists(
-            flow_administrators, kwargs, "administered_by", "administrators"
-        )
-        temp_body["subscription_id"] = subscription_id
+        temp_body: Dict[str, Any] = {
+            "definition": flow_definition,
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "keywords": keywords,
+            "flow_viewers": merge_lists(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_starters": merge_lists(
+                flow_starters, kwargs, "runnable_by", "starters"
+            ),
+            "flow_administrators": merge_lists(
+                flow_administrators, kwargs, "administered_by", "administrators"
+            ),
+            "subscription_id": subscription_id,
+        }
         # Remove None / empty list items from the temp_body
         req_body = {k: v for k, v in temp_body.items() if v}
         # We do this after clearing false truthy values since an empty input schema is a
@@ -381,21 +381,22 @@ class FlowsClient(BaseClient):
         if validate_schema and input_schema is not None:
             validate_input_schema(input_schema)
         self.authorizer = self.flow_management_authorizer
-        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
-        temp_body["subtitle"] = subtitle
-        temp_body["description"] = description
-        temp_body["keywords"] = keywords
-        temp_body["flow_viewers"] = merge_lists(
-            flow_viewers, kwargs, "visible_to", "viewers"
-        )
-        temp_body["flow_starters"] = merge_lists(
-            flow_starters, kwargs, "runnable_by", "starters"
-        )
-        temp_body["flow_administrators"] = merge_lists(
-            flow_administrators, kwargs, "administered_by", "administrators"
-        )
-        temp_body["subscription_id"] = subscription_id
-        temp_body["input_schema"] = input_schema
+        temp_body: Dict[str, Any] = {
+            "definition": flow_definition,
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "keywords": keywords,
+            "flow_viewers": merge_lists(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_starters": merge_lists(
+                flow_starters, kwargs, "runnable_by", "starters"
+            ),
+            "flow_administrators": merge_lists(
+                flow_administrators, kwargs, "administered_by", "administrators"
+            ),
+            "subscription_id": subscription_id,
+            "input_schema": input_schema,
+        }
         # Remove None / empty list items from the temp_body
         data = {k: v for k, v in temp_body.items() if v}
         return self.put(f"/flows/{flow_id}", data=data, **kwargs)
