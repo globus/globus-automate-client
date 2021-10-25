@@ -282,6 +282,9 @@ class FlowsClient(BaseClient):
         :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to deploy the Flow.
 
+        :param dry_run: Set to ``True`` to test whether the Flow can be
+            deployed successfully.
+
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
@@ -555,7 +558,12 @@ class FlowsClient(BaseClient):
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
             authorizer_callback defined for the FlowsClient will be used.
+
+        :param dry_run: Set to ``True`` to test what will happen if the Flow is run
+            without actually running the Flow.
+
         """
+
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = f"{self.base_url}/flows/{flow_id}"
         ac = ActionClient.new_client(flow_url, authorizer)
