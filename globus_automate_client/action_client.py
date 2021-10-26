@@ -51,7 +51,7 @@ class ActionClient(BaseClient):
                 self._action_scope = resp.data.get("globus_auth_scope", "")
         return self._action_scope
 
-    def introspect(self, **kwargs) -> GlobusHTTPResponse:
+    def introspect(self, **_) -> GlobusHTTPResponse:
         """
         Introspect the details of an Action Provider to discover information
         such as its expected ``action_scope``, its ``input_schema``, and who to
@@ -211,9 +211,12 @@ class ActionClient(BaseClient):
             the Action Provider to be made.
 
         **Examples**
-            >>> authorizer = ...
-            >>> action_url = "https://actions.globus.org/hello_world"
-            >>> ac = ActionClient.new_client(action_url, authorizer)
+
+        ..  code-block:: pycon
+
+            >>> auth = ...
+            >>> url = "https://actions.globus.org/hello_world"
+            >>> ac = ActionClient.new_client(url, auth)
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
         return cls(
