@@ -98,7 +98,7 @@ def _all_vals_for_keys(
             )
         elif isinstance(v, list):
             for val in v:
-                if k in key_name_set and isinstance(v, str):
+                if k in key_name_set and isinstance(val, str):
                     val_set.add(val)
                 elif isinstance(val, dict):
                     val_set.update(
