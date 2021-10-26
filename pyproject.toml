@@ -84,3 +84,6 @@ ignore_missing_imports = true
 
 [tool.scriv]
 categories = ["Features", "Bugfixes", "Documentation"]
+
+[tool.coverage.run]
+branch = true
