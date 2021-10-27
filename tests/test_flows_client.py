@@ -8,6 +8,16 @@ import yaml
 
 from globus_automate_client import flows_client
 
+VALID_FLOW_DEFINITION = {
+    "StartAt": "perfect",
+    "States": {
+        "perfect": {
+            "Type": "Pass",
+            "End": True,
+        },
+    },
+}
+
 
 @pytest.fixture
 def fc():
@@ -55,16 +65,7 @@ def test_all_vals_for_keys(d, names, stop_names, expected, message):
 def test_validate_flow_definition_valid():
     """Confirm that valid and well-formed schema raise no errors."""
 
-    schema = {
-        "StartAt": "perfect",
-        "States": {
-            "perfect": {
-                "Type": "Pass",
-                "End": True,
-            },
-        },
-    }
-    flows_client.validate_flow_definition(schema)
+    flows_client.validate_flow_definition(VALID_FLOW_DEFINITION)
 
 
 def test_validate_flow_definition_multiple_validity_errors():
@@ -183,15 +184,7 @@ def test_deploy_flow_data_construction(fc, mocked_responses):
 
     mocked_responses.add("POST", "https://flows.api.globus.org/flows")
     expected: Dict[str, Union[str, Dict[str, Any]]] = {
-        "definition": {
-            "StartAt": "1",
-            "States": {
-                "1": {
-                    "Type": "Pass",
-                    "End": True,
-                },
-            },
-        },
+        "definition": VALID_FLOW_DEFINITION,
         "input_schema": {"Comment": "flow-input-schema"},
         "title": "--title--",
         "subtitle": "--subtitle--",
@@ -232,7 +225,7 @@ def test_deploy_flow_exclude_most_false_values(
     mocked_responses.add("POST", "https://flows.api.globus.org/flows")
     fc.deploy_flow(
         # Included arguments
-        flow_definition={"--flow_definition--": True},
+        flow_definition=VALID_FLOW_DEFINITION,
         title="--title--",
         input_schema=input_schema,
         # Excluded arguments
@@ -256,9 +249,8 @@ def test_deploy_flow_dry_run(fc, mocked_responses, dry_run, path):
     url = f"https://flows.api.globus.org/{path}"
     mocked_responses.add("POST", url)
     fc.deploy_flow(
-        {},
-        "bogus",
-        validate_definition=False,
+        flow_definition=VALID_FLOW_DEFINITION,
+        title="bogus",
         validate_schema=False,
         dry_run=dry_run,
     )
@@ -283,7 +275,7 @@ def test_deploy_flow_aliases(fc, mocked_responses):
         administered_by=["a3"],
         administrators=["a4"],
         # Everything below is mandatory but irrelevant to this test.
-        flow_definition={},
+        flow_definition=VALID_FLOW_DEFINITION,
         title="",
         validate_definition=False,
         validate_schema=False,
