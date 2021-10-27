@@ -8,6 +8,14 @@ import yaml
 from globus_automate_client import flows_client
 
 
+@pytest.fixture
+def fc():
+    client = flows_client.FlowsClient("client", flows_client.AccessTokenAuthorizer)
+    original_authorizer = client.authorizer
+    yield client
+    assert client.authorizer is original_authorizer
+
+
 @pytest.mark.parametrize(
     "d, names, stop_names, expected, message",
     (
@@ -150,3 +158,20 @@ def test_get_flows_base_url_for_environment_known(monkeypatch, value, expected):
             flows_client._get_flows_base_url_for_environment()
     else:
         assert flows_client._get_flows_base_url_for_environment() == expected
+
+
+def test_use_temporary_authorizer(fc):
+    """Verify the authorizer instance variable is swapped temporarily."""
+
+    original = fc.authorizer
+    replacement = flows_client.AccessTokenAuthorizer("bogus")
+
+    with fc.use_temporary_authorizer(replacement):
+        assert fc.authorizer is replacement
+    assert fc.authorizer is original
+
+    with pytest.raises(ValueError):
+        with fc.use_temporary_authorizer(replacement):
+            assert fc.authorizer is replacement
+            raise ValueError
+    assert fc.authorizer is original
