@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+from typing import Any, Dict, Union
 
 import pytest
 import yaml
@@ -175,3 +176,119 @@ def test_use_temporary_authorizer(fc):
             assert fc.authorizer is replacement
             raise ValueError
     assert fc.authorizer is original
+
+
+def test_deploy_flow_data_construction(fc, mocked_responses):
+    """Verify the flow JSON data is constructed correctly."""
+
+    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    expected: Dict[str, Union[str, Dict[str, Any]]] = {
+        "definition": {
+            "StartAt": "1",
+            "States": {
+                "1": {
+                    "Type": "Pass",
+                    "End": True,
+                },
+            },
+        },
+        "input_schema": {"Comment": "flow-input-schema"},
+        "title": "--title--",
+        "subtitle": "--subtitle--",
+        "description": "--description--",
+        "keywords": "--keywords--",
+        "flow_viewers": ["--flow_viewers--"],
+        "flow_starters": ["--flow_starters--"],
+        "flow_administrators": ["--flow_administrators--"],
+        "subscription_id": "--subscription_id--",
+    }
+    fc.deploy_flow(
+        # Arguments that affect the JSON data
+        flow_definition=expected["definition"],
+        input_schema=expected["input_schema"],
+        title=expected["title"],
+        subtitle=expected["subtitle"],
+        description=expected["description"],
+        keywords=expected["keywords"],
+        flow_viewers=expected["flow_viewers"],
+        flow_starters=expected["flow_starters"],
+        flow_administrators=expected["flow_administrators"],
+        subscription_id=expected["subscription_id"],
+        # Other arguments
+        validate_definition=True,
+        validate_schema=True,
+        dry_run=False,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert data == expected
+
+
+@pytest.mark.parametrize("input_schema, expected", ((None, False), ({}, True)))
+def test_deploy_flow_exclude_most_false_values(
+    fc, mocked_responses, input_schema, expected
+):
+    """Verify the *input_schema* is not excluded even if it's false-y."""
+
+    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    fc.deploy_flow(
+        # Included arguments
+        flow_definition={"--flow_definition--": True},
+        title="--title--",
+        input_schema=input_schema,
+        # Excluded arguments
+        subtitle="",
+        description=None,
+        # Other arguments
+        validate_definition=False,
+        validate_schema=False,
+        dry_run=False,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert "subtitle" not in data
+    assert "description" not in data
+    assert ("input_schema" in data) is expected
+
+
+@pytest.mark.parametrize("dry_run, path", ((False, "flows"), (True, "flows/dry-run")))
+def test_deploy_flow_dry_run(fc, mocked_responses, dry_run, path):
+    """Verify the *dry_run* parameter affects the URL path."""
+
+    url = f"https://flows.api.globus.org/{path}"
+    mocked_responses.add("POST", url)
+    fc.deploy_flow(
+        {},
+        "bogus",
+        validate_definition=False,
+        validate_schema=False,
+        dry_run=dry_run,
+    )
+    assert mocked_responses.calls[0].request.url == url
+
+
+def test_deploy_flow_aliases(fc, mocked_responses):
+    """Verify that viewer/starter/admin aliases are still supported."""
+
+    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    fc.deploy_flow(
+        # Flow viewers and aliases
+        flow_viewers=["v1", "v2"],
+        visible_to=["v3"],
+        viewers=["v4"],
+        # Flow starters and aliases
+        flow_starters=["s1", "s2"],
+        runnable_by=["s3"],
+        starters=["s4"],
+        # Flow admins and aliases
+        flow_administrators=["a1", "a2"],
+        administered_by=["a3"],
+        administrators=["a4"],
+        # Everything below is mandatory but irrelevant to this test.
+        flow_definition={},
+        title="",
+        validate_definition=False,
+        validate_schema=False,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
+    assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
+    assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
