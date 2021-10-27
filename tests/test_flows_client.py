@@ -284,3 +284,31 @@ def test_deploy_flow_aliases(fc, mocked_responses):
     assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
     assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
     assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
+
+
+@pytest.mark.parametrize("method", ("deploy_flow", "update_flow"))
+def test_invalid_flow_definition_failure(fc, method):
+    """Verify that an invalid flow definition triggers a failure."""
+
+    with pytest.raises(flows_client.FlowValidationError):
+        getattr(fc, method)(
+            flow_id="bogus-id",
+            flow_definition={"bogus": True},
+            title="title",
+            validate_definition=True,
+        )
+
+
+@pytest.mark.parametrize("method", ("deploy_flow", "update_flow"))
+def test_invalid_input_schema_failure(fc, method):
+    """Verify that an invalid input schema triggers a failure."""
+
+    with pytest.raises(flows_client.FlowValidationError):
+        getattr(fc, method)(
+            flow_id="bogus-id",
+            flow_definition=VALID_FLOW_DEFINITION,
+            input_schema={"required": False},
+            title="title",
+            validate_definition=False,
+            validate_schema=True,
+        )
