@@ -14,7 +14,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from urllib.parse import quote
+from urllib.parse import quote, urljoin
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -529,7 +529,7 @@ class FlowsClient(BaseClient):
 
         :param flow_id: The UUID identifying the Flow's scope to lookup
         """
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         return ActionClient.new_client(
             flow_url, authorizer=self.authorizer
         ).action_scope
@@ -543,7 +543,7 @@ class FlowsClient(BaseClient):
         if flow_scope is None:
             flow_scope = self.scope_for_flow(flow_id)
 
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         return self.get_authorizer_callback(
             flow_url=flow_url,
             flow_scope=flow_scope,
@@ -596,7 +596,7 @@ class FlowsClient(BaseClient):
         """
 
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         run_monitors = merge_lists(run_monitors, kwargs, "monitor_by")
         run_managers = merge_lists(run_managers, kwargs, "manage_by")
@@ -643,7 +643,7 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.status(flow_action_id)
 
@@ -668,7 +668,7 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.resume(flow_action_id)
 
@@ -692,7 +692,7 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.release(flow_action_id)
 
@@ -716,7 +716,7 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.cancel(flow_action_id)
 
@@ -985,7 +985,7 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        flow_url = f"{self.base_url}/flows/{flow_id}"
+        flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.log(flow_action_id, limit, reverse_order, marker, per_page)
 
