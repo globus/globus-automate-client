@@ -511,3 +511,17 @@ def test_delete_flow(fc, mocked_responses):
     mocked_responses.add("DELETE", url)
     fc.delete_flow("bogus")
     assert mocked_responses.calls[0].request.url == url
+
+
+def test_scope_for_flow(fc, mocked_responses):
+    """Verify that scopes can be introspected.
+
+    This method relies entirely on ActionClient code.
+    """
+
+    mocked_responses.add(
+        method="GET",
+        url="https://flows.api.globus.org/flows/bogus-id",
+        json={"globus_auth_scope": "bogus-scope"},
+    )
+    assert fc.scope_for_flow("bogus-id") == "bogus-scope"
