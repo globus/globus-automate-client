@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 import urllib.parse
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, cast
 
 import pytest
 import yaml
@@ -525,3 +525,27 @@ def test_scope_for_flow(fc, mocked_responses):
         json={"globus_auth_scope": "bogus-scope"},
     )
     assert fc.scope_for_flow("bogus-id") == "bogus-scope"
+
+
+def test_get_authorizer_for_flow_found_in_extras(fc):
+    """Verify that an authorizer can be found in *extras*."""
+
+    authorizer = fc._get_authorizer_for_flow("1", "2", {"authorizer": "extra"})
+    assert authorizer == "extra", "authorizer not found in *extras* parameter"
+
+
+@pytest.mark.parametrize(
+    "flow_scope, expected",
+    (
+        (None, "dynamic-lookup"),
+        ("", ""),
+        ("passed-value", "passed-value"),
+    ),
+)
+def test_get_authorizer_for_flow_scope_lookup(fc, monkeypatch, flow_scope, expected):
+    """Verify that scopes are dynamically looked up as needed."""
+
+    monkeypatch.setattr(fc, "scope_for_flow", lambda _: "dynamic-lookup")
+    monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: x)
+    result = cast(dict, fc._get_authorizer_for_flow("bogus", flow_scope, {}))
+    assert result["flow_scope"] == expected
