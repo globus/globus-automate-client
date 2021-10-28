@@ -405,3 +405,12 @@ def test_update_flow_aliases(fc, mocked_responses):
     assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
     assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
     assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
+
+
+def test_get_flow(fc, mocked_responses):
+    """Verify the URL that is used to get a flow definition."""
+
+    url = "https://flows.api.globus.org/flows/bogus"
+    mocked_responses.add("GET", url)
+    fc.get_flow("bogus")
+    assert mocked_responses.calls[0].request.url == url
