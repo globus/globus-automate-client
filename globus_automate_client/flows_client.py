@@ -484,25 +484,35 @@ class FlowsClient(BaseClient):
             OrderedDict if trying to apply multiple orderings.
 
         """
+
         params = {}
-        if roles:
-            params["filter_roles"] = ",".join(roles)
-        if role is not None:
+
+        # *role* takes precedence over *roles* (plural).
+        if role:
             params["filter_role"] = role
-            params.pop(
-                "filter_roles", None
-            )  # role takes precedence over roles (plural)
-        if marker is not None:
+        elif roles:
+            params["filter_roles"] = ",".join(roles)
+
+        # *marker* takes precedence over *per_page*.
+        if marker:
             params["pagination_token"] = marker
-        if per_page is not None and marker is None:
+        elif per_page:
             params["per_page"] = str(per_page)
-        if filters is not None:
-            params.update(filters)
+
         if orderings:
-            builder = []
-            for field, value in orderings.items():
-                builder.append(f"{field} {value}")
-            params["orderby"] = ",".join(builder)
+            params["orderby"] = ",".join(
+                f"{field} {value}" for field, value in orderings.items()
+            )
+
+        if filters:
+            # Prevent *filters* from overwriting reserved keys.
+            filters.pop("filter_role", None)
+            filters.pop("filter_roles", None)
+            filters.pop("orderby", None)
+            filters.pop("pagination_token", None)
+            filters.pop("per_page", None)
+            params.update(filters)
+
         return self.get("/flows", query_params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
