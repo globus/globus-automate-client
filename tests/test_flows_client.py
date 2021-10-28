@@ -502,3 +502,12 @@ def test_list_flows_orderings(fc, mocked_responses):
         "color DESC",
         "bogus undefined",
     }
+
+
+def test_delete_flow(fc, mocked_responses):
+    """Verify the URL used when deleting a flow."""
+
+    url = "https://flows.api.globus.org/flows/bogus"
+    mocked_responses.add("DELETE", url)
+    fc.delete_flow("bogus")
+    assert mocked_responses.calls[0].request.url == url
