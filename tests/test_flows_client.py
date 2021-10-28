@@ -312,3 +312,96 @@ def test_invalid_input_schema_failure(fc, method):
             validate_definition=False,
             validate_schema=True,
         )
+
+
+def test_update_flow_data_construction(fc, mocked_responses):
+    """Verify the flow JSON data is constructed correctly."""
+
+    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    expected: Dict[str, Union[str, Dict[str, Any]]] = {
+        "definition": VALID_FLOW_DEFINITION,
+        "input_schema": {"Comment": "flow-input-schema"},
+        "title": "--title--",
+        "subtitle": "--subtitle--",
+        "description": "--description--",
+        "keywords": "--keywords--",
+        "flow_viewers": ["--flow_viewers--"],
+        "flow_starters": ["--flow_starters--"],
+        "flow_administrators": ["--flow_administrators--"],
+        "subscription_id": "--subscription_id--",
+    }
+    fc.update_flow(
+        # Arguments that affect the JSON data
+        flow_id="bogus",
+        flow_definition=expected["definition"],
+        input_schema=expected["input_schema"],
+        title=expected["title"],
+        subtitle=expected["subtitle"],
+        description=expected["description"],
+        keywords=expected["keywords"],
+        flow_viewers=expected["flow_viewers"],
+        flow_starters=expected["flow_starters"],
+        flow_administrators=expected["flow_administrators"],
+        subscription_id=expected["subscription_id"],
+        # Other arguments
+        validate_definition=True,
+        validate_schema=True,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert data == expected
+
+
+@pytest.mark.parametrize("input_schema, expected", ((None, False), ({}, True)))
+def test_update_flow_exclude_most_false_values(
+    fc, mocked_responses, input_schema, expected
+):
+    """Verify the *input_schema* is not excluded even if it's false-y."""
+
+    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    fc.update_flow(
+        # *input_schema* is being tested for inclusion/exclusion.
+        input_schema=input_schema,
+        # These are false-y and will always be excluded.
+        subtitle="",
+        description=None,
+        # Mandatory arguments, but not under test.
+        flow_id="bogus",
+        flow_definition=VALID_FLOW_DEFINITION,
+        title="--title--",
+        validate_definition=False,
+        validate_schema=False,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert "subtitle" not in data
+    assert "description" not in data
+    assert ("input_schema" in data) is expected
+
+
+def test_update_flow_aliases(fc, mocked_responses):
+    """Verify that viewer/starter/admin aliases are still supported."""
+
+    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    fc.update_flow(
+        # Flow viewers and aliases
+        flow_viewers=["v1", "v2"],
+        visible_to=["v3"],
+        viewers=["v4"],
+        # Flow starters and aliases
+        flow_starters=["s1", "s2"],
+        runnable_by=["s3"],
+        starters=["s4"],
+        # Flow admins and aliases
+        flow_administrators=["a1", "a2"],
+        administered_by=["a3"],
+        administrators=["a4"],
+        # Everything below is mandatory but irrelevant to this test.
+        flow_id="bogus",
+        flow_definition=VALID_FLOW_DEFINITION,
+        title="",
+        validate_definition=False,
+        validate_schema=False,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
+    assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
+    assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
