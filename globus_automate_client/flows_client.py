@@ -598,11 +598,13 @@ class FlowsClient(BaseClient):
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
-        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by")
-        run_managers = merge_lists(run_managers, kwargs, "manage_by")
 
-        kwargs.pop("monitor_by", None)
-        kwargs.pop("manage_by", None)
+        # Merge monitors and managers with aliases.
+        # If either list is empty it will be replaced with None
+        # to prevent empty lists from appearing in the JSON request.
+        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by") or None
+        run_managers = merge_lists(run_managers, kwargs, "manage_by") or None
+
         if dry_run:
             path = flow_url + "/dry-run"
             return ac.run(
