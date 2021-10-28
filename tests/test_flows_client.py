@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import urllib.parse
 from typing import Any, Dict, Union
 
 import pytest
@@ -414,3 +415,90 @@ def test_get_flow(fc, mocked_responses):
     mocked_responses.add("GET", url)
     fc.get_flow("bogus")
     assert mocked_responses.calls[0].request.url == url
+
+
+@pytest.mark.parametrize(
+    "role, roles, expected, message",
+    (
+        (None, None, {}, "parameters incorrectly included"),
+        # role
+        ("", None, {}, "false-y *role* must not be included"),
+        ("1", None, {"filter_role": "1"}, "*role* must be included"),
+        # roles
+        (None, tuple(), {}, "false-y *roles* must not be included"),
+        (None, ("2", "3"), {"filter_roles": "2,3"}, "*roles* must be included"),
+        # Precedence
+        ("1", ("2", "3"), {"filter_role": "1"}, "*role* must override *roles*"),
+    ),
+)
+def test_list_flows_role_precedence(
+    fc, mocked_responses, role, roles, expected, message
+):
+    """Verify the *role* and *roles* precedence rules."""
+
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    fc.list_flows(role=role, roles=roles)
+    query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
+    data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+    for key in ("filter_role", "filter_roles"):
+        if key in expected:
+            assert key in data, message
+            assert data[key] == expected[key], f"*{key}* value does not match"
+        else:
+            assert key not in data, message
+
+
+@pytest.mark.parametrize(
+    "marker, per_page, expected, message",
+    (
+        (None, None, {}, "parameters incorrectly included"),
+        # marker
+        ("", None, {}, "false-y *marker* must not be included"),
+        ("m", None, {"pagination_token": "m"}, "*marker* must be included"),
+        # per_page
+        (None, 0, {}, "false-y *per_page* must not be included"),
+        (None, 10, {"per_page": "10"}, "*per_page* must be included"),
+        # Precedence
+        ("m", 10, {"pagination_token": "m"}, "*marker* must override *per_page*"),
+    ),
+)
+def test_list_flows_pagination_parameters(
+    fc, mocked_responses, marker, per_page, expected, message
+):
+    """Verify *marker* and *per_page* precedence rules."""
+
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    fc.list_flows(marker=marker, per_page=per_page)
+    query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
+    data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+    for key in ("pagination_token", "per_page"):
+        if key in expected:
+            assert key in data, message
+            assert data[key] == expected[key], f"*{key}* value does not match"
+        else:
+            assert key not in data, message
+
+
+def test_list_flows_filters(fc, mocked_responses):
+    """Verify that filters are applied to the query parameters."""
+
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    fc.list_flows(role="role", filters={"1": "2", "filter_role": "bogus"})
+    query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
+    data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+    assert data["1"] == "2", "*filters* were not applied to the query"
+    assert data["filter_role"] == "role", "*filters* overwrote *role*"
+
+
+def test_list_flows_orderings(fc, mocked_responses):
+    """Verify that orderings are serialized as expected."""
+
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    fc.list_flows(orderings={"shape": "asc", "color": "DESC", "bogus": "undefined"})
+    query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
+    data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
+    assert set(data["orderby"].split(",")) == {
+        "shape asc",
+        "color DESC",
+        "bogus undefined",
+    }
