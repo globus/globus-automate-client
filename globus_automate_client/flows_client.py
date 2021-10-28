@@ -784,24 +784,38 @@ class FlowsClient(BaseClient):
             OrderedDict if trying to apply multiple orderings.
 
         """
+
         params = {}
+
+        # *role* takes precedence over *roles* (plural).
         if role:
             params["filter_role"] = role
         elif roles:
             params["filter_roles"] = ",".join(roles)
+
+        # *marker* takes precedence over *per_page*.
+        if marker:
+            params["pagination_token"] = marker
+        elif per_page:
+            params["per_page"] = str(per_page)
+
         if statuses:
             params["filter_status"] = ",".join(statuses)
-        if marker is not None:
-            params["pagination_token"] = marker
-        if per_page is not None and marker is None:
-            params["per_page"] = str(per_page)
-        if filters is not None:
-            params.update(filters)
+
         if orderings:
-            builder = []
-            for field, value in orderings.items():
-                builder.append(f"{field} {value}")
-            params["orderby"] = ",".join(builder)
+            params["orderby"] = ",".join(
+                f"{field} {value}" for field, value in orderings.items()
+            )
+
+        if filters:
+            # Prevent *filters* from overwriting reserved keys.
+            filters.pop("filter_role", None)
+            filters.pop("filter_roles", None)
+            filters.pop("filter_status", None)
+            filters.pop("orderby", None)
+            filters.pop("pagination_token", None)
+            filters.pop("per_page", None)
+            params.update(filters)
 
         authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
         with self.use_temporary_authorizer(authorizer):
