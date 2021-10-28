@@ -549,3 +549,119 @@ def test_get_authorizer_for_flow_scope_lookup(fc, monkeypatch, flow_scope, expec
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: x)
     result = cast(dict, fc._get_authorizer_for_flow("bogus", flow_scope, {}))
     assert result["flow_scope"] == expected
+
+
+@pytest.mark.parametrize("dry_run, expected", ((False, "run"), (True, "dry-run")))
+def test_run_flow_dry_run(fc, mocked_responses, dry_run, expected):
+    """Verify the *dry_run* parameter affects the URL path."""
+
+    url = f"https://flows.api.globus.org/flows/bogus-id/{expected}"
+    mocked_responses.add("POST", url)
+    fc.run_flow(
+        # *dry_run* is being tested.
+        dry_run=dry_run,
+        # These parameters are necessary but irrelevant.
+        flow_id="bogus-id",
+        flow_scope="bogus-scope",
+        flow_input={},
+        authorizer=fc.authorizer,
+    )
+    assert mocked_responses.calls[0].request.url == url
+
+
+@pytest.mark.parametrize(
+    "run_monitors, monitor_by, run_managers, manage_by, expected, message",
+    (
+        (None, None, None, None, {}, "empty values should be excluded"),
+        # Monitors
+        ([], None, None, None, {}, "false-y run_monitors must be excluded"),
+        (None, [], None, None, {}, "false-y monitor_by must be excluded"),
+        (
+            ["mon1", "mon2"],
+            None,
+            None,
+            None,
+            {"monitor_by": ["mon1", "mon2"]},
+            "run_monitors must be included",
+        ),
+        (
+            None,
+            ["mon3"],
+            None,
+            None,
+            {"monitor_by": ["mon3"]},
+            "monitor_by must be included",
+        ),
+        (
+            ["mon1", "mon2"],
+            ["mon3"],
+            None,
+            None,
+            {"monitor_by": ["mon1", "mon2", "mon3"]},
+            "monitor agents must be combined",
+        ),
+        # Managers
+        (None, None, [], None, {}, "false-y run_managers must be excluded"),
+        (None, None, None, [], {}, "false-y manage_by must be excluded"),
+        (
+            None,
+            None,
+            ["man1", "man2"],
+            None,
+            {"manage_by": ["man1", "man2"]},
+            "run_managers must be included",
+        ),
+        (
+            None,
+            None,
+            None,
+            ["man3"],
+            {"manage_by": ["man3"]},
+            "manage_by must be included",
+        ),
+        (
+            None,
+            None,
+            ["man1", "man2"],
+            ["man3"],
+            {"manage_by": ["man1", "man2", "man3"]},
+            "manager agents must be combined",
+        ),
+    ),
+)
+def test_run_flow_aliases(
+    fc,
+    mocked_responses,
+    run_monitors,
+    monitor_by,
+    run_managers,
+    manage_by,
+    expected,
+    message,
+):
+    """Verify the monitor and manager aliases are functional."""
+
+    mocked_responses.add(
+        method="POST",
+        url="https://flows.api.globus.org/flows/bogus-id/run",
+        json={},
+    )
+    fc.run_flow(
+        # These parameters are being tested.
+        run_monitors=run_monitors,
+        monitor_by=monitor_by,
+        run_managers=run_managers,
+        manage_by=manage_by,
+        # These parameters are necessary but irrelevant.
+        flow_id="bogus-id",
+        flow_scope="bogus-scope",
+        flow_input={},
+        authorizer=fc.authorizer,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body or "{}")
+    for key in ("manage_by", "monitor_by"):
+        if key in expected:
+            assert key in data, f"*{key}* must be in the submitted data"
+            assert set(data[key]) == set(expected[key])
+        else:
+            assert key not in data, f"*{key}* must not be in the submitted data"
