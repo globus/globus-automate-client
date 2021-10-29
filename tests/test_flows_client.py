@@ -914,3 +914,38 @@ def test_list_flow_runs_call_enumerate_runs(fc, monkeypatch):
     monkeypatch.setattr(fc, "enumerate_runs", mock)
     fc.list_flow_runs(**expected, **additional)
     mock.assert_called_once_with(**expected)
+
+
+@pytest.mark.parametrize(
+    "run_managers, run_monitors, expected, message",
+    (
+        (None, None, {}, "empty values should be excluded"),
+        # Managers
+        ([], None, {"run_managers": []}, "false-y run_managers must be included"),
+        (["1"], None, {"run_managers": ["1"]}, "run_managers must be included"),
+        # Monitors
+        (None, [], {"run_monitors": []}, "false-y run_monitors must be included"),
+        (None, ["1"], {"run_monitors": ["1"]}, "run_monitors must be included"),
+    ),
+)
+def test_flow_action_update_managers_and_monitors(
+    fc, mocked_responses, run_managers, run_monitors, expected, message
+):
+    """Verify that managers and monitors are unconditionally included."""
+
+    mocked_responses.add("PUT", "https://flows.api.globus.org/runs/bogus-id")
+    fc.flow_action_update(
+        # These arguments are being tested.
+        run_managers=run_managers,
+        run_monitors=run_monitors,
+        # Mandatory but irrelevant to the test.
+        action_id="bogus-id",
+        authorizer=fc.authorizer,
+    )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    for key in ("run_managers", "run_monitors"):
+        if key in expected:
+            assert key in data, f"*{key}* must be included in the JSON data"
+            assert data[key] == expected[key], message
+        else:
+            assert key not in data, f"*{key}* must not be included in the JSON data"
