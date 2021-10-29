@@ -1,0 +1,19 @@
+Features
+--------
+
+-   Upgrade to Globus SDK v3.
+
+Bugfixes
+--------
+
+-   Fix a bug that prevented the Flows client from properly validating flow definition states in lists.
+-   Fix a bug that could allow the Flows authorizer to be lost if an exception was raised.
+    (Authorizer swaps are now handled using a context manager.)
+-   Prevent empty values from appearing in query parameters or JSON submissions.
+-   Fix a bug that prevented the input schema of an existing Flow from being set to an all-permissive JSON schema.
+
+Other
+-----
+
+-   Add code linting, documentation build testing, and a bunch of unit tests.
+    (Code coverage of modules currently imported during testing is 73%.)
