@@ -402,7 +402,7 @@ Get a log of the steps executed by a Flow definition’s invocation.
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
 -  ``--reverse``: Display logs starting from most recent and proceeding
-   in reverse chronological order
+   in reverse chronological order [default: False]
 -  ``--limit INTEGER RANGE``: Set a maximum number of events from the
    log to return
 -  ``-m, --marker TEXT``: A pagination token for iterating through
@@ -413,8 +413,7 @@ Get a log of the steps executed by a Flow definition’s invocation.
    format. [default: table]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. Using this option will report only the latest state
-   available.Only JSON and YAML output formats are supported. [default:
-   False]
+   available. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 
@@ -752,10 +751,13 @@ the Flow. You must be in the Flow’s “flow_starters” list.
    urn:globus:auth:identity:. A Globus Group may also be used using the
    form urn:globus:groups:id:. [repeatable]
 -  ``-v, --verbose``: Run with increased verbosity
--  ``-f, --format [json|yaml]``: Output display format. [default: json]
+-  ``-f, --format [json|yaml|table]``: Output display format. If –watch
+   is enabled then the default is ‘table’, otherwise ‘json’ is the
+   default.
 -  ``-l, --label TEXT``: Label to mark this run. [required]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
-   completed state. [default: False]
+   completed state. If enabled the default output format is ‘table’.
+   [default: False]
 -  ``--dry-run``: Do a dry run with your input to this flow to test the
    input without actually running anything. [default: False]
 -  ``--help``: Show this message and exit.
@@ -903,7 +905,7 @@ Get a log of the steps executed by a Flow definition’s invocation.
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
 -  ``--reverse``: Display logs starting from most recent and proceeding
-   in reverse chronological order
+   in reverse chronological order [default: False]
 -  ``--limit INTEGER RANGE``: Set a maximum number of events from the
    log to return
 -  ``-m, --marker TEXT``: A pagination token for iterating through
@@ -914,8 +916,7 @@ Get a log of the steps executed by a Flow definition’s invocation.
    format. [default: table]
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
    completed state. Using this option will report only the latest state
-   available.Only JSON and YAML output formats are supported. [default:
-   False]
+   available. [default: False]
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``--help``: Show this message and exit.
 

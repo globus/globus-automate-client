@@ -35,6 +35,7 @@ below) the same manor as defined in the States Language:
 * `Choice <https://states-language.net/spec.html#choice-state>`_
 
 * `Wait <https://states-language.net/spec.html#choice-state>`_
+
 * `Fail <https://states-language.net/spec.html#fail-state>`_
 
 .. note::
@@ -43,9 +44,9 @@ below) the same manor as defined in the States Language:
    the ``Pass`` or ``Choice`` states.``OutputPath`` is not allowed in
    a Flow definition. Instead, the ``ResultPath`` must always be used
    to specify where the result of a state execution will be stored
-   placed into the state of the Flow.
+   into the state of the Flow.
 
-Other state types defined in the Amazon States Language are not supported and will be rejected at deployment time. The flows system adds two new state types ``Action`` and ``ExpressionEval`` for invoking Actions and updating the state of a running Flow via an expression language. These are defined below.
+Other state types defined in the Amazon States Language are not supported and will be rejected at deployment time. The Flows system adds two new state types ``Action`` and ``ExpressionEval`` for invoking Actions and updating the state of a running Flow via an expression language. These are defined below.
 
 ``Action`` State type
 ---------------------
@@ -61,14 +62,11 @@ detail below:
     {
       "Type": "Action",
       "ActionUrl": "<URL to the Action, as defined above for various Actions>",
-      "WaitTime": 3600,
-      "ExceptionOnActionFailure": true,
-      "RunAs": "User",
       "InputPath": "$.Path.To.Action.Body",
       "Parameters": {
         "constant_val": 10,
         "reference_value.$": "$.Path.To.Value",
-        "expression_value.=": "'Constant string ' + `$.Path.To.SuffixString`",
+        "expression_value.=": "'Constant string ' + Path.To.SuffixString",
         "nested_value": {
           "child_const_val": true,
           "child_ref_val.$": "$.Child.Val.Path"
@@ -77,6 +75,9 @@ detail below:
         "__Private_Parameters": ["secret_value"]
       },
       "ResultPath": "$.ActionOutput",
+      "WaitTime": 3600,
+      "ExceptionOnActionFailure": true,
+      "RunAs": "User",
       "Catch": [
         {
           "ErrorEquals": ["ActionUnableToRun"],
@@ -92,19 +93,13 @@ detail below:
       "End": true
     }
 
-Each of the properties on the ``Action`` state are defined as follows. In some
+The properties on the ``Action`` state are defined as follows. In some
 cases, we provide additional discussion of topics raised by specific properties
 in further sections below this enumeration.
 
 * ``Type`` (required): As with other States defined by the States Language, the ``Type`` indicates the type of this state. The value ``Action`` indicates that this state represents an Action invocation.
 
 *  ``ActionUrl`` (required): The base URL of the Action. As defined by the Action Interface, this URL has methods such as ``/run``, ``/status``, ``/cancel`` and so on defined to manage the life-cycle of an Action. The Action Flow state manages the life-cycle of the invoked Action using these methods and assumes that the specific operations are appended to the base URL defined in this property. For Globus operated actions, the base URLs are as defined previously in this document.
-
-*  ``WaitTime`` (optional, default value ``300``): The maximum amount time to wait for the Action to complete in seconds. Upon execution, the Flow will monitor the execution of the Action for the specified amount of time, and if it does not complete by this time it will abort the Action. See `Action Execution Monitoring`_ for additional information on this. The default value is ``300`` or Five Minutes.
-
-*  ``ExceptionOnActionFailure`` (optional, default value ``false``): When an Action is executed but is unable complete successfully, it returns a ``status`` value of ``FAILED``. As this represents a complete execution of the Action, this returned state is, by default, returned as the final state of the Action state. However, it is commonly useful to treat this "Action Failed" occurrence as an Exception in the execution of the Flow. Setting this property to ``true`` will cause a Run-time exception of type ``ActionFailedException`` to be raised which can be managed with a ``Catch`` statement (as shown in the example). Further details on discussion of the ``Catch`` property of the Action state and in the `Managing Exceptions`_ section.
-
-*  ``RunAs`` (option, default value ``User``): When the Flow executes the Action, it will, by default, execute the Action using the identity of the user invoking the Flow. Thus, from the perspective of the Action, it is the user who invoked the Flow who is also invoking the Action, and thus the Action will make authorization decisions based on the identity of the User invoking the Flow. In some circumstances, it will be beneficial for the Action to be invoked as if from a user identity other than the user who invoked the Flow. See `Identities and Roles, Scopes and Tokens`_ for additional information and a discussion of use cases for providing different ``RunAs`` values.
 
 *  ``InputPath`` or ``Parameters`` (mutually exclusive options, at least one is required): Either ``InputPath`` or ``Parameters`` can be used to identify or form the input to the Action to be run. as passed in the ``body`` of the call to the action ``/run`` operation.
 
@@ -119,6 +114,12 @@ in further sections below this enumeration.
    *  ``InputPath``: Specifies a path within the existing state of the Flow here the values to be passed will be present. Thus, use of ``InputPath`` requires that the proper input be formed in the Flow state.
 
 *  ``ResultPath``: Is a `Reference Path <https://states-language.net/spec.html#ref-paths>`_ indicating where the output of the Action will be placed in the state of the Flow run-time. The entire output returned from the Action will be returned including the ``action_id``, the final ``status`` of the Action, the ``start_time`` and ``completion_time`` and, importantly, the ``details`` containing the action-specific result values. If ``ResultPath`` is not explicitly provided, the default value of simply ``$``, indicating the root of the Flow state, is assumed and thus the result of the Action will become the entire Flow state following the ``Action`` state's execution. Typically this is not the desired behavior, so a ``ResultPath`` should almost always be included.
+
+*  ``WaitTime`` (optional, default value ``300``): The maximum amount time to wait for the Action to complete in seconds. Upon execution, the Flow will monitor the execution of the Action for the specified amount of time, and if it does not complete by this time it will abort the Action. See `Action Execution Monitoring`_ for additional information on this. The default value is ``300`` or Five Minutes.
+
+*  ``ExceptionOnActionFailure`` (optional, default value ``true``): When an Action is executed but is unable complete successfully, it returns a ``status`` value of ``FAILED``. It is commonly useful to treat this "Action Failed" occurrence as an Exception in the execution of the Flow. Setting this property to ``true`` will cause a Run-time exception of type ``ActionFailedException`` to be raised which can be managed with a ``Catch`` statement (as shown in the example). Further details on discussion of the ``Catch`` property of the Action state and in the `Managing Exceptions`_ section. If the value is ``false``, the status of the Action, including the value of ``FAILED`` for the status value will be placed into the Flow state as referenced by ``ResultPath``.
+
+*  ``RunAs`` (option, default value ``User``): When the Flow executes the Action, it will, by default, execute the Action using the identity of the user invoking the Flow. Thus, from the perspective of the Action, it is the user who invoked the Flow who is also invoking the Action, and thus the Action will make authorization decisions based on the identity of the User invoking the Flow. In some circumstances, it will be beneficial for the Action to be invoked as if from a user identity other than the user who invoked the Flow. See `Identities and Roles, Scopes and Tokens`_ for additional information and a discussion of use cases for providing different ``RunAs`` values.
 
 *   ``Catch``: When Actions end abnormally, an Exception is raised. A ``Catch`` property defines how the Exception should be handled by identifying the Exception name in the ``ErrorEquals`` property and identifying a ``Next`` state to transition to when the Exception occurs. If no ``Catch`` can handle an exception, the Flow execution will abort on the Exception. A variety of exception types are defined and are enumerated in `Managing Exceptions`_.
 
@@ -254,6 +255,23 @@ Constants may also be used between operators, it is important to
 remember that within an expression, a string type value must be enclosed in
 quotes (either single quote characters as above which is often easier because they do not need to be escaped within a JSON string or double quotes).
 
+Using Functions in Expressions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to basic arithmetic operations, a few *functions* may be used. Functions are invoked with the general form: ``function_name(param1, param2)``. Thus, an expression may, for example, take the form ``val1 + function(param1)``. The functions currently supported are:
+
+* ``pathsplit``: This function may be used to break apart a "path" type string value. Paths are a series of path element names separated by `/` characters. The return value from the ``pathsplit`` function is an array of two elements: the first element is the path prior to the last element. This is also aware of a special "root path" of the form ``/~/`` as defined by Globus Transfer so that this string will never be "split". Examples:
+
+  * ``pathsplit("/foo/bar/blech")`` returns ``["/foo/bar", "blech"]``
+  * ``pathsplit("/~/path")`` returns ``["/~/", "path"]``
+
+* ``is_present``: This function checks for the existence of a value in the state of the input Parameters. It is similar to the `IsPresent <https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-choice-state.html>`_ operator in the Amazon States Language. It takes in a reference to a value in the state, *as a string*, and returns ``true`` if the value exists, and ``false`` if not. This can be used to insure that a value is present before using it in a further expression such as: ``x if is_present('x') else 10`` which would use the conditional expression to check for presence of the property ``x`` and sets a constant if it is not present. This helps to avoid accessing properties that are not defined which would cause an error.
+
+* ``getattr``: This function will return a value from the state of the input if it is present, and, optionally, a default value if it is not present. Examples:
+
+  * ``getattr('x', 10)``: returns the value of property ``x`` if it is present, and the constant 10 if not (equivalent to the ``is_present`` example above.
+
+  * ``getattr('missing_property')``: Would return a ``null` value if the ``missing_property`` value is not present in the state.
 
 Identities and Roles, Scopes and Tokens
 ---------------------------------------

@@ -140,6 +140,41 @@ on endpoint type and it is best to explicitly set a path. This Action
 Provider supports all options as defined in the List Directory
 Contents Transfer API documentation.
 
+Additionally, it adds two features not found in the base Globus Transfer List Directory operation.
+
+1. An input Boolean parameter ``path_only`` may be specified which indicates that regardless of the file type of the path, we only will return information about the path itself. This changes the behavior when the path references a folder. Rather than returning the *contents* of the folder, this will return information about the folder itself. Thus, when this option is present, the output will contain only one file entry.
+
+2. For each file entry returned, an additional property, ``is_folder``, is included. This is set to ``true`` if the file type is folder. This can be helpful, particularly within Flows, to perform branching or other logic dependent on whether a path points to a folder or a regular file.
+
+Globus Transfer - Make Directory
+--------------------------------
+
+URL: `<https://actions.globus.org/transfer/mkdir>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_mkdir``
+
+Synchronous / Asynchronous: Synchronous
+
+The Globus Transfer mkdir Action Provider uses the `Globus Transfer Make Directory API`_
+to create a new directory on an endpoint. The input is simply the id for endpoint where the directory will be created and the path on the endpoint to the directory to be created.
+
+.. literalinclude:: ../../examples/action_bodies/mkdir.json
+   :language: json
+   :caption: Example Input to Make Directory
+
+
+Globus Transfer - Get Collection Information
+--------------------------------------------
+
+URL: `<https://actions.globus.org/transfer/collection_info>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_collection_info``
+
+Synchronous / Asynchronous: Synchronous
+
+The Globus Transfer ls Action Provider uses the `Globus Transfer Get Collection API`_
+to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed`` will be set to ``true`` if there is a ``subscription_id`` associated with the collection, and ``false`` if not. This allows, for example, branching within a Flow (using a ``Choice`` state type) based on whether a collection/endpoint is managed under a Globus subscription.
+
 Globus Search - Ingest
 ----------------------
 
@@ -371,3 +406,5 @@ should be used in the Datacite test service or the production service.
 .. _Globus Transfer ACL API: https://docs.globus.org/api/transfer/acl/
 .. _Globus Transfer Task API: https://docs.globus.org/api/transfer/task_submit/
 .. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
+.. _Globus Transfer Make Directory API: https://docs.globus.org/api/transfer/file_operations/#make_directory
+.. _Globus Transfer Get Collection API: https://docs.globus.org/api/transfer/endpoint/#get_endpoint_by_id
