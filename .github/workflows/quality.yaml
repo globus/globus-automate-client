@@ -1,0 +1,37 @@
+name: push
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        # we do not want a large number of windows and macos builds, so
+        # enumerate them explicitly
+        include:
+          - os: windows-latest
+            python-version: 3.9
+          - os: macos-latest
+            python-version: 3.9
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} "
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Requirements
+        run: python -m pip install -U pip setuptools wheel tox
+      - name: Run code linters
+        # only lint on 3.9 for faster overall runs
+        if: ${{ matrix.python-version == '3.9' }}
+        run: python -m tox -e mypy,flake8,isort
+      - name: Test documentation builds
+        # make sure this does not fail, only on linux 3.9
+        # because that's the build environment used (i.e. the one which really matters)
+        if: ${{ matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest' }}
+        run: python -m tox -e docs
+      - name: Run unit tests
+        run: python -m tox -e py
