@@ -887,38 +887,50 @@ class FlowsClient(BaseClient):
             authorizer_callback defined for the FlowsClient will be used.
 
         """
+
         if flow_id is None:
             return self.enumerate_runs(
+                filters=filters,
+                marker=marker,
+                orderings=orderings,
+                per_page=per_page,
+                role=role,
                 roles=roles,
                 statuses=statuses,
-                marker=marker,
-                per_page=per_page,
-                filters=filters,
-                orderings=orderings,
-                role=role,
+                **kwargs,
             )
 
         params = {}
+
+        # *role* takes precedence over *roles* (plural).
+        if role:
+            params["filter_role"] = role
+        elif roles:
+            params["filter_roles"] = ",".join(roles)
+
+        # *marker* takes precedence over *per_page*.
+        if marker:
+            params["pagination_token"] = marker
+        elif per_page:
+            params["per_page"] = str(per_page)
+
         if statuses:
             params["filter_status"] = ",".join(statuses)
-        if roles:
-            params["filter_roles"] = ",".join(roles)
-        if role is not None:
-            params["filter_role"] = role
-            params.pop(
-                "filter_roles", None
-            )  # role takes precedence over roles (plural)
-        if marker is not None:
-            params["pagination_token"] = marker
-        if per_page is not None and marker is None:
-            params["per_page"] = str(per_page)
-        if filters:
-            params.update(filters)
+
         if orderings:
-            builder = []
-            for field, value in orderings.items():
-                builder.append(f"{field} {value}")
-            params["orderby"] = ",".join(builder)
+            params["orderby"] = ",".join(
+                f"{field} {value}" for field, value in orderings.items()
+            )
+
+        if filters:
+            # Prevent *filters* from overwriting reserved keys.
+            filters.pop("filter_role", None)
+            filters.pop("filter_roles", None)
+            filters.pop("filter_status", None)
+            filters.pop("orderby", None)
+            filters.pop("pagination_token", None)
+            filters.pop("per_page", None)
+            params.update(filters)
 
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         with self.use_temporary_authorizer(authorizer):
