@@ -392,10 +392,12 @@ class FlowsClient(BaseClient):
             flow_administrators, kwargs, "administered_by", "administrators"
         )
         temp_body["subscription_id"] = subscription_id
-        temp_body["input_schema"] = input_schema
         # Remove None / empty list items from the temp_body
-        req_body = {k: v for k, v in temp_body.items() if v}
-        return self.put(f"/flows/{flow_id}", req_body, **kwargs)
+        data = {k: v for k, v in temp_body.items() if v}
+        # After removing false-y values, add the input schema.
+        if input_schema is not None:
+            data["input_schema"] = input_schema
+        return self.put(f"/flows/{flow_id}", data, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
