@@ -14,7 +14,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -408,8 +408,7 @@ class FlowsClient(BaseClient):
             details
         """
         self.authorizer = self.flow_management_authorizer
-        path = self.qjoin_path("/flows/", flow_id)
-        return self.get(path, **kwargs)
+        return self.get(f"/flows/{quote(flow_id)}", **kwargs)
 
     def list_flows(
         self,
