@@ -313,7 +313,7 @@ class FlowsClient(BaseClient):
         url = "/flows"
         if dry_run:
             url = "/flows/dry-run"
-        return self.post(url, req_body, **kwargs)
+        return self.post(url, data=req_body, **kwargs)
 
     def update_flow(
         self,
@@ -398,7 +398,7 @@ class FlowsClient(BaseClient):
         # After removing false-y values, add the input schema.
         if input_schema is not None:
             data["input_schema"] = input_schema
-        return self.put(f"/flows/{flow_id}", data, **kwargs)
+        return self.put(f"/flows/{flow_id}", data=data, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -491,7 +491,7 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        return self.get("/flows", params=params, **kwargs)
+        return self.get("/flows", query_params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -792,7 +792,7 @@ class FlowsClient(BaseClient):
             params.update(filters)
 
         self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
-        response = self.get(f"/runs", params=params, **kwargs)
+        response = self.get("/runs", query_params=params, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
@@ -908,7 +908,7 @@ class FlowsClient(BaseClient):
             params.update(filters)
 
         self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        response = self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
+        response = self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 
@@ -944,7 +944,7 @@ class FlowsClient(BaseClient):
             payload["run_monitors"] = run_monitors
 
         self.authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
-        response = self.put(f"/runs/{action_id}", payload, **kwargs)
+        response = self.put(f"/runs/{quote(action_id)}", data=payload, **kwargs)
         self.authorizer = self.flow_management_authorizer
         return response
 

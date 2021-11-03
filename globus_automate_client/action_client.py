@@ -101,8 +101,8 @@ class ActionClient(BaseClient):
             "label": label,
         }
         # Remove None items from the temp_body
-        body = {k: v for k, v in body.items() if v is not None}
-        return self.post(path, body)
+        data = {k: v for k, v in body.items() if v is not None}
+        return self.post(path, data=data)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:
         """
