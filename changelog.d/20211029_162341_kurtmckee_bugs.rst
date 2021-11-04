@@ -1,0 +1,8 @@
+Bugfixes
+--------
+
+-   Fix a bug that prevented the Flows client from properly validating flow definition states in lists.
+-   Prevent empty values from appearing in query parameters or JSON submissions.
+-   Fix a bug that prevented the input schema of an existing Flow from being set to an all-permissive JSON schema.
+-   Fix a bug that prevented a custom authorizer from being used if attempting to list all runs of a specific flow without specifying the flow ID.
+-   Fix a bug that introduced duplicate forward slashes in some API URL's.
