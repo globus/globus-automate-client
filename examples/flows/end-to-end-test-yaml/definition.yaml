@@ -1,0 +1,249 @@
+Comment: >-
+  A Flow for invoking all action providers and hitting a url upon success.
+
+  Actions tested:
+  - GlobusTransfer
+  - GlobusTransferDelete
+  - GlobusLs
+  - ExpressionEval
+
+  Actions to be tested:
+  - GlobusTransferCollectionInfo
+  - GlobusTransferMkdir
+  - GlobusTransferSetAcl
+  - Notification
+  - WebOption
+  - DataciteMint
+  - DataciteMintDCSchema
+  - SearchIngest
+  - SearchDelete
+  - GlobusHttp
+StartAt: Stage1RunGlobusTransfer
+States:
+
+  Stage1RunGlobusTransfer:
+    Comment: >-
+      Run the initial transfer operation from the source ep/source path to the
+      destination ep/destination path
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/transfer'
+    WaitTime: 60
+    ExceptionOnActionFailure: false
+    Parameters:
+      source_endpoint_id.$: $.source_endpoint_id
+      destination_endpoint_id.$: $.destination_endpoint_id
+      label.$: $.transfer_label
+      transfer_items:
+        - source_path.$: $.source_path
+          destination_path.$: $.destination_path
+          recursive.$: false
+    ResultPath: $.Stage1RunGlobusTransferResult
+    Next: Stage1CheckTransferStatus
+
+  Stage1CheckTransferStatus:
+    Comment: >-
+      Examine the status of the Transfer Action. If it failed, branch to a state
+      that reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.Stage1RunGlobusTransferResult.status
+        StringEquals: FAILED
+        Next: Stage1RunGlobusTransferFailed
+    Default: Delete
+
+  Stage1RunGlobusTransferFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Transfer failed
+      details.$: $.Stage1RunGlobusTransferResult.details
+    ResultPath: $.FlowResult
+    End: true
+
+
+  Stage2RunGlobusLsToConfirmTransfer:
+    Comment: >-
+      Use GlobusLs to check that the transfered file was actually transferred.
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/ls'
+    WaitTime: 30
+    ExceptionOnActionFailure: false
+    Parameters:
+      endpoint_id.$: $.destination_endpoint_id
+      path.$: $.destination_path
+      path_only.$: true
+    ResultPath: $.Stage2RunGlobusLsToConfirmTransferResult
+    Next: Stage2RunGlobusLsToConfirmTransferStatus
+
+  Stage2RunGlobusLsToConfirmTransferStatus:
+    Comment: >-
+      Examine the action status. If failed, branch to a state that reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.Stage2RunGlobusLsToConfirmTransferResult.status
+        StringEquals: FAILED
+        Next: Stage2RunGlobusLsToConfirmTransferResultFailed
+    ResultPath: $.Stage2CheckFilesLsData
+    Next: Stage2CheckFilesLsData
+
+  Stage2RunGlobusLsToConfirmTransferResultFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Check of file transferred failed
+      details.$: $.Stage2RunGlobusLsToConfirmTransferResult.details
+    ResultPath: $.FlowResult
+    End: true
+
+  Stage2CheckFilesLsData:
+    Comment: ''
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/expression_eval'
+    Parameters:
+      arguments:
+        data.$: $.Stage2CheckFilesLsData.details.DATA
+      expression: 'len(data) > 0'
+      result_path: 'files_gt_zero'
+    Next: Stage2CheckNumFilesGtZero
+
+  Stage2CheckNumFilesGtZero:
+    Type: Choice
+    Choices:
+      - Variable: $.Stage2CheckNumFilesGtZero.details.files_gt_zero
+        BooleanEquals: true
+        Next: Stage3RunGlobusDelete
+      - Variable: $.Stage2CheckNumFilesGtZero.details.files_gt_zero
+        BooleanEquals: false
+        Next: Stage2LsFailed
+    ResultPath: $.Stage2CheckFilesLsData
+    # Fail by default (should never reach this branch
+    Next: Stage2LsFailed
+
+  Stage2LsFailed:
+    Type: Pass
+    Parameters:
+      message: "Transfer file listing didn't show any files"
+      details.$: $.Stage2CheckFilesLsData.details
+    ResultPath: $.FlowResult
+    End: true
+
+
+  Stage3RunGlobusDelete:
+    Comment: >-
+      Use Transfer to delete the transferred file.
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/delete'
+    WaitTime: 60
+    ExceptionOnActionFailure: false
+    Parameters:
+      endpoint_id.$: $.destination_endpoint_id
+      recursive.$: $.recursive
+      label.$: $.delete_label
+      items.=: '[`$.destination_path`]'
+    ResultPath: $.Stage3DeleteResult
+    Next: Stage3CheckRunGlobusDeleteStatus
+
+  Stage3CheckRunGlobusDeleteStatus:
+    Comment: >-
+      Examine the status of the Delete Action. If it failed, branch to a state
+      that reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.Stage3DeleteResult.status
+        StringEquals: FAILED
+        Next: Stage3RunGlobusDeleteFailed
+    Default: AllComplete
+
+  Stage3RunGlobusDeleteFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Deletion failed
+      details.$: $.Stage3DeleteResult.details
+    ResultPath: $.FlowResult
+    End: true
+
+
+  Stage4RunGlobusLsToConfirmDeletion:
+    Comment: >-
+      Use GlobusLs to check that the transfered file was actually transferred.
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/transfer/ls'
+    WaitTime: 30
+    ExceptionOnActionFailure: false
+    Parameters:
+      endpoint_id.$: $.destination_endpoint_id
+      path.$: $.destination_path
+      path_only.$: true
+    ResultPath: $.Stage4RunGlobusLsToConfirmDeletionResult
+    Next: Stage4RunGlobusLsToConfirmDeletionStatus
+
+  Stage4RunGlobusLsToConfirmDeletionStatus:
+    Comment: >-
+      Examine the action status. If failed, branch to a state that reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.Stage4RunGlobusLsToConfirmDeletionResult.status
+        StringEquals: FAILED
+        Next: Stage4RunGlobusLsToConfirmDeletionResultFailed
+    ResultPath: $.Stage4CheckFilesLsData
+    Next: Stage4CheckFilesLsData
+
+  Stage4RunGlobusLsToConfirmDeletionResultFailed:
+    Comment: Report the error and end the flow execution
+    Type: Pass
+    Parameters:
+      message: Check of file transferred failed
+      details.$: $.Stage4RunGlobusLsToConfirmDeletionResult.details
+    ResultPath: $.FlowResult
+    End: true
+
+  Stage4CheckFilesLsData:
+    Comment: ''
+    Type: Action
+    ActionUrl: 'https://actions.globus.org/expression_eval'
+    Parameters:
+      arguments:
+        data.$: $.Stage4CheckFilesLsData.details.DATA
+      expression: 'len(data) > 0'
+      result_path: 'files_gt_zero'
+    Next: Stage4CheckNumFilesEqZero
+
+  Stage4CheckNumFilesEqZero:
+    Type: Choice
+    Choices:
+      - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
+        BooleanEquals: true
+        Next: StageLastResetTimerUrl
+      - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
+        BooleanEquals: false
+        Next: Stage4LsFailed
+    ResultPath: $.Stage4CheckFilesLsData
+    # Fail by default (should never reach this)
+    Next: Stage2LsFailed
+
+  Stage4LsFailed:
+    Type: Pass
+    Parameters:
+      message: "Transfer file listing still showed the file"
+      details.$: $.Stage4CheckFilesLsData.details
+    ResultPath: $.FlowResult
+    End: true
+
+
+  # Temporarily a PASS until the globus_http AP is ready
+  StageLastResetTimerUrl:
+    Type: Pass
+    Parameters:
+      message: "This would reset the dead-mans-switch timer"
+    ResultPath: $.FlowResult
+    Next: AllComplete
+
+
+  AllComplete:
+    Comment: 'Normal completion, so report success and exit'
+    Type: Pass
+    Parameters:
+      message: Move operation complete
+    ResultPath: $.FlowResult
+    End: true

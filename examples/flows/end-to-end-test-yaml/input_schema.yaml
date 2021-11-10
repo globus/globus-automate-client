@@ -1,0 +1,34 @@
+additionalProperties: false
+required:
+  - source_endpoint_id
+  - source_path
+  - destination_endpoint_id
+  - destination_path
+  - transfer_label
+  - delete_label
+type: object
+properties:
+  source_endpoint_id:
+    default:
+    description: The uuid for the endpoint which serves as the source of the Move
+    type: string
+  source_path:
+    default:
+    description: The path on the source endpoint for the data
+    type: string
+  destination_endpoint_id:
+    default:
+    description: The uuid for the endpoint which serves as the destination for the Move
+    type: string
+  destination_path:
+    default:
+    description: The path on the destination endpoint where the data will be stored
+    type: string
+  transfer_label:
+    default: End-to-end Ops test transfer
+    description: A label placed on the Transfer operation
+    type: string
+  delete_label:
+    default: End-to-end Ops test deletion
+    description: A label placed on the Delete operation
+    type: string
