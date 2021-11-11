@@ -1049,5 +1049,7 @@ class FlowsClient(BaseClient):
             app_name="Globus Automate SDK FlowsClient",
             base_url=base_url,
             authorizer=authorizer,
-            http_timeout=http_timeout,
+            transport_params={
+                "http_timeout": http_timeout,
+            },
         )

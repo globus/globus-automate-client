@@ -218,5 +218,7 @@ class ActionClient(BaseClient):
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
-            http_timeout=http_timeout,
+            transport_params={
+                "http_timeout": http_timeout,
+            },
         )
