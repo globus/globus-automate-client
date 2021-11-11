@@ -6,6 +6,7 @@ Comment: >-
   - GlobusTransferDelete
   - GlobusLs
   - ExpressionEval
+  - GlobusHttp
 
   Actions to be tested:
   - GlobusTransferCollectionInfo
@@ -17,7 +18,6 @@ Comment: >-
   - DataciteMintDCSchema
   - SearchIngest
   - SearchDelete
-  - GlobusHttp
 StartAt: Stage1RunGlobusTransfer
 States:
 
@@ -26,7 +26,7 @@ States:
       Run the initial transfer operation from the source ep/source path to the
       destination ep/destination path
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/transfer'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/transfer'
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
@@ -42,7 +42,7 @@ States:
 
   Stage1CheckTransferStatus:
     Comment: >-
-      Examine the status of the Transfer Action. If it failed, branch to a state
+      Examine the status of the Action. If it failed, branch to a state
       that reports the error
     Type: Choice
     Choices:
@@ -65,7 +65,7 @@ States:
     Comment: >-
       Use GlobusLs to check that the transfered file was actually transferred.
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/ls'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/ls'
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
@@ -98,7 +98,7 @@ States:
   Stage2CheckFilesLsData:
     Comment: ''
     Type: Action
-    ActionUrl: 'https://actions.globus.org/expression_eval'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/expression_eval'
     Parameters:
       arguments:
         data.$: $.Stage2CheckFilesLsData.details.DATA
@@ -132,7 +132,7 @@ States:
     Comment: >-
       Use Transfer to delete the transferred file.
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/delete'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/delete'
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
@@ -145,7 +145,7 @@ States:
 
   Stage3CheckRunGlobusDeleteStatus:
     Comment: >-
-      Examine the status of the Delete Action. If it failed, branch to a state
+      Examine the status of the Action. If it failed, branch to a state
       that reports the error
     Type: Choice
     Choices:
@@ -168,7 +168,7 @@ States:
     Comment: >-
       Use GlobusLs to check that the transfered file was actually transferred.
     Type: Action
-    ActionUrl: 'https://actions.globus.org/transfer/ls'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/ls'
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
@@ -201,7 +201,7 @@ States:
   Stage4CheckFilesLsData:
     Comment: ''
     Type: Action
-    ActionUrl: 'https://actions.globus.org/expression_eval'
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/expression_eval'
     Parameters:
       arguments:
         data.$: $.Stage4CheckFilesLsData.details.DATA
@@ -214,7 +214,7 @@ States:
     Choices:
       - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
         BooleanEquals: true
-        Next: StageLastResetTimerUrl
+        Next: Stage5RunHttpToResetTimer
       - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
         BooleanEquals: false
         Next: Stage4LsFailed
@@ -231,13 +231,36 @@ States:
     End: true
 
 
-  # Temporarily a PASS until the globus_http AP is ready
-  StageLastResetTimerUrl:
+  Stage5RunHttpToResetTimer:
+    Type: Action
+    ActionUrl: 'https://sandbox.actions.automate.globus.org/http'
+    WaitTime: 30
+    ExceptionOnActionFailure: false
+    Parameters:
+      method.$: GET
+      url.$: $.timer_url
+    ResultPath: $.Stage5RunHttpToResetTimerResult
+    Next: Stage5RunHttpToResetTimerStatus
+
+  Stage5RunHttpToResetTimerStatus:
+    Comment: >-
+      Examine the status of the Action. If it failed, branch to a state
+      that reports the error
+    Type: Choice
+    Choices:
+      - Variable: $.Stage5RunHttpToResetTimerResult.status
+        StringEquals: FAILED
+        Next: Stage5RunHttpToResetTimerFailed
+    Default: AllComplete
+
+  Stage5RunHttpToResetTimerFailed:
+    Comment: Report the error and end the flow execution
     Type: Pass
     Parameters:
-      message: "This would reset the dead-mans-switch timer"
+      message: Deletion failed
+      details.$: $.Stage5RunHttpToResetTimerResult.details
     ResultPath: $.FlowResult
-    Next: AllComplete
+    End: true
 
 
   AllComplete:

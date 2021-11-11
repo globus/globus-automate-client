@@ -6,6 +6,7 @@ required:
   - destination_path
   - transfer_label
   - delete_label
+  - timer_url
 type: object
 properties:
   source_endpoint_id:
@@ -31,4 +32,8 @@ properties:
   delete_label:
     default: End-to-end Ops test deletion
     description: A label placed on the Delete operation
+    type: string
+  timer_url:
+    default: https://timercheck.io/automate-80932743889269524169320866183160580494
+    description: The timercheck.io url that nagios is checking for freshness
     type: string

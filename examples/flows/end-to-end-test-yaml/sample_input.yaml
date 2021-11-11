@@ -4,3 +4,4 @@ destination_endpoint_id: 25974dc2-fc46-11e9-9947-0a8c187e8c12
 destination_path: /~/destination_folder
 transfer_label: Transfer for Move from go#ep1 to go#ep2
 delete_label: Remove after Transfer for Move operation
+timer_url: https://timercheck.io/automate-80932743889269524169320866183160580494
