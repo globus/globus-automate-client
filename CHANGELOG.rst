@@ -35,31 +35,6 @@ Documentation
 
 - Added documentation related to use of built-in functions in expressions. Documented the new functions ``pathsplit``, ``is_present`` and ``getattr``.
 
-TEST — 2021-11-04
-=================
-
-Bugfixes
---------
-
--   Fix a bug that prevented the Flows client from properly validating flow definition states in lists.
--   Prevent empty values from appearing in query parameters or JSON submissions.
--   Fix a bug that prevented the input schema of an existing Flow from being set to an all-permissive JSON schema.
--   Fix a bug that prevented a custom authorizer from being used if attempting to list all runs of a specific flow without specifying the flow ID.
--   Fix a bug that introduced duplicate forward slashes in some API URL's.
-
-Documentation
--------------
-
-- Add a CHANGELOG and include it in the documentation.
-- Use scriv for CHANGELOG management.
-
-- Added documentation for the new Action Providers for:
-  - Make a directory via Globus Transfer (mkdir)
-  - Get collection information via Globus Transfer (collection_info)
-- Added documentation for new feature of the list directory Action Provider to get information only about the path provided as input
-
-- Added documentation related to use of built-in functions in expressions. Documented the new functions ``pathsplit``, ``is_present`` and ``getattr``.
-
 0.12.2 — 2021-10-19
 ===================
 
