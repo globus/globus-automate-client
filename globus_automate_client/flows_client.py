@@ -1003,6 +1003,7 @@ class FlowsClient(BaseClient):
         authorizer_callback: AuthorizerCallbackType,
         authorizer: AllowedAuthorizersType,
         base_url: Optional[str] = None,
+        http_timeout: int = 10,
     ) -> _FlowsClient:
         """
         Classmethod to simplify creating an FlowsClient. Use this method when
@@ -1025,6 +1026,8 @@ class FlowsClient(BaseClient):
             authorizer_callback parameter.
         :param base_url: The url at which the target Action Provider is
             located.
+        :param http_timeout: The amount of time to wait for connections to
+            the Action Provider to be made.
 
         **Examples**
             >>> def cli_authorizer_callback(**kwargs):
@@ -1046,4 +1049,5 @@ class FlowsClient(BaseClient):
             app_name="Globus Automate SDK FlowsClient",
             base_url=base_url,
             authorizer=authorizer,
+            http_timeout=http_timeout,
         )

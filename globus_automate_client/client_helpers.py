@@ -80,6 +80,7 @@ def create_flows_client(
     *,
     authorizer: t.Optional[GlobusAuthorizer] = None,
     authorizer_callback: t.Callable = cli_authorizer_callback,
+    http_timeout: int = 10
 ) -> FlowsClient:
     """
     A helper function to handle creating a properly authenticated
@@ -103,6 +104,8 @@ def create_flows_client(
         GlobusAuthorizers. If not provided, the Globus Automate CLI callback
         will be used which triggers interactive logins and stores tokens
         locally
+    :param http_timeout: Close any requests taking longer than this
+        parameter's value
 
     **Examples**
         >>> from globus_automate_client import create_flows_client
@@ -123,4 +126,5 @@ def create_flows_client(
         base_url=base_url,
         authorizer=authorizer,
         authorizer_callback=authorizer_callback,
+        http_timeout=http_timeout,
     )
