@@ -408,3 +408,371 @@ should be used in the Datacite test service or the production service.
 .. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
 .. _Globus Transfer Make Directory API: https://docs.globus.org/api/transfer/file_operations/#make_directory
 .. _Globus Transfer Get Collection API: https://docs.globus.org/api/transfer/endpoint/#get_endpoint_by_id
+
+
+HTTP requests
+-------------
+
+URL: `<https://actions.globus.org/http>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/http``
+
+Synchronous / Asynchronous: Synchronous
+
+The HTTP action provider supports making HTTP requests to arbitrary URL's of your choosing.
+This allows you to gather information from, or submit information to, external services.
+
+At minimum, you must specify the HTTP method and the target URL.
+Here is an example of the simplest functional input document:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://httpbin.org/get"
+    }
+
+A single HTTP request can be customized in four key ways:
+
+*   HTTP method
+*   HTTP timeout
+*   Content submission
+*   URL customization
+
+..  note::
+
+    The JSON schema that authoritatively describes the accepted keys and values can be retrieved using this command:
+
+    ..  code-block:: text
+
+        globus-automate action introspect --action-url https://actions.globus.org/http
+
+
+HTTP method
+...........
+
+..  csv-table::
+
+    "Key name", "``method``"
+    "Value type", "string"
+    "Required", "True"
+    "Accepted values", "``DELETE``, ``GET``, ``POST``, ``PUT``"
+    "Default", "*None*"
+
+The HTTP method determines how a URL is accessed.
+
+Generally speaking, GET requests can only gather existing information.
+POST requests create new information,
+PUT requests update existing information,
+and DELETE requests erase existing information.
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://httpbin.org/get"
+    }
+
+
+HTTP timeout
+............
+
+..  csv-table::
+
+    "Key name", "``timeout``"
+    "Value type", "number"
+    "Required", "False"
+    "Value range", "``(0, 30]``"
+    "Default", "``10``"
+
+In some cases an HTTP request may take longer than expected to respond.
+You can customize the maximum length of time that a single request can take using the ``timeout`` key.
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/lengthy-calculation",
+        "timeout": 30
+    }
+
+
+Content submission
+..................
+
+..  csv-table::
+
+    "Key name", "``content``"
+    "Value type", "a JSON object"
+    "Required", "False"
+    "Default", "*None*"
+
+If you need to submit data to a URL, use the ``content`` key.
+This can be used for all HTTP methods except GET requests.
+
+..  code-block:: json
+
+    {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "content": {
+            "example-id": "123",
+            "values": [3, 5, 7]
+        }
+    }
+
+Content will be submitted directly as JSON, but you can customize this using the ``content-type`` key.
+
+
+Content type
+............
+
+..  csv-table::
+
+    "Key name", "``content-type``"
+    "Value type", "string"
+    "Required", "False"
+    "Accepted values", "``application/json``, ``application/x-www-form-urlencoded``"
+    "Default", "``application/json``"
+
+While content will be submitted as JSON data by default, some servers may expect data to be URL-encoded.
+Here is an example of how these two content types appear when submitted to a server:
+
+..  code-block:: http
+
+    POST /example HTTP/1.1
+    Content-Type: application/json
+
+    {"dataset": "123", "status": "running"}
+
+..  code-block:: http
+
+    POST /example HTTP/1.1
+    Content-Type: application/x-www-form-urlencoded
+
+    dataset=123&status=running
+
+Set the ``content-type`` if required by the service you are submitting content to.
+
+..  code-block:: json
+
+    {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "content": {"dataset": "123", "status": "running"},
+        "content-type": "application/x-www-form-urlencoded"
+    }
+
+
+Query parameters
+................
+
+..  csv-table::
+
+    "Key name", "``query-parameters``"
+    "Value type", "JSON keys and values"
+    "Required", "False"
+    "Default", "*None*"
+
+Some HTTP endpoints require query parameters at the end of the URL.
+If the query parameters never change you can specify them directly in the URL:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/datasets?geo=AMER&date=2021-01-17"
+    }
+
+However, the query parameters can also be specified in the input document.
+This allows you to dynamically construct the query parameters using information generated or retrieved in the context of a larger Globus Flow.
+For example:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/datasets",
+        "query-parameters": {
+            "geo": "AMER",
+            "date": "2021-01-17"
+        }
+    }
+
+
+URL substitutions
+.................
+
+..  csv-table::
+
+    "Key name", "``url-substitutions``"
+    "Value type", "JSON keys and values"
+    "Required", "False"
+    "Default", "*None*"
+
+Some HTTP endpoints require a customized URL hierarchy.
+For example, the URL may require an ID to be embedded in the path:
+
+..  code-block:: text
+
+    https://domain.example/dataset/37/status/42/info
+
+When this is required you can specify substitution patterns in the ``url``
+and dynamically provide the correct values in the input document.
+
+Substitution patterns in the URL are wrapped in curly braces like "``{id}``".
+You can specify multiple substitution patterns, and patterns can be repeated.
+Each pattern MUST be referenced as a key in the ``url-substitutions`` object.
+
+If patterns are specified in the URL but are not provided in the ``url-substitutions`` object an error will be returned.
+Similarly, if pattern values are provided in ``url-substitutions`` but are not required then this will also be treated as an error.
+
+The input document below will result in the same URL as the example above,
+but the dataset ID and the status ID can now be dynamically specified during Flow execution.
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/dataset/{dataset-id}/status/{status-id}/info",
+        "url-substitutions": {
+            "dataset-id": "37",
+            "status-id": "42"
+        }
+    }
+
+This feature can be combined with dynamic query parameters, too.
+
+..  note::
+
+    To support this feature, bare curly braces cannot appear in a URL.
+    If you need to have bare curly braces in the URL you can escape them using URL substitution:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{open-brace}success{close-brace}/",
+            "url-substitutions": {
+                "open-brace": "{",
+                "close-brace": "}"
+            }
+        }
+
+    This will result in the following URL with curly braces embedded:
+
+    ..  code-block:: text
+
+        https://domain.example/{success}/
+
+
+Errors: JSON schema validation
+..............................
+
+Input documents will be validated against the HTTP action provider JSON schema.
+You can get an authoritative copy of the JSON schema by running this command:
+
+..  code-block:: text
+
+    globus-automate action introspect --action-url https://actions.globus.org/http
+
+If the JSON schema validation fails the HTTP provider will return a JSON document with a list of errors.
+For example, if the ``method`` is not one of the supported values you will see an error like this:
+
+..  code-block:: json
+
+    {
+        "code": "BadActionRequest",
+        "description": [
+            "'method' invalid due to 'GATHER' is not one of ['DELETE', 'GET', 'POST', 'PUT']"
+        ]
+    }
+
+If you encounter a ``BadActionRequest`` it is possible that the input document contains a typo or a missing key.
+
+
+Errors: Additional input documentation validation
+.................................................
+
+Additional validation of the input document will be performed before submitting the HTTP request.
+These errors may be returned in the result document:
+
+``HTTP_URL_SUBSTITUTION_EMPTY_PATTERN``
+    All URL substitution patterns must have an identifier with at least one character.
+
+    If this error is encountered it means that an empty pattern was encountered in the ``url`` key.
+    An empty pattern is literally two curly braces next to each other: "``{}``".
+
+    If literal curly braces must appear in the URL,
+    please see the section above titled "URL substitutions" for a workaround.
+
+    If a value is required at that location in the URL, give the pattern a name using at least one character.
+    Otherwise, remove the curly braces from the URL.
+
+``HTTP_URL_SUBSTITUTION_REQUIREMENTS_NOT_MET``
+    All substitution patterns in ``url`` must have values specified in ``url-substitutions``.
+
+    If this error is encountered it means that one or more patterns do not have values.
+    For example, the following URL contains two patterns (``dataset-id`` and ``status-id``)
+    but only one value (``dataset-id``) is provided in ``url-substitutions``:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{dataset-id}/{status-id}",
+            "url-substitutions": {
+                "dataset-id": "123"
+            }
+        }
+
+    To fix this error, provide a value for each substitution pattern that appears in ``url``.
+
+``HTTP_URL_SUBSTITUTION_UNUSED_SUBSTITUTIONS``
+    All substitution values in ``url-substitutions`` must be required in ``url``.
+
+    If you see this error it means that one or more values would be unused in the ``url``.
+    For example, the following URL contains one pattern (``dataset-id``)
+    but two values (``dataset-id`` and ``status-id``) are provided in ``url-substitutions``:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{dataset-id}",
+            "url-substitutions": {
+                "dataset-id": "123",
+                "status-id": "unused"
+            }
+        }
+
+    To fix this error, only provide values for each substitution pattern that appears in ``url``.
+
+``HTTP_METHOD_DOES_NOT_SUPPORT_CONTENT``
+    The HTTP specification does not allow content to be submitted with GET requests.
+
+    If you see this error it means that the input document specifies "``GET``" as the HTTP method but also specifies a ``content`` key.
+    This is an incompatible combination.
+
+    If you are attempting to submit data to the specified URL you must use a different HTTP method, like "``POST``" or "``PUT``".
+
+    If you are only attempting to retrieve data from the specified URL, remove the ``content`` key from the input document.
+
+
+Errors: HTTP request or response failures
+.........................................
+
+``HTTP_REQUEST_FAILED``
+    The HTTP request was submitted but failed for some reason.
+
+    This error can happen for many reasons.
+    For example, you may see this error if the ``url`` contains a typo,
+    or if the ``url`` refers to an internal server that cannot be reached from the outside internet,
+    or if the server doesn't respond before the ``timeout`` value is reached.
+
+    The text of the failure is included in the error message and can help troubleshoot why the request failed.
+
+``HTTP_RESPONSE_NOT_JSON``
+    At this time, all HTTP requests must return valid JSON.
+
+    If you see this error it means that the server responded with something other than valid JSON.
