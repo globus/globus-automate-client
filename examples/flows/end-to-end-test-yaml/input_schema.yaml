@@ -34,11 +34,3 @@ properties:
     default:
     description: The timercheck.io url that nagios is checking for freshness
     type: string
-  http_method:
-    default: GET
-    description: Annoying that we have to have this as a parameter rather than hardcoding it into the flow
-    type: string
-  path_only:
-    default: true
-    description: Annoying that we have to have this as a parameter rather than hardcoding it into the flow
-    type: boolean
