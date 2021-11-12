@@ -49,7 +49,7 @@ States:
       - Variable: $.Stage1RunGlobusTransferResult.status
         StringEquals: FAILED
         Next: Stage1RunGlobusTransferFailed
-    Default: Delete
+    Default: Stage2RunGlobusLsToConfirmTransfer
 
   Stage1RunGlobusTransferFailed:
     Comment: Report the error and end the flow execution
@@ -71,7 +71,7 @@ States:
     Parameters:
       endpoint_id.$: $.destination_endpoint_id
       path.$: $.destination_path
-      path_only.$: true
+      path_only.$: $.path_only
     ResultPath: $.Stage2RunGlobusLsToConfirmTransferResult
     Next: Stage2RunGlobusLsToConfirmTransferStatus
 
@@ -83,41 +83,25 @@ States:
       - Variable: $.Stage2RunGlobusLsToConfirmTransferResult.status
         StringEquals: FAILED
         Next: Stage2RunGlobusLsToConfirmTransferResultFailed
-    ResultPath: $.Stage2CheckFilesLsData
-    Next: Stage2CheckFilesLsData
+    Default: Stage2CheckFilesLsData
 
   Stage2RunGlobusLsToConfirmTransferResultFailed:
     Comment: Report the error and end the flow execution
     Type: Pass
     Parameters:
-      message: Check of file transferred failed
+      message: Check of file transfer failed
       details.$: $.Stage2RunGlobusLsToConfirmTransferResult.details
     ResultPath: $.FlowResult
     End: true
 
   Stage2CheckFilesLsData:
-    Comment: ''
-    Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/expression_eval'
-    Parameters:
-      arguments:
-        data.$: $.Stage2CheckFilesLsData.details.DATA
-      expression: 'len(data) > 0'
-      result_path: 'files_gt_zero'
-    Next: Stage2CheckNumFilesGtZero
-
-  Stage2CheckNumFilesGtZero:
+    Comment: Check that there is a file at the destination
     Type: Choice
     Choices:
-      - Variable: $.Stage2CheckNumFilesGtZero.details.files_gt_zero
-        BooleanEquals: true
-        Next: Stage3RunGlobusDelete
-      - Variable: $.Stage2CheckNumFilesGtZero.details.files_gt_zero
-        BooleanEquals: false
+      - Variable: "$.SourcePathInfo.details.DATA[0]"
+        IsPresent: false
         Next: Stage2LsFailed
-    ResultPath: $.Stage2CheckFilesLsData
-    # Fail by default (should never reach this branch
-    Next: Stage2LsFailed
+    Default: Stage3RunGlobusDelete
 
   Stage2LsFailed:
     Type: Pass
@@ -152,7 +136,7 @@ States:
       - Variable: $.Stage3DeleteResult.status
         StringEquals: FAILED
         Next: Stage3RunGlobusDeleteFailed
-    Default: AllComplete
+    Default: Stage4RunGlobusLsToConfirmDeletion
 
   Stage3RunGlobusDeleteFailed:
     Comment: Report the error and end the flow execution
@@ -174,7 +158,7 @@ States:
     Parameters:
       endpoint_id.$: $.destination_endpoint_id
       path.$: $.destination_path
-      path_only.$: true
+      path_only.$: $.path_only
     ResultPath: $.Stage4RunGlobusLsToConfirmDeletionResult
     Next: Stage4RunGlobusLsToConfirmDeletionStatus
 
@@ -186,8 +170,7 @@ States:
       - Variable: $.Stage4RunGlobusLsToConfirmDeletionResult.status
         StringEquals: FAILED
         Next: Stage4RunGlobusLsToConfirmDeletionResultFailed
-    ResultPath: $.Stage4CheckFilesLsData
-    Next: Stage4CheckFilesLsData
+    Default: Stage4CheckFilesLsData
 
   Stage4RunGlobusLsToConfirmDeletionResultFailed:
     Comment: Report the error and end the flow execution
@@ -199,28 +182,13 @@ States:
     End: true
 
   Stage4CheckFilesLsData:
-    Comment: ''
-    Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/expression_eval'
-    Parameters:
-      arguments:
-        data.$: $.Stage4CheckFilesLsData.details.DATA
-      expression: 'len(data) > 0'
-      result_path: 'files_gt_zero'
-    Next: Stage4CheckNumFilesEqZero
-
-  Stage4CheckNumFilesEqZero:
+    Comment: Check that there is no longer a file at the destination
     Type: Choice
     Choices:
-      - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
-        BooleanEquals: true
-        Next: Stage5RunHttpToResetTimer
-      - Variable: $.Stage4CheckNumFilesEqZero.details.files_gt_zero
-        BooleanEquals: false
+      - Variable: "$.SourcePathInfo.details.DATA[0]"
+        IsPresent: true
         Next: Stage4LsFailed
-    ResultPath: $.Stage4CheckFilesLsData
-    # Fail by default (should never reach this)
-    Next: Stage2LsFailed
+    Default: Stage5RunHttpToResetTimer
 
   Stage4LsFailed:
     Type: Pass
@@ -237,7 +205,7 @@ States:
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
-      method.$: GET
+      method.$: $.http_method
       url.$: $.timer_url
     ResultPath: $.Stage5RunHttpToResetTimerResult
     Next: Stage5RunHttpToResetTimerStatus

@@ -4,8 +4,6 @@ required:
   - source_path
   - destination_endpoint_id
   - destination_path
-  - transfer_label
-  - delete_label
   - timer_url
 type: object
 properties:
@@ -14,7 +12,6 @@ properties:
     description: The uuid for the endpoint which serves as the source of the Move
     type: string
   source_path:
-    default:
     description: The path on the source endpoint for the data
     type: string
   destination_endpoint_id:
@@ -26,14 +23,22 @@ properties:
     description: The path on the destination endpoint where the data will be stored
     type: string
   transfer_label:
-    default: End-to-end Ops test transfer
+    default: Test all action providers
     description: A label placed on the Transfer operation
     type: string
   delete_label:
-    default: End-to-end Ops test deletion
+    default: Test file deletion
     description: A label placed on the Delete operation
     type: string
   timer_url:
-    default: https://timercheck.io/automate-80932743889269524169320866183160580494
+    default:
     description: The timercheck.io url that nagios is checking for freshness
     type: string
+  http_method:
+    default: GET
+    description: Annoying that we have to have this as a parameter rather than hardcoding it into the flow
+    type: string
+  path_only:
+    default: true
+    description: Annoying that we have to have this as a parameter rather than hardcoding it into the flow
+    type: boolean
