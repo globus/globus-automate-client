@@ -1,18 +1,15 @@
 Globus Action Providers
 =======================
 
-Globus provides and operates a number of ``Action Providers`` which may be
-invoked directly or used within Flows. Below is a brief summary of the ``Action
-Providers`` being operated including specific information on their URLs, scopes,
-and a summary of their functionality. Specific input specifications are not
-provided as they may be retrieved from the ``Action Provider`` directly via
-introspection:
+Globus provides and operates a number of ``Action Providers`` which may be invoked directly or used within Flows.
+Below is a brief summary of the ``Action Providers`` being operated including specific information on their URLs, scopes, and a summary of their functionality.
+Specific input specifications are generally not provided as they may be authoritatively retrieved from the ``Action Provider`` directly via introspection:
 
-.. code-block:: BASH
+.. code-block:: bash
 
     globus-automate action introspect --action-url <action_url>
 
-Or simply click on the URL to view the introspection results in a browser.
+You can also click on the Action URL in the documentation to view the introspection results in a browser.
 
 .. note::
     When running Globus operated Action Providers the ``action`` subcommands
@@ -27,7 +24,7 @@ List of Globus Operated Action Providers
 HelloWorld
 ----------
 
-URL: `<https://actions.globus.org/hello_world>`_
+Action URL: `<https://actions.globus.org/hello_world>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/hello_world``
 
@@ -55,7 +52,7 @@ status will become ``SUCCEEDED``.
 Globus Transfer - Transfer Data
 -------------------------------
 
-URL: `<https://actions.globus.org/transfer/transfer>`_
+Action URL: `<https://actions.globus.org/transfer/transfer>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
@@ -80,7 +77,7 @@ Globus Transfer API.
 Globus Transfer - Delete Data
 -----------------------------
 
-URL: `<https://actions.globus.org/transfer/delete>`_
+Action URL: `<https://actions.globus.org/transfer/delete>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/delete``
 
@@ -96,7 +93,7 @@ directly from the Task status in the Globus Transfer API.
 Globus Transfer - Set/Manage Permissions
 ----------------------------------------
 
-URL: `<https://actions.globus.org/transfer/set_permission>`_
+Action URL: `<https://actions.globus.org/transfer/set_permission>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permission``
 
@@ -127,7 +124,7 @@ returning the Transfer API result.
 Globus Transfer - List Directory Contents
 -----------------------------------------
 
-URL: `<https://actions.globus.org/transfer/ls>`_
+Action URL: `<https://actions.globus.org/transfer/ls>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_ls``
 
@@ -149,7 +146,7 @@ Additionally, it adds two features not found in the base Globus Transfer List Di
 Globus Transfer - Make Directory
 --------------------------------
 
-URL: `<https://actions.globus.org/transfer/mkdir>`_
+Action URL: `<https://actions.globus.org/transfer/mkdir>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_mkdir``
 
@@ -166,7 +163,7 @@ to create a new directory on an endpoint. The input is simply the id for endpoin
 Globus Transfer - Get Collection Information
 --------------------------------------------
 
-URL: `<https://actions.globus.org/transfer/collection_info>`_
+Action URL: `<https://actions.globus.org/transfer/collection_info>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_collection_info``
 
@@ -178,7 +175,7 @@ to get information about a Globus Collection. The information returned is the sa
 Globus Search - Ingest
 ----------------------
 
-URL: `<https://actions.globus.org/search/ingest>`_
+Action URL: `<https://actions.globus.org/search/ingest>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/search/ingest``
 
@@ -204,7 +201,7 @@ not support cancellation of its Actions.
 Globus Search - Delete
 ----------------------
 
-URL: `<https://actions.globus.org/search/delete>`_
+Action URL: `<https://actions.globus.org/search/delete>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/search_delete``
 
@@ -238,7 +235,7 @@ of its Actions.
 Send Notification - Email
 -------------------------
 
-URL: `<https://actions.globus.org/notification/notify>`_
+Action URL: `<https://actions.globus.org/notification/notify>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/notification_notify``
 
@@ -277,7 +274,7 @@ improper recipient address.
 Wait for User Option Selection
 ------------------------------
 
-URL: `<https://actions.globus.org/weboption/wait_for_option>`_
+Action URL: `<https://actions.globus.org/weboption/wait_for_option>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/weboption_wait_for_option``
 
@@ -347,7 +344,7 @@ Simple Expression Evaluation
     Simple Expression Evaluation Action Provider described here is not needed
     and expressions defined on Action definitions within a Flow are preferred.
 
-URL: `<https://actions.globus.org/expression_eval>`_
+Action URL: `<https://actions.globus.org/expression_eval>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/expression``
 
@@ -386,7 +383,7 @@ result in previous results being over-written.
 Datacite DOI Minting
 --------------------
 
-URL: `<https://actions.globus.org/datacite/mint/basic_auth>`_
+Action URL: `<https://actions.globus.org/datacite/mint/basic_auth>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/datacite_mint_basic_auth_action_all``
 
@@ -413,7 +410,7 @@ should be used in the Datacite test service or the production service.
 HTTP requests
 -------------
 
-URL: `<https://actions.globus.org/http>`_
+Action URL: `<https://actions.globus.org/http>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/http``
 
