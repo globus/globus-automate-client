@@ -26,7 +26,7 @@ States:
       Run the initial transfer operation from the source ep/source path to the
       destination ep/destination path
     Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/transfer'
+    ActionUrl: 'https://ENVIRONMENTNAME.actions.automate.globus.org/transfer/transfer'
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
@@ -65,7 +65,7 @@ States:
     Comment: >-
       Use GlobusLs to check that the transfered file was actually transferred.
     Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/ls'
+    ActionUrl: 'https://ENVIRONMENTNAME.actions.automate.globus.org/transfer/ls'
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
@@ -98,7 +98,7 @@ States:
     Comment: Check that there is a file at the destination
     Type: Choice
     Choices:
-      - Variable: "$.SourcePathInfo.details.DATA[0]"
+      - Variable: "$.Stage2RunGlobusLsToConfirmTransferResult.details.DATA[0]"
         IsPresent: false
         Next: Stage2LsFailed
     Default: Stage3RunGlobusDelete
@@ -116,12 +116,12 @@ States:
     Comment: >-
       Use Transfer to delete the transferred file.
     Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/delete'
+    ActionUrl: 'https://ENVIRONMENTNAME.actions.automate.globus.org/transfer/delete'
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
       endpoint_id.$: $.destination_endpoint_id
-      recursive.$: $.recursive
+      recursive: true
       label.$: $.delete_label
       items.=: '[`$.destination_path`]'
     ResultPath: $.Stage3DeleteResult
@@ -152,7 +152,7 @@ States:
     Comment: >-
       Use GlobusLs to check that the transfered file was actually transferred.
     Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/transfer/ls'
+    ActionUrl: 'https://ENVIRONMENTNAME.actions.automate.globus.org/transfer/ls'
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
@@ -185,10 +185,11 @@ States:
     Comment: Check that there is no longer a file at the destination
     Type: Choice
     Choices:
-      - Variable: "$.SourcePathInfo.details.DATA[0]"
+      - Variable: "$.Stage4RunGlobusLsToConfirmTransferResult.details.DATA[0]"
         IsPresent: true
         Next: Stage4LsFailed
-    Default: Stage5RunHttpToResetTimer
+    # Default: Stage5RunHttpToResetTimer
+    Default: AllComplete
 
   Stage4LsFailed:
     Type: Pass
@@ -199,36 +200,36 @@ States:
     End: true
 
 
-  Stage5RunHttpToResetTimer:
-    Type: Action
-    ActionUrl: 'https://sandbox.actions.automate.globus.org/http'
-    WaitTime: 30
-    ExceptionOnActionFailure: false
-    Parameters:
-      method: GET
-      url.$: $.timer_url
-    ResultPath: $.Stage5RunHttpToResetTimerResult
-    Next: Stage5RunHttpToResetTimerStatus
+  # Stage5RunHttpToResetTimer:
+  #   Type: Action
+  #   ActionUrl: 'https://ENVIRONMENTNAME.actions.automate.globus.org/http'
+  #   WaitTime: 30
+  #   ExceptionOnActionFailure: false
+  #   Parameters:
+  #     method: GET
+  #     url.$: $.timer_url
+  #   ResultPath: $.Stage5RunHttpToResetTimerResult
+  #   Next: Stage5RunHttpToResetTimerStatus
 
-  Stage5RunHttpToResetTimerStatus:
-    Comment: >-
-      Examine the status of the Action. If it failed, branch to a state
-      that reports the error
-    Type: Choice
-    Choices:
-      - Variable: $.Stage5RunHttpToResetTimerResult.status
-        StringEquals: FAILED
-        Next: Stage5RunHttpToResetTimerFailed
-    Default: AllComplete
+  # Stage5RunHttpToResetTimerStatus:
+  #   Comment: >-
+  #     Examine the status of the Action. If it failed, branch to a state
+  #     that reports the error
+  #   Type: Choice
+  #   Choices:
+  #     - Variable: $.Stage5RunHttpToResetTimerResult.status
+  #       StringEquals: FAILED
+  #       Next: Stage5RunHttpToResetTimerFailed
+  #   Default: AllComplete
 
-  Stage5RunHttpToResetTimerFailed:
-    Comment: Report the error and end the flow execution
-    Type: Pass
-    Parameters:
-      message: Deletion failed
-      details.$: $.Stage5RunHttpToResetTimerResult.details
-    ResultPath: $.FlowResult
-    End: true
+  # Stage5RunHttpToResetTimerFailed:
+  #   Comment: Report the error and end the flow execution
+  #   Type: Pass
+  #   Parameters:
+  #     message: Deletion failed
+  #     details.$: $.Stage5RunHttpToResetTimerResult.details
+  #   ResultPath: $.FlowResult
+  #   End: true
 
 
   AllComplete:

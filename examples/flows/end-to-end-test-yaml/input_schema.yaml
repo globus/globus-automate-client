@@ -22,6 +22,10 @@ properties:
     default:
     description: The path on the destination endpoint where the data will be stored
     type: string
+  destination_path_parent_dir:
+    default:
+    description: The path on the destination endpoint where the data will be stored, minus the filename
+    type: string
   transfer_label:
     default: Test all action providers
     description: A label placed on the Transfer operation
