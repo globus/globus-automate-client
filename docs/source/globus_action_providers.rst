@@ -463,6 +463,22 @@ and DELETE requests erase existing information.
     }
 
 
+HTTP URL
+........
+
+..  csv-table::
+
+    "Key name", "``url``"
+    "Value type", "string"
+    "Required", "True"
+    "Default", "*None*"
+
+The ``url`` key indicates the target URL that will be accessed by the HTTP request.
+
+It can be manipulated and augmented dynamically using query parameters and URL substitution identifiers, which are documented below.
+
+
+
 HTTP timeout
 ............
 
