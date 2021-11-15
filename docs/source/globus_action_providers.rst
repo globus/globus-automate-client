@@ -617,15 +617,15 @@ For example, the URL may require an ID to be embedded in the path:
 
     https://domain.example/dataset/37/status/42/info
 
-When this is required you can specify substitution patterns in the ``url``
+When this is required you can specify substitution identifiers in the ``url``
 and dynamically provide the correct values in the input document.
 
-Substitution patterns in the URL are wrapped in curly braces like "``{id}``".
-You can specify multiple substitution patterns, and patterns can be repeated.
-Each pattern MUST be referenced as a key in the ``url-substitutions`` object.
+Substitution identifiers in the URL are wrapped in curly braces like "``{id}``".
+You can specify multiple substitution identifiers, and identifiers can be repeated.
+Each identifier MUST be referenced as a key in the ``url-substitutions`` object.
 
-If patterns are specified in the URL but are not provided in the ``url-substitutions`` object an error will be returned.
-Similarly, if pattern values are provided in ``url-substitutions`` but are not required then this will also be treated as an error.
+If identifiers are specified in the URL but are not provided in the ``url-substitutions`` object an error will be returned.
+Similarly, if identifier values are provided in ``url-substitutions`` but are not required then this will also be treated as an error.
 
 The input document below will result in the same URL as the example above,
 but the dataset ID and the status ID can now be dynamically specified during Flow execution.
@@ -697,23 +697,23 @@ Errors: Additional input documentation validation
 Additional validation of the input document will be performed before submitting the HTTP request.
 These errors may be returned in the result document:
 
-``HTTP_URL_SUBSTITUTION_EMPTY_PATTERN``
-    All URL substitution patterns must have an identifier with at least one character.
+``HTTP_URL_SUBSTITUTION_EMPTY_ID``
+    All URL substitution identifiers must have at least one character.
 
-    If this error is encountered it means that an empty pattern was encountered in the ``url`` key.
-    An empty pattern is literally two curly braces next to each other: "``{}``".
+    If this error is encountered it means that an empty identifier was encountered in the ``url`` key.
+    An empty identifier is two curly braces next to each other: "``{}``".
 
     If literal curly braces must appear in the URL,
     please see the section above titled "URL substitutions" for a workaround.
 
-    If a value is required at that location in the URL, give the pattern a name using at least one character.
+    If a value is required at that location in the URL, give the identifier a name using at least one character.
     Otherwise, remove the curly braces from the URL.
 
-``HTTP_URL_SUBSTITUTION_REQUIREMENTS_NOT_MET``
-    All substitution patterns in ``url`` must have values specified in ``url-substitutions``.
+``HTTP_URL_SUBSTITUTION_ID_UNFILLED``
+    All substitution identifiers in ``url`` must have values specified in ``url-substitutions``.
 
-    If this error is encountered it means that one or more patterns do not have values.
-    For example, the following URL contains two patterns (``dataset-id`` and ``status-id``)
+    If this error is encountered it means that one or more identifiers do not have values.
+    For example, the following URL contains two identifiers (``dataset-id`` and ``status-id``)
     but only one value (``dataset-id``) is provided in ``url-substitutions``:
 
     ..  code-block:: json
@@ -726,13 +726,13 @@ These errors may be returned in the result document:
             }
         }
 
-    To fix this error, provide a value for each substitution pattern that appears in ``url``.
+    To fix this error, provide a value for each substitution identifier that appears in ``url``.
 
-``HTTP_URL_SUBSTITUTION_UNUSED_SUBSTITUTIONS``
+``HTTP_URL_SUBSTITUTION_ID_UNKNOWN``
     All substitution values in ``url-substitutions`` must be required in ``url``.
 
     If you see this error it means that one or more values would be unused in the ``url``.
-    For example, the following URL contains one pattern (``dataset-id``)
+    For example, the following URL contains one identifier (``dataset-id``)
     but two values (``dataset-id`` and ``status-id``) are provided in ``url-substitutions``:
 
     ..  code-block:: json
@@ -746,7 +746,7 @@ These errors may be returned in the result document:
             }
         }
 
-    To fix this error, only provide values for each substitution pattern that appears in ``url``.
+    To fix this error, only provide values for each substitution identifier that appears in ``url``.
 
 ``HTTP_METHOD_DOES_NOT_SUPPORT_CONTENT``
     The HTTP specification does not allow content to be submitted with GET requests.
