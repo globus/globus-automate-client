@@ -436,14 +436,6 @@ A single HTTP request can be customized in four key ways:
 *   Content submission
 *   URL customization
 
-..  note::
-
-    The JSON schema that authoritatively describes the accepted keys and values can be retrieved using this command:
-
-    ..  code-block:: text
-
-        globus-automate action introspect --action-url https://actions.globus.org/http
-
 
 HTTP method
 ...........
@@ -667,11 +659,7 @@ Errors: JSON schema validation
 ..............................
 
 Input documents will be validated against the HTTP action provider JSON schema.
-You can get an authoritative copy of the JSON schema by running this command:
-
-..  code-block:: text
-
-    globus-automate action introspect --action-url https://actions.globus.org/http
+The schema can be authoritatively retrieved using the introspection instructions at the top of this document.
 
 If the JSON schema validation fails the HTTP provider will return a JSON document with a list of errors.
 For example, if the ``method`` is not one of the supported values you will see an error like this:
