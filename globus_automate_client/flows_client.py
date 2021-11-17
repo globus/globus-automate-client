@@ -324,10 +324,10 @@ class FlowsClient(BaseClient):
         title: Optional[str] = None,
         subtitle: Optional[str] = None,
         description: Optional[str] = None,
-        keywords: Iterable[str] = (),
-        flow_viewers: Iterable[str] = (),
-        flow_starters: Iterable[str] = (),
-        flow_administrators: Iterable[str] = (),
+        keywords: Optional[Iterable[str]] = None,
+        flow_viewers: Optional[Iterable[str]] = None,
+        flow_starters: Optional[str] = None,
+        flow_administrators: Optional[Iterable[str]] = None,
         subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
@@ -376,31 +376,30 @@ class FlowsClient(BaseClient):
         :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to update the Flow.
         """
+        self.authorizer = self.flow_management_authorizer
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
         if validate_schema and input_schema is not None:
             validate_input_schema(input_schema)
-        self.authorizer = self.flow_management_authorizer
-        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
-        temp_body["subtitle"] = subtitle
-        temp_body["description"] = description
-        temp_body["keywords"] = keywords
-        temp_body["flow_viewers"] = merge_lists(
-            flow_viewers, kwargs, "visible_to", "viewers"
-        )
-        temp_body["flow_starters"] = merge_lists(
-            flow_starters, kwargs, "runnable_by", "starters"
-        )
-        temp_body["flow_administrators"] = merge_lists(
-            flow_administrators, kwargs, "administered_by", "administrators"
-        )
-        temp_body["subscription_id"] = subscription_id
-        # Remove None / empty list items from the temp_body
-        data = {k: v for k, v in temp_body.items() if v}
-        # After removing false-y values, add the input schema.
-        if input_schema is not None:
-            data["input_schema"] = input_schema
-        return self.put(f"/flows/{flow_id}", data=data, **kwargs)
+
+        temp_body: Dict[str, Any] = {
+            "definition": flow_definition,
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "keywords": keywords,
+            "flow_viewers": merge_lists(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_starters": merge_lists(
+                flow_starters, kwargs, "runnable_by", "starters"
+            ),
+            "flow_administrators": merge_lists(
+                flow_administrators, kwargs, "administered_by", "administrators"
+            ),
+            "subscription_id": subscription_id,
+            "input_schema": input_schema,
+        }
+        data = {k: v for k, v in temp_body.items() if v is not None}
+        return self.put(f"/flows/{flow_id}", data, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
