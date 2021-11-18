@@ -4,11 +4,11 @@ from urllib.parse import quote
 
 from globus_sdk import (
     AccessTokenAuthorizer,
+    BaseClient,
     ClientCredentialsAuthorizer,
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import BaseClient
 
 from .helpers import merge_lists
 

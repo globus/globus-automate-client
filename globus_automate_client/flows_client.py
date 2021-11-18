@@ -18,11 +18,11 @@ from urllib.parse import quote, urljoin
 
 from globus_sdk import (
     AccessTokenAuthorizer,
+    BaseClient,
     ClientCredentialsAuthorizer,
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import BaseClient
 from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
