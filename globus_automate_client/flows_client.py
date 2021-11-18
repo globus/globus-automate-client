@@ -347,7 +347,7 @@ class FlowsClient(BaseClient):
         description: Optional[str] = None,
         keywords: Optional[Iterable[str]] = None,
         flow_viewers: Optional[Iterable[str]] = None,
-        flow_starters: Optional[str] = None,
+        flow_starters: Optional[Iterable[str]] = None,
         flow_administrators: Optional[Iterable[str]] = None,
         subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
