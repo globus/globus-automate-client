@@ -1,5 +1,6 @@
 import uuid
 from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
+from urllib.parse import quote
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -7,7 +8,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient
+from globus_sdk import BaseClient
 
 from .helpers import merge_lists
 
@@ -25,8 +26,8 @@ class ActionClient(BaseClient):
         AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
     ]
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    base_path: str = ""
+    service_name: str = "actions"
 
     @property
     def action_scope(self) -> str:
@@ -62,7 +63,7 @@ class ActionClient(BaseClient):
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
         force_path: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -89,7 +90,7 @@ class ActionClient(BaseClient):
         if request_id is None:
             request_id = str(uuid.uuid4())
 
-        path = self.qjoin_path("run")
+        path = "/run"
         if force_path:
             path = force_path
         body = {
@@ -100,8 +101,8 @@ class ActionClient(BaseClient):
             "label": label,
         }
         # Remove None items from the temp_body
-        body = {k: v for k, v in body.items() if v is not None}
-        return self.post(path, body)
+        data = {k: v for k, v in body.items() if v is not None}
+        return self.post(path, data=data)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -110,8 +111,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "status")
-        return self.get(path)
+
+        return self.get(f"{quote(action_id)}/status")
 
     def resume(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -125,8 +126,8 @@ class ActionClient(BaseClient):
             executed on this Action Provider.
 
         """
-        path = self.qjoin_path(action_id, "resume")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/resume")
 
     def cancel(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -135,8 +136,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "cancel")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/cancel")
 
     def release(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -145,8 +146,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "release")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/release")
 
     def log(
         self,
@@ -176,15 +177,14 @@ class ActionClient(BaseClient):
         # *reverse_order* MUST BE None to prevent reversing the sort order.
         # Any other value, including False, will reverse the sort order.
         params: Dict[str, Union[int, str]] = {
-            "reverse_order": reverse_order or None,
+            "reverse_order": True if reverse_order else None,
             "limit": limit,
         }
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = per_page
-        path = self.qjoin_path(action_id, "log")
-        return self.get(path, params=params)
+        return self.get(f"{quote(action_id)}/log", query_params=params)
 
     @classmethod
     def new_client(
@@ -212,9 +212,10 @@ class ActionClient(BaseClient):
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
         return cls(
-            "action_client",
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
-            http_timeout=http_timeout,
+            transport_params={
+                "http_timeout": http_timeout,
+            },
         )

@@ -10,13 +10,13 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union
 import click
 import typer
 from globus_sdk import AuthClient, GlobusAPIError, NativeAppAuthClient
-from globus_sdk.auth.token_response import OAuthTokenResponse
+from globus_sdk import OAuthTokenResponse
 from globus_sdk.authorizers import (
     AccessTokenAuthorizer,
     GlobusAuthorizer,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.exc import AuthAPIError
+from globus_sdk import AuthAPIError
 
 from globus_automate_client.action_client import ActionClient
 
@@ -296,8 +296,6 @@ def get_authorizers_for_scopes(
                     expires_at=token_set.expiration_time,
                     on_refresh=refresh_handler,
                 )
-                # Force check that the token is not expired
-                authorizer.check_expiration_time()
             else:
                 authorizer = AccessTokenAuthorizer(token_set.access_token)
             authorizers[_get_base_scope(scope)] = authorizer
