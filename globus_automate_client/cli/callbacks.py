@@ -5,7 +5,6 @@ import re
 from errno import ENAMETOOLONG
 from typing import AbstractSet, List, Optional
 from urllib.parse import urlparse
-from uuid import UUID
 
 import typer
 import yaml
@@ -33,7 +32,7 @@ def url_validator_callback(url: str) -> str:
         result = urlparse(url)
         if result.scheme and result.netloc:
             return url
-    except:
+    except Exception:
         pass
     raise typer.BadParameter("Please supply a valid url")
 
@@ -149,9 +148,9 @@ def input_validator(body: str) -> str:
         try:
             parsed_body = yaml.safe_load(body)
         except yaml.YAMLError:
-            raise typer.BadParameter(f"Unable to load input as JSON or YAML")
+            raise typer.BadParameter("Unable to load input as JSON or YAML")
     if not isinstance(parsed_body, dict):
-        raise typer.BadParameter(f"Unable to load input as JSON or YAML")
+        raise typer.BadParameter("Unable to load input as JSON or YAML")
     return body
 
 

@@ -38,23 +38,23 @@ def humanize_auth_urn(urn: str) -> str:
     return urn
 
 
-def identity_to_user(field: str, l: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def identity_to_user(field: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Given a list of dict entries, this function will attempt to
     """
     # get_identities will fail if there's no data, so short circuit
-    if len(l) == 0:
-        return l
+    if len(items) == 0:
+        return items
 
     # Only do the conversion if the user is already logged in
     authzs = get_authorizers_for_scopes(["openid"], no_login=True)
     authorizer = authzs.get("openid")
     if authorizer is None:
-        return l
+        return items
 
     # Collect IDs from the List data
     creators: Dict[str, None] = collections.OrderedDict()
-    for item in l:
+    for item in items:
         urn_id = item.get(field, "")
         id = urn_id.split(":")[-1]
         creators[id] = None
@@ -65,12 +65,12 @@ def identity_to_user(field: str, l: List[Dict[str, Any]]) -> List[Dict[str, Any]
     id_to_user = {i["id"]: i["username"] for i in resp.data["identities"]}
 
     # Update items in list
-    for item in l:
+    for item in items:
         urn_id = item.get(field, "")
         id = urn_id.split(":")[-1]
         if id in id_to_user:
             item[field] = id_to_user[id]
-    return l
+    return items
 
 
 class Field:

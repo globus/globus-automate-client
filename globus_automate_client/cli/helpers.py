@@ -67,7 +67,7 @@ def process_input(input_arg: Optional[str]) -> Optional[Mapping[str, Any]]:
         try:
             input_dict = yaml.safe_load(input_arg)
         except yaml.YAMLError:
-            raise typer.BadParameter(f"Unable to load input as JSON or YAML")
+            raise typer.BadParameter("Unable to load input as JSON or YAML")
 
     return input_dict
 
