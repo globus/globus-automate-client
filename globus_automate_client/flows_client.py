@@ -327,10 +327,9 @@ class FlowsClient(BaseClient):
             ),
             "subscription_id": subscription_id,
         }
-        # Remove None / empty list items from the temp_body
+        # Remove None / empty list items from the temp_body.
         req_body = {k: v for k, v in temp_body.items() if v}
-        # We do this after clearing false truthy values since an empty input schema is a
-        # valid thing
+        # Add the input_schema last since an empty input schema is valid.
         if input_schema is not None:
             req_body["input_schema"] = input_schema
         url = "/flows"
