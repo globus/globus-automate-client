@@ -176,7 +176,7 @@ class ActionClient(BaseClient):
 
         # *reverse_order* MUST BE None to prevent reversing the sort order.
         # Any other value, including False, will reverse the sort order.
-        params: Dict[str, Union[int, str]] = {
+        params: Dict[str, Union[int, str, bool, None]] = {
             "reverse_order": True if reverse_order else None,
             "limit": limit,
         }

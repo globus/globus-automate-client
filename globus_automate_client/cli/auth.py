@@ -5,7 +5,7 @@ import pathlib
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union, cast
 
 import click
 import typer
@@ -73,7 +73,7 @@ class TokenCache:
         We will sub-key the full token set for environments other than production
         """
         environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
-        if environ in {None, "production", "prod", "default"}:
+        if environ is None or environ in {"production", "prod", "default"}:
             return self.tokens
         environ_cache_key = TokenCache._environment_prefix + environ
         if environ_cache_key not in self.tokens:
@@ -182,10 +182,9 @@ class TokenCache:
         for scope, token_set in copy.copy(tokens).items():
             if scope.startswith(TokenCache._environment_prefix):
                 continue
-            token_set: TokenSet = token_set  # type checking stuff
             do_remove = True
             if callback is not None:
-                do_remove = callback(scope, token_set)
+                do_remove = callback(scope, cast(TokenSet, token_set))
             if do_remove:
                 tokens.pop(scope)
                 self.modified = True
