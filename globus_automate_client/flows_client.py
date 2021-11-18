@@ -75,7 +75,7 @@ AuthorizerCallbackType = Callable[..., AllowedAuthorizersType]
 
 
 class FlowValidationError(Exception):
-    def __init__(self, errors: Iterable[str], **kwargs):
+    def __init__(self, errors: Iterable[str]):
         message = "; ".join(errors)
         super().__init__(message)
 
