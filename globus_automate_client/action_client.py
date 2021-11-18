@@ -29,9 +29,6 @@ class ActionClient(BaseClient):
     base_path: str = ""
     service_name: str = "actions"
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-
     @property
     def action_scope(self) -> str:
         """
