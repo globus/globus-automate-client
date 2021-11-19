@@ -21,6 +21,14 @@ VALID_FLOW_DEFINITION = {
 }
 
 
+@pytest.fixture
+def fc():
+    client = flows_client.FlowsClient("client", flows_client.AccessTokenAuthorizer)
+    original_authorizer = client.authorizer
+    yield client
+    assert client.authorizer is original_authorizer
+
+
 @pytest.mark.parametrize(
     "d, names, stop_names, expected, message",
     (
@@ -924,3 +932,20 @@ def test_flow_action_update_managers_and_monitors(
             assert data[key] == expected[key], message
         else:
             assert key not in data, f"*{key}* must not be included in the JSON data"
+
+
+def test_use_temporary_authorizer(fc):
+    """Verify the authorizer instance variable is swapped temporarily."""
+
+    original = fc.authorizer
+    replacement = flows_client.AccessTokenAuthorizer("bogus")
+
+    with fc.use_temporary_authorizer(replacement):
+        assert fc.authorizer is replacement
+    assert fc.authorizer is original
+
+    with pytest.raises(ValueError):
+        with fc.use_temporary_authorizer(replacement):
+            assert fc.authorizer is replacement
+            raise ValueError
+    assert fc.authorizer is original

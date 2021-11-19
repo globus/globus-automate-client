@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 from pathlib import Path
@@ -226,8 +227,27 @@ class FlowsClient(BaseClient):
     ) -> None:
         super().__init__(**kwargs)
         self.client_id = client_id
-        self.flow_management_authorizer: AllowedAuthorizersType = self.authorizer
         self.get_authorizer_callback = get_authorizer_callback
+
+    @contextlib.contextmanager
+    def use_temporary_authorizer(self, authorizer):
+        """Temporarily swap out the authorizer instance variable.
+
+        This is a context manager. Use it like this:
+
+        ..  code-block:: python
+
+            authorizer = self._get_authorizer_for_flow(...)
+            with self.alternate_authorizer(authorizer):
+                ...
+
+        """
+
+        original, self.authorizer = self.authorizer, authorizer
+        try:
+            yield
+        finally:
+            self.authorizer = original
 
     def deploy_flow(
         self,
@@ -292,7 +312,6 @@ class FlowsClient(BaseClient):
             validate_flow_definition(flow_definition)
         if validate_schema:
             validate_input_schema(input_schema)
-        self.authorizer = self.flow_management_authorizer
         temp_body: Dict[str, Any] = {
             "definition": flow_definition,
             "title": title,
@@ -378,7 +397,7 @@ class FlowsClient(BaseClient):
         :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to update the Flow.
         """
-        self.authorizer = self.flow_management_authorizer
+
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
         if validate_schema and input_schema is not None:
@@ -410,7 +429,7 @@ class FlowsClient(BaseClient):
         :param flow_id: The UUID identifying the Flow for which to retrieve
             details
         """
-        self.authorizer = self.flow_management_authorizer
+
         return self.get(f"/flows/{quote(flow_id)}", **kwargs)
 
     def list_flows(
@@ -464,7 +483,6 @@ class FlowsClient(BaseClient):
             OrderedDict if trying to apply multiple orderings.
 
         """
-        self.authorizer = self.flow_management_authorizer
 
         params = {}
 
@@ -502,7 +520,6 @@ class FlowsClient(BaseClient):
 
         :param flow_id: The UUID identifying the Flow to delete
         """
-        self.authorizer = self.flow_management_authorizer
         return self.delete(f"/flows/{flow_id}", **kwargs)
 
     def scope_for_flow(self, flow_id: str) -> str:
@@ -799,10 +816,9 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
-        response = self.get("/runs", query_params=params, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.get("/runs", query_params=params, **kwargs)
 
     def enumerate_actions(
         self,
@@ -915,10 +931,9 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        response = self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
 
     def flow_action_update(
         self,
@@ -951,10 +966,9 @@ class FlowsClient(BaseClient):
         if run_monitors is not None:
             payload["run_monitors"] = run_monitors
 
-        self.authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
-        response = self.put(f"/runs/{quote(action_id)}", data=payload, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.put(f"/runs/{action_id}", data=payload, **kwargs)
 
     def flow_action_log(
         self,
