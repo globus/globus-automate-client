@@ -949,3 +949,22 @@ def test_use_temporary_authorizer(fc):
             assert fc.authorizer is replacement
             raise ValueError
     assert fc.authorizer is original
+
+
+@pytest.mark.parametrize("method", ("status", "log", "cancel", "release", "resume"))
+def test_action_client_pass_through_calls(fc, method, monkeypatch):
+    """Verify that the correct ActionClient methods are called.
+
+    There is no other validation performed except that the correct
+    ActionClient method is called.
+    """
+
+    mock = Mock()
+    monkeypatch.setattr(flows_client.ActionClient, "new_client", lambda *_, **__: mock)
+    getattr(fc, f"flow_action_{method}")(
+        flow_id="bogus-id",
+        flow_scope="bogus-scope",
+        flow_action_id="bogus-action-id",
+        authorizer=fc.authorizer,
+    )
+    getattr(mock, method).assert_called_once()
