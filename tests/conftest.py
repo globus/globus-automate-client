@@ -2,7 +2,7 @@ import pytest
 import responses
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mocked_responses():
     """Mock responses to requests."""
 
