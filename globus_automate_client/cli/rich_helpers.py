@@ -172,7 +172,7 @@ class RunLogDisplayFields(DisplayFields):
     path_to_data_list = "entries"
 
 
-class CompletionDetetector(abc.ABC):
+class CompletionDetector(abc.ABC):
     """
     An object that can be used to determine if an operation is complete or if it
     should continue polling.
@@ -190,7 +190,7 @@ class CompletionDetetector(abc.ABC):
         pass
 
 
-class ActionCompletionDetector(CompletionDetetector):
+class ActionCompletionDetector(CompletionDetector):
     """
     This class determines when a Run has reached a completed state.
     """
@@ -205,7 +205,7 @@ class ActionCompletionDetector(CompletionDetetector):
         )
 
 
-class LogCompletionDetetector(CompletionDetetector):
+class LogCompletionDetector(CompletionDetector):
     """
     This class determines when a Run has reached a completed state from
     inspecting its logs.
@@ -228,10 +228,10 @@ class Result:
     def __init__(
         self,
         response: Union[GlobusHTTPResponse, GlobusAPIError, str],
-        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
+        detector: Type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.result = response
-        self.detetector = detetector
+        self.detector = detector
 
         self.is_api_error = isinstance(response, GlobusAPIError)
         self.data: Dict[str, Any]
@@ -248,7 +248,7 @@ class Result:
 
     @property
     def completed(self) -> bool:
-        return self.detetector.is_complete(self.result)
+        return self.detector.is_complete(self.result)
 
     def as_json(self) -> str:
         return json.dumps(self.data, indent=2).strip()
@@ -399,7 +399,7 @@ class RequestRunner:
         watch: bool = False,
         run_once: bool = False,
         fields: Optional[Type[DisplayFields]] = None,
-        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
+        detector: Type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.callable = callable
         self.format = format
@@ -407,14 +407,14 @@ class RequestRunner:
         self.watch = watch
         self.fields = fields
         self.run_once = run_once
-        self.detetector = detetector
+        self.detector = detector
 
     def run(self) -> Result:
         try:
             result = self.callable()
         except GlobusAPIError as err:
             result = err
-        return Result(result, detetector=self.detetector)
+        return Result(result, detector=self.detector)
 
     def render(self, result: Result):
         Renderer(

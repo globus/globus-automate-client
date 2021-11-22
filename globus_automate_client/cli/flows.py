@@ -34,7 +34,7 @@ from globus_automate_client.cli.helpers import (
 )
 from globus_automate_client.cli.rich_helpers import (
     FlowListDisplayFields,
-    LogCompletionDetetector,
+    LogCompletionDetector,
     RequestRunner,
     RunEnumerateDisplayFields,
     RunListDisplayFields,
@@ -1032,7 +1032,7 @@ def flow_action_log(
         verbose=verbose,
         watch=watch,
         fields=RunLogDisplayFields,
-        detetector=LogCompletionDetetector,
+        detector=LogCompletionDetector,
     )
     with live_content:
         if output_format in {
