@@ -182,7 +182,7 @@ class CompletionDetector(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         """
         Given either a GloubsHTTPReponse or GlobusAPIError, this method should
         return a boolean indicating if polling should continue.
@@ -198,10 +198,10 @@ class ActionCompletionDetector(CompletionDetector):
     terminals: Set[str] = {"SUCCEEDED", "FAILED"}
 
     @classmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         return (
             isinstance(result, GlobusAPIError)
-            or result.data.get("status", None) in self.terminals
+            or result.data.get("status", None) in cls.terminals
         )
 
 
@@ -214,9 +214,9 @@ class LogCompletionDetector(CompletionDetector):
     terminals: Set[str] = {"FlowSucceeded", "FlowFailed", "FlowCanceled"}
 
     @classmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         return isinstance(result, GlobusAPIError) or any(
-            entry["code"] in self.terminals for entry in result.data["entries"]
+            entry["code"] in cls.terminals for entry in result.data["entries"]
         )
 
 
