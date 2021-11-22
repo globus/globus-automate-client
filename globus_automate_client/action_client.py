@@ -59,6 +59,7 @@ class ActionClient(BaseClient):
         """
         return self.get("")
 
+    # noinspection PyIncorrectDocstring
     def run(
         self,
         body: Mapping[str, Any],
@@ -88,9 +89,8 @@ class ActionClient(BaseClient):
         :param force_path: A URL to use for running this action, ignoring any
             previous configuration
         :param label: Set a label for the Action that is run.
-
-        ``run_monitors`` may be used as an alias for ``monitor_by``,
-        and ``run_managers`` may be used as an alias for ``manage_by``.
+        :param run_monitors: May be used as an alias for ``monitor_by``
+        :param run_managers: May be used as an alias for ``manage_by``
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
