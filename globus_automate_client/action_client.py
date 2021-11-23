@@ -10,7 +10,7 @@ from globus_sdk import (
 )
 from globus_sdk import BaseClient
 
-from .helpers import merge_lists
+from .helpers import merge_keywords
 
 _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
@@ -96,8 +96,8 @@ class ActionClient(BaseClient):
         body = {
             "request_id": str(request_id),
             "body": body,
-            "monitor_by": merge_lists(monitor_by, kwargs, "run_monitors"),
-            "manage_by": merge_lists(manage_by, kwargs, "run_managers"),
+            "monitor_by": merge_keywords(monitor_by, kwargs, "run_monitors"),
+            "manage_by": merge_keywords(manage_by, kwargs, "run_managers"),
             "label": label,
         }
         # Remove None items from the temp_body
