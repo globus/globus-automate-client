@@ -47,6 +47,9 @@ def create_action_client(
         triggering the login flow for this ActionClient
 
     **Examples**
+
+    ..  code-block:: pycon
+
         >>> from globus_automate_client import create_action_client
         >>> # Create an ActionClient for the HelloWorld Action
         >>> ac = create_action_client("https://actions.globus.org/hello_world")
@@ -108,6 +111,9 @@ def create_flows_client(
         parameter's value
 
     **Examples**
+
+    ..  code-block:: pycon
+
         >>> from globus_automate_client import create_flows_client
         >>> # Create an authenticated FlowsClient that can run operations against the Flows
         >>> # service
