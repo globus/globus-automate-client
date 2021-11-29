@@ -27,7 +27,7 @@ from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
 
-from .helpers import merge_lists
+from .helpers import merge_keywords
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -296,13 +296,13 @@ class FlowsClient(BaseClient):
         temp_body["description"] = description
         temp_body["keywords"] = keywords
         # We'll accept some aliases for the role lists passed in kwargs
-        temp_body["flow_viewers"] = merge_lists(
+        temp_body["flow_viewers"] = merge_keywords(
             flow_viewers, kwargs, "visible_to", "viewers"
         )
-        temp_body["flow_starters"] = merge_lists(
+        temp_body["flow_starters"] = merge_keywords(
             flow_starters, kwargs, "runnable_by", "starters"
         )
-        temp_body["flow_administrators"] = merge_lists(
+        temp_body["flow_administrators"] = merge_keywords(
             flow_administrators, kwargs, "administered_by", "administrators"
         )
         temp_body["subscription_id"] = subscription_id
@@ -388,11 +388,11 @@ class FlowsClient(BaseClient):
             "subtitle": subtitle,
             "description": description,
             "keywords": keywords,
-            "flow_viewers": merge_lists(flow_viewers, kwargs, "visible_to", "viewers"),
-            "flow_starters": merge_lists(
+            "flow_viewers": merge_keywords(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_starters": merge_keywords(
                 flow_starters, kwargs, "runnable_by", "starters"
             ),
-            "flow_administrators": merge_lists(
+            "flow_administrators": merge_keywords(
                 flow_administrators, kwargs, "administered_by", "administrators"
             ),
             "subscription_id": subscription_id,
@@ -577,8 +577,8 @@ class FlowsClient(BaseClient):
         # Merge monitors and managers with aliases.
         # If either list is empty it will be replaced with None
         # to prevent empty lists from appearing in the JSON request.
-        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by") or None
-        run_managers = merge_lists(run_managers, kwargs, "manage_by") or None
+        run_monitors = merge_keywords(run_monitors, kwargs, "monitor_by") or None
+        run_managers = merge_keywords(run_managers, kwargs, "manage_by") or None
 
         if dry_run:
             path = flow_url + "/dry-run"
