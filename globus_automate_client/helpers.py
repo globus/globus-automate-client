@@ -31,7 +31,7 @@ def merge_keywords(
 
     ..  code-block:: python
 
-        all_names = consume_keywords(names, kwargs, "pseudonyms", "nicknames")
+        all_names = merge_keywords(names, kwargs, "pseudonyms", "nicknames")
 
     """
 
