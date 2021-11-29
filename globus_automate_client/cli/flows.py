@@ -977,7 +977,7 @@ def flow_action_log(
         min=1,
         max=100,
     ),
-    marker: str = typer.Option(
+    marker: Optional[str] = typer.Option(
         None,
         "--marker",
         "-m",

@@ -4,10 +4,7 @@ from globus_sdk import AccessTokenAuthorizer
 
 from globus_automate_client import FlowsClient
 from globus_automate_client.cli.auth import CLIENT_ID
-from globus_automate_client.flows_client import (
-    MANAGE_FLOWS_SCOPE,
-    AllowedAuthorizersType,
-)
+from globus_automate_client.flows_client import AllowedAuthorizersType
 
 
 def authorizer_retriever(
@@ -23,14 +20,14 @@ def authorizer_retriever(
     The method used to acquire valid credentials is up to the user. Here, we
     naively create an Authorizer using the same token everytime.
     """
-    flow_token = os.environ.get("MY_ACCESS_TOKEN")
+    flow_token = os.environ.get("MY_ACCESS_TOKEN", "")
     return AccessTokenAuthorizer(flow_token)
 
 
 # Create an AccessTokenAuthorizer using a token that has consents to the
 # MANAGE_FLOWS_SCOPE. This lets the FlowsClient perform operations against the
 # Flow's service i.e. create flow, update a flow, delete a flow
-flows_service_token = os.environ.get("MANAGE_FLOWS_SCOPED_TOKEN")
+flows_service_token = os.environ.get("MANAGE_FLOWS_SCOPED_TOKEN", "")
 flows_service_authorizer = AccessTokenAuthorizer(flows_service_token)
 
 fc = FlowsClient.new_client(
@@ -55,6 +52,6 @@ running_flow_2 = fc.run_flow(
     "1e6b4406-ee3d-4bc5-9198-74128e108111",
     None,
     {"echo_string": "hey"},
-    authorizer=AccessTokenAuthorizer(...),
+    authorizer=AccessTokenAuthorizer("..."),
 )
 print(running_flow_2)

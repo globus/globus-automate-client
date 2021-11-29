@@ -200,11 +200,14 @@ class TokenCache:
         token_sets: Dict[str, TokenSet] = {}
         for scope in by_scopes:
             token_info = by_scopes[scope]
-            dependent_scopes = set(s for s in original_scopes if "[" in s)
+            dependent_scopes = {s for s in original_scopes if "[" in s}
+            # token_info must be cast()'ed because mypy detects that
+            # str and int types exist in the `token_info` dict, adds
+            # them to the union of possible types, then complains.
             token_set = TokenSet(
-                access_token=token_info.get("access_token"),
-                refresh_token=token_info.get("refresh_token"),
-                expiration_time=token_info.get("expires_at_seconds"),
+                access_token=cast(str, token_info.get("access_token")),
+                refresh_token=cast(Optional[str], token_info.get("refresh_token")),
+                expiration_time=cast(Optional[int], token_info.get("expires_at_seconds")),
                 dependent_scopes=dependent_scopes,
             )
             self.set_tokens(scope, token_set)
@@ -283,6 +286,7 @@ def get_authorizers_for_scopes(
     authorizers: Dict[str, GlobusAuthorizer] = {}
     for scope, token_set in token_sets.items():
         if token_set is not None:
+            authorizer: Union[RefreshTokenAuthorizer, AccessTokenAuthorizer]
             if token_set.refresh_token is not None:
 
                 def refresh_handler(
@@ -386,7 +390,7 @@ def get_cli_authorizer(
     action_url: str,
     action_scope: Optional[str],
     client_id: str = CLIENT_ID,
-) -> Optional[AccessTokenAuthorizer]:
+) -> Optional[GlobusAuthorizer]:
     if action_scope is None:
         # We don't know the scope which makes it impossible to get a token,
         # but create a client anyways in case this Action Provider is publicly

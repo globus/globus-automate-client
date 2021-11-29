@@ -3,7 +3,7 @@ import collections
 import functools
 import json
 from time import sleep
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union, cast
 
 import arrow
 import typer
@@ -234,10 +234,10 @@ class Result:
         self.detector = detector
 
         self.is_api_error = isinstance(response, GlobusAPIError)
-        self.data: Dict[str, Any]
+        self.data: Union[str, Dict[str, Any]]
         if isinstance(response, str):
             self.data = {"result": response}
-        elif self.is_api_error:
+        elif isinstance(response, GlobusAPIError):
             self.data = response.raw_json if response.raw_json else response.raw_text
         else:
             self.data = response.data
@@ -248,7 +248,7 @@ class Result:
 
     @property
     def completed(self) -> bool:
-        return self.detector.is_complete(self.result)
+        return isinstance(self.result, str) or self.detector.is_complete(self.result)
 
     def as_json(self) -> str:
         return json.dumps(self.data, indent=2).strip()
@@ -338,7 +338,7 @@ class Renderer:
                 max_width=f.max_width,
             )
 
-        list_of_data: List[Dict[str, Any]] = self.result.data.get(
+        list_of_data: List[Dict[str, Any]] = cast(dict, self.result.data).get(
             self.fields.path_to_data_list,
             [],
         )
@@ -410,6 +410,7 @@ class RequestRunner:
         self.detector = detector
 
     def run(self) -> Result:
+        result: Union[GlobusHTTPResponse, GlobusAPIError]
         try:
             result = self.callable()
         except GlobusAPIError as err:

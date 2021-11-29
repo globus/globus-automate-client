@@ -23,6 +23,7 @@ from globus_sdk import (
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
+from globus_sdk.authorizers import GlobusAuthorizer
 from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
@@ -1020,7 +1021,7 @@ class FlowsClient(BaseClient):
         cls: Type[_FlowsClient],
         client_id: str,
         authorizer_callback: AuthorizerCallbackType,
-        authorizer: AllowedAuthorizersType,
+        authorizer: Optional[GlobusAuthorizer],
         base_url: Optional[str] = None,
         http_timeout: int = 10,
     ) -> _FlowsClient:

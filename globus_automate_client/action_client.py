@@ -2,13 +2,8 @@ import uuid
 from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote
 
-from globus_sdk import (
-    AccessTokenAuthorizer,
-    BaseClient,
-    ClientCredentialsAuthorizer,
-    GlobusHTTPResponse,
-    RefreshTokenAuthorizer,
-)
+from globus_sdk import BaseClient, GlobusHTTPResponse
+from globus_sdk.authorizers import GlobusAuthorizer
 
 from .helpers import merge_lists
 
@@ -16,16 +11,6 @@ _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
 class ActionClient(BaseClient):
-    allowed_authorizer_types = (
-        AccessTokenAuthorizer,
-        RefreshTokenAuthorizer,
-        ClientCredentialsAuthorizer,
-    )
-
-    AllowedAuthorizersType = Union[
-        AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
-    ]
-
     base_path: str = ""
     service_name: str = "actions"
 
@@ -195,7 +180,7 @@ class ActionClient(BaseClient):
     def new_client(
         cls: Type[_ActionClient],
         action_url: str,
-        authorizer: AllowedAuthorizersType,
+        authorizer: Optional[GlobusAuthorizer],
         http_timeout: int = 10,
     ) -> _ActionClient:
         """
