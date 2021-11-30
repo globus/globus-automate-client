@@ -5,18 +5,22 @@ import pathlib
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union, cast
 
 import click
 import typer
-from globus_sdk import AuthClient, GlobusAPIError, NativeAppAuthClient
-from globus_sdk import OAuthTokenResponse
+from globus_sdk import (
+    AuthAPIError,
+    AuthClient,
+    GlobusAPIError,
+    NativeAppAuthClient,
+    OAuthTokenResponse,
+)
 from globus_sdk.authorizers import (
     AccessTokenAuthorizer,
     GlobusAuthorizer,
     RefreshTokenAuthorizer,
 )
-from globus_sdk import AuthAPIError
 
 from globus_automate_client.action_client import ActionClient
 
@@ -68,12 +72,12 @@ class TokenCache:
         self.modified = False
 
     @property
-    def tokens_for_environment(self) -> Dict[str, TokenSet]:
+    def tokens_for_environment(self):
         """
         We will sub-key the full token set for environments other than production
         """
         environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
-        if environ in {None, "production", "prod", "default"}:
+        if environ is None or environ in {"production", "prod", "default"}:
             return self.tokens
         environ_cache_key = TokenCache._environment_prefix + environ
         if environ_cache_key not in self.tokens:
@@ -138,7 +142,7 @@ class TokenCache:
             )
 
     @staticmethod
-    def _make_jsonable(tokens: TokensInTokenCache) -> Dict[str, Any]:
+    def _make_jsonable(tokens) -> Dict[str, Any]:
         serialized: Dict[str, Any] = {}
         for k, v in tokens.items():
             if isinstance(v, TokenSet):
@@ -182,10 +186,9 @@ class TokenCache:
         for scope, token_set in copy.copy(tokens).items():
             if scope.startswith(TokenCache._environment_prefix):
                 continue
-            token_set: TokenSet = token_set  # type checking stuff
             do_remove = True
             if callback is not None:
-                do_remove = callback(scope, token_set)
+                do_remove = callback(scope, cast(TokenSet, token_set))
             if do_remove:
                 tokens.pop(scope)
                 self.modified = True
@@ -197,11 +200,14 @@ class TokenCache:
         token_sets: Dict[str, TokenSet] = {}
         for scope in by_scopes:
             token_info = by_scopes[scope]
-            dependent_scopes = set(s for s in original_scopes if "[" in s)
+            dependent_scopes = {s for s in original_scopes if "[" in s}
+            # token_info must be cast()'ed because mypy detects that
+            # str and int types exist in the `token_info` dict, adds
+            # them to the union of possible types, then complains.
             token_set = TokenSet(
-                access_token=token_info.get("access_token"),
-                refresh_token=token_info.get("refresh_token"),
-                expiration_time=token_info.get("expires_at_seconds"),
+                access_token=cast(str, token_info.get("access_token")),
+                refresh_token=cast(Optional[str], token_info.get("refresh_token")),
+                expiration_time=cast(Optional[int], token_info.get("expires_at_seconds")),
                 dependent_scopes=dependent_scopes,
             )
             self.set_tokens(scope, token_set)
@@ -280,13 +286,14 @@ def get_authorizers_for_scopes(
     authorizers: Dict[str, GlobusAuthorizer] = {}
     for scope, token_set in token_sets.items():
         if token_set is not None:
+            authorizer: Union[RefreshTokenAuthorizer, AccessTokenAuthorizer]
             if token_set.refresh_token is not None:
 
                 def refresh_handler(
                     grant_response: OAuthTokenResponse, *args, **kwargs
                 ):
-                    new_tokens = token_cache.update_from_oauth_token_response(
-                        grant_response, set([scope])
+                    token_cache.update_from_oauth_token_response(
+                        grant_response, {scope}
                     )
 
                 authorizer = RefreshTokenAuthorizer(
@@ -383,7 +390,7 @@ def get_cli_authorizer(
     action_url: str,
     action_scope: Optional[str],
     client_id: str = CLIENT_ID,
-) -> Optional[AccessTokenAuthorizer]:
+) -> Optional[GlobusAuthorizer]:
     if action_scope is None:
         # We don't know the scope which makes it impossible to get a token,
         # but create a client anyways in case this Action Provider is publicly

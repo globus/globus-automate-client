@@ -1,5 +1,4 @@
 import enum
-from itertools import chain
 
 import typer
 from globus_sdk import GlobusHTTPResponse
@@ -24,10 +23,18 @@ class FlowRoleDeprecated(str, enum.Enum):
     administered_by = "administered_by"
 
 
-# Adapted from https://stackoverflow.com/questions/33679930/how-to-extend-python-enum
-FlowRoleAllNames = enum.Enum(
-    "FlowRoleAllNames", [(i.name, i.value) for i in chain(FlowRole, FlowRoleDeprecated)]
-)
+class FlowRoleAllNames(str, enum.Enum):
+    # Compile supported and deprecated names explicitly to satisfy mypy.
+    flow_viewer = "flow_viewer"
+    flow_starter = "flow_starter"
+    flow_administrator = "flow_administrator"
+    flow_owner = "flow_owner"
+
+    # Deprecated
+    created_by = "created_by"
+    visible_to = "visible_to"
+    runnable_by = "runnable_by"
+    administered_by = "administered_by"
 
 
 class ActionRole(str, enum.Enum):
@@ -42,10 +49,16 @@ class ActionRoleDeprecated(str, enum.Enum):
     manage_by = "manage_by"
 
 
-ActionRoleAllNames = enum.Enum(
-    "ActionRoleAllNames",
-    [(i.name, i.value) for i in chain(ActionRole, ActionRoleDeprecated)],
-)
+class ActionRoleAllNames(str, enum.Enum):
+    # Compile supported and deprecated names explicitly to satisfy mypy.
+    run_monitor = "run_monitor"
+    run_manager = "run_manager"
+    run_owner = "run_owner"
+
+    # Deprecated
+    created_by = "created_by"
+    monitor_by = "monitor_by"
+    manage_by = "manage_by"
 
 
 class ActionStatus(str, enum.Enum):

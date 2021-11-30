@@ -37,11 +37,11 @@ output_format_option: OutputFormat = typer.Option(
 
 def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
     if isinstance(result, GlobusHTTPResponse):
-        base_request = result._data.request
-        reponse_status_code = result._data.status_code
-    elif isinstance(result, GlobusAPIError):
+        base_request = result.data["request"]
+        response_status_code = result.data["status_code"]
+    else:  # isinstance(result, GlobusAPIError)
         base_request = result._underlying_response.request
-        reponse_status_code = result._underlying_response.status_code
+        response_status_code = result._underlying_response.status_code
 
     formatted_headers = "\n".join(
         f"  {k}: {v}" for k, v in base_request.headers.items()
@@ -49,7 +49,7 @@ def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
     http_details = (
         f"Request: {base_request.method} {base_request.url}\n"
         f"Headers:\n{formatted_headers}\n"
-        f"Response: {reponse_status_code}"
+        f"Response: {response_status_code}"
     )
     return http_details
 
@@ -67,7 +67,7 @@ def process_input(input_arg: Optional[str]) -> Optional[Mapping[str, Any]]:
         try:
             input_dict = yaml.safe_load(input_arg)
         except yaml.YAMLError:
-            raise typer.BadParameter(f"Unable to load input as JSON or YAML")
+            raise typer.BadParameter("Unable to load input as JSON or YAML")
 
     return input_dict
 

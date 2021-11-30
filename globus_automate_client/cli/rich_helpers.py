@@ -3,7 +3,7 @@ import collections
 import functools
 import json
 from time import sleep
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union, cast
 
 import arrow
 import typer
@@ -38,23 +38,23 @@ def humanize_auth_urn(urn: str) -> str:
     return urn
 
 
-def identity_to_user(field: str, l: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def identity_to_user(field: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Given a list of dict entries, this function will attempt to
     """
     # get_identities will fail if there's no data, so short circuit
-    if len(l) == 0:
-        return l
+    if len(items) == 0:
+        return items
 
     # Only do the conversion if the user is already logged in
     authzs = get_authorizers_for_scopes(["openid"], no_login=True)
     authorizer = authzs.get("openid")
     if authorizer is None:
-        return l
+        return items
 
     # Collect IDs from the List data
     creators: Dict[str, None] = collections.OrderedDict()
-    for item in l:
+    for item in items:
         urn_id = item.get(field, "")
         id = urn_id.split(":")[-1]
         creators[id] = None
@@ -65,12 +65,12 @@ def identity_to_user(field: str, l: List[Dict[str, Any]]) -> List[Dict[str, Any]
     id_to_user = {i["id"]: i["username"] for i in resp.data["identities"]}
 
     # Update items in list
-    for item in l:
+    for item in items:
         urn_id = item.get(field, "")
         id = urn_id.split(":")[-1]
         if id in id_to_user:
             item[field] = id_to_user[id]
-    return l
+    return items
 
 
 class Field:
@@ -172,7 +172,7 @@ class RunLogDisplayFields(DisplayFields):
     path_to_data_list = "entries"
 
 
-class CompletionDetetector(abc.ABC):
+class CompletionDetector(abc.ABC):
     """
     An object that can be used to determine if an operation is complete or if it
     should continue polling.
@@ -182,7 +182,7 @@ class CompletionDetetector(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         """
         Given either a GloubsHTTPReponse or GlobusAPIError, this method should
         return a boolean indicating if polling should continue.
@@ -190,7 +190,7 @@ class CompletionDetetector(abc.ABC):
         pass
 
 
-class ActionCompletionDetector(CompletionDetetector):
+class ActionCompletionDetector(CompletionDetector):
     """
     This class determines when a Run has reached a completed state.
     """
@@ -198,14 +198,14 @@ class ActionCompletionDetector(CompletionDetetector):
     terminals: Set[str] = {"SUCCEEDED", "FAILED"}
 
     @classmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         return (
             isinstance(result, GlobusAPIError)
-            or result.data.get("status", None) in self.terminals
+            or result.data.get("status", None) in cls.terminals
         )
 
 
-class LogCompletionDetetector(CompletionDetetector):
+class LogCompletionDetector(CompletionDetector):
     """
     This class determines when a Run has reached a completed state from
     inspecting its logs.
@@ -214,9 +214,9 @@ class LogCompletionDetetector(CompletionDetetector):
     terminals: Set[str] = {"FlowSucceeded", "FlowFailed", "FlowCanceled"}
 
     @classmethod
-    def is_complete(self, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
+    def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
         return isinstance(result, GlobusAPIError) or any(
-            entry["code"] in self.terminals for entry in result.data["entries"]
+            entry["code"] in cls.terminals for entry in result.data["entries"]
         )
 
 
@@ -228,16 +228,16 @@ class Result:
     def __init__(
         self,
         response: Union[GlobusHTTPResponse, GlobusAPIError, str],
-        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
+        detector: Type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.result = response
-        self.detetector = detetector
+        self.detector = detector
 
         self.is_api_error = isinstance(response, GlobusAPIError)
-        self.data: Dict[str, Any]
+        self.data: Union[str, Dict[str, Any]]
         if isinstance(response, str):
             self.data = {"result": response}
-        elif self.is_api_error:
+        elif isinstance(response, GlobusAPIError):
             self.data = response.raw_json if response.raw_json else response.raw_text
         else:
             self.data = response.data
@@ -248,7 +248,7 @@ class Result:
 
     @property
     def completed(self) -> bool:
-        return self.detetector.is_complete(self.result)
+        return isinstance(self.result, str) or self.detector.is_complete(self.result)
 
     def as_json(self) -> str:
         return json.dumps(self.data, indent=2).strip()
@@ -338,7 +338,7 @@ class Renderer:
                 max_width=f.max_width,
             )
 
-        list_of_data: List[Dict[str, Any]] = self.result.data.get(
+        list_of_data: List[Dict[str, Any]] = cast(dict, self.result.data).get(
             self.fields.path_to_data_list,
             [],
         )
@@ -399,7 +399,7 @@ class RequestRunner:
         watch: bool = False,
         run_once: bool = False,
         fields: Optional[Type[DisplayFields]] = None,
-        detetector: Type[CompletionDetetector] = ActionCompletionDetector,
+        detector: Type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.callable = callable
         self.format = format
@@ -407,14 +407,15 @@ class RequestRunner:
         self.watch = watch
         self.fields = fields
         self.run_once = run_once
-        self.detetector = detetector
+        self.detector = detector
 
     def run(self) -> Result:
+        result: Union[GlobusHTTPResponse, GlobusAPIError]
         try:
             result = self.callable()
         except GlobusAPIError as err:
             result = err
-        return Result(result, detetector=self.detetector)
+        return Result(result, detector=self.detector)
 
     def render(self, result: Result):
         Renderer(

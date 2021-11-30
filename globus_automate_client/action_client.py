@@ -2,13 +2,8 @@ import uuid
 from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote
 
-from globus_sdk import (
-    AccessTokenAuthorizer,
-    ClientCredentialsAuthorizer,
-    GlobusHTTPResponse,
-    RefreshTokenAuthorizer,
-)
-from globus_sdk import BaseClient
+from globus_sdk import BaseClient, GlobusHTTPResponse
+from globus_sdk.authorizers import GlobusAuthorizer
 
 from .helpers import merge_keywords
 
@@ -16,18 +11,12 @@ _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
 class ActionClient(BaseClient):
-    allowed_authorizer_types = (
-        AccessTokenAuthorizer,
-        RefreshTokenAuthorizer,
-        ClientCredentialsAuthorizer,
-    )
-
-    AllowedAuthorizersType = Union[
-        AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
-    ]
-
     base_path: str = ""
     service_name: str = "actions"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._action_scope: Optional[str] = None
 
     @property
     def action_scope(self) -> str:
@@ -39,7 +28,7 @@ class ActionClient(BaseClient):
         have to have been provided on initialization to the ``ActionClient``.
         Otherwise, this call will fail.
         """
-        if not hasattr(self, "_action_scope"):
+        if self._action_scope is None:
             resp = self.introspect()
             if resp.data is None:
                 self._action_scope = ""
@@ -47,7 +36,7 @@ class ActionClient(BaseClient):
                 self._action_scope = resp.data.get("globus_auth_scope", "")
         return self._action_scope
 
-    def introspect(self, **kwargs) -> GlobusHTTPResponse:
+    def introspect(self, **_) -> GlobusHTTPResponse:
         """
         Introspect the details of an Action Provider to discover information
         such as its expected ``action_scope``, its ``input_schema``, and who to
@@ -55,6 +44,7 @@ class ActionClient(BaseClient):
         """
         return self.get("")
 
+    # noinspection PyIncorrectDocstring
     def run(
         self,
         body: Mapping[str, Any],
@@ -176,7 +166,7 @@ class ActionClient(BaseClient):
 
         # *reverse_order* MUST BE None to prevent reversing the sort order.
         # Any other value, including False, will reverse the sort order.
-        params: Dict[str, Union[int, str]] = {
+        params: Dict[str, Union[int, str, bool, None]] = {
             "reverse_order": True if reverse_order else None,
             "limit": limit,
         }
@@ -190,7 +180,7 @@ class ActionClient(BaseClient):
     def new_client(
         cls: Type[_ActionClient],
         action_url: str,
-        authorizer: AllowedAuthorizersType,
+        authorizer: Optional[GlobusAuthorizer],
         http_timeout: int = 10,
     ) -> _ActionClient:
         """
@@ -206,9 +196,12 @@ class ActionClient(BaseClient):
             the Action Provider to be made.
 
         **Examples**
-            >>> authorizer = ...
-            >>> action_url = "https://actions.globus.org/hello_world"
-            >>> ac = ActionClient.new_client(action_url, authorizer)
+
+        ..  code-block:: pycon
+
+            >>> auth = ...
+            >>> url = "https://actions.globus.org/hello_world"
+            >>> ac = ActionClient.new_client(url, auth)
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
         return cls(
