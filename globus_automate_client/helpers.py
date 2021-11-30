@@ -36,7 +36,7 @@ def merge_keywords(
     """
 
     result: Optional[Set[str]] = None
-    if base:
+    if base is not None:
         result = set(base)
 
     for keyword in keywords:
