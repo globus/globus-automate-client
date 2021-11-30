@@ -6,7 +6,7 @@ Unreleased changes
 
 Unreleased changes are documented in files in the `changelog.d`_ directory.
 
-..  _changelog.d: https://github.com/globus/globus-automate-client/tree/master/changelog.d
+..  _changelog.d: https://github.com/globus/globus-automate-client/tree/main/changelog.d
 
 ..  scriv-insert-here
 
@@ -240,7 +240,7 @@ Documentation
 -   Improves documentation around manually creating authorizers and how to use them to create ``ActionClients`` and ``FlowsClient``:
     https://globus-automate-client.readthedocs.io/en/latest/python_sdk.html#sdk-the-hard-way
 -   Adds examples for Flow definitions as YAML:
-    https://github.com/globus/globus-automate-client/tree/master/examples/flows/hello-world-yaml
+    https://github.com/globus/globus-automate-client/tree/main/examples/flows/hello-world-yaml
 
 0.10.5 — 2020-12-11
 ===================
