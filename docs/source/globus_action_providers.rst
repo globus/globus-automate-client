@@ -432,7 +432,6 @@ Here is an example of the simplest functional input document:
 A single HTTP request can be customized in four key ways:
 
 *   HTTP method
-*   HTTP timeout
 *   Content submission
 *   URL customization
 
@@ -477,29 +476,6 @@ The ``url`` key indicates the target URL that will be accessed by the HTTP reque
 
 It can be manipulated and augmented dynamically using query parameters and URL substitution identifiers, which are documented below.
 
-
-
-HTTP timeout
-............
-
-..  csv-table::
-
-    "Key name", "``timeout``"
-    "Value type", "number"
-    "Required", "False"
-    "Value range", "``(0, 30]``"
-    "Default", "``10``"
-
-In some cases an HTTP request may take longer than expected to respond.
-You can customize the maximum length of time that a single request can take using the ``timeout`` key.
-
-..  code-block:: json
-
-    {
-        "method": "GET",
-        "url": "https://domain.example/lengthy-calculation",
-        "timeout": 30
-    }
 
 
 Content submission
@@ -769,7 +745,7 @@ Errors: HTTP request or response failures
     This error can happen for many reasons.
     For example, you may see this error if the ``url`` contains a typo,
     or if the ``url`` refers to an internal server that cannot be reached from the outside internet,
-    or if the server doesn't respond before the ``timeout`` value is reached.
+    or if the server doesn't respond within 5 (five) seconds.
 
     The text of the failure is included in the error message and can help troubleshoot why the request failed.
 
