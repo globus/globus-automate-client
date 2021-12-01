@@ -432,6 +432,7 @@ Here is an example of the simplest functional input document:
 A single HTTP request can be customized in four key ways:
 
 *   HTTP method
+*   HTTP URL
 *   Content submission
 *   URL customization
 
@@ -748,6 +749,21 @@ Errors: HTTP request or response failures
     or if the server doesn't respond within 5 (five) seconds.
 
     The text of the failure is included in the error message and can help troubleshoot why the request failed.
+
+``HTTP_RESPONSE_TOO_LARGE``
+    The HTTP response was larger than 128KB.
+
+    If you encounter this error when submitting a request for a large number of results
+    then you may be able to overcome this error by filtering results in some way
+    or restricting the amount of information returned per result.
+
+``HTTP_RESPONSE_TIMEOUT``
+    The HTTP response stayed open for longer than 10 (ten) total seconds.
+
+    This error differs from ``HTTP_REQUEST_FAILED`` in that the target URL's server responded.
+    However, the server failed to transfer its results with 10 (ten) seconds.
+    It may be that the target URL is triggering a computationally-expensive operation.
+    In this situation you will need to find a way to reduce the delay in the target URL's response.
 
 ``HTTP_RESPONSE_NOT_JSON``
     At this time, all HTTP requests must return valid JSON.
