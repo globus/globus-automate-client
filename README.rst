@@ -34,7 +34,7 @@ Testing, Development, and Contributing
 --------------------------------------
 
 Go to the
-`CONTRIBUTING <https://github.com/globus/globus-automate-client/blob/master/CONTRIBUTING.adoc>`_
+`CONTRIBUTING <https://github.com/globus/globus-automate-client/blob/main/CONTRIBUTING.adoc>`_
 guide for detail.
 
 Links
