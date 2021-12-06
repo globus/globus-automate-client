@@ -1,6 +1,7 @@
 import json
 from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
+import requests
 import typer
 import yaml
 from globus_sdk import GlobusAPIError, GlobusHTTPResponse
@@ -37,8 +38,15 @@ output_format_option: OutputFormat = typer.Option(
 
 def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
     if isinstance(result, GlobusHTTPResponse):
-        base_request = result.data["request"]
-        response_status_code = result.data["status_code"]
+        if isinstance(result._response, requests.Response):
+            base_request = result._response.request
+        elif (
+            result._wrapped and isinstance(result._wrapped._response, requests.Response)
+        ):
+            base_request = result._wrapped._response.request
+        else:
+            return "HTTP details are unavailable"
+        response_status_code = result.http_status
     else:  # isinstance(result, GlobusAPIError)
         base_request = result._underlying_response.request
         response_status_code = result._underlying_response.status_code
