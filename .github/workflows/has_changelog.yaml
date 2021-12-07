@@ -1,6 +1,7 @@
 name: has_changelog
 on:
   - pull_request
+  - workflow_call
 
 jobs:
   check_has_news_in_changelog_dir:
