@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Type, Union, cast
 import arrow
 import typer
 import yaml
-from globus_sdk import AuthClient, GlobusAPIError, GlobusHTTPResponse
+from globus_sdk import AuthClient, BaseClient, GlobusAPIError, GlobusHTTPResponse
 from requests import Response
 from rich.console import RenderableType, RenderGroup
 from rich.spinner import Spinner
@@ -427,12 +427,17 @@ class RequestRunner:
             run_once=self.run_once,
         ).render()
 
-    def render_as_result(self, d: Dict[str, Any], status_code: int = 200):
+    def render_as_result(
+        self,
+        d: Dict[str, Any],
+        client: BaseClient,
+        status_code: int = 200,
+    ):
         resp = Response()
         resp.status_code = status_code
         resp._content = json.dumps(d).encode("utf-8")
         resp.headers.update({"Content-Type": "application/json"})
-        globus_resp = GlobusHTTPResponse(resp)
+        globus_resp = GlobusHTTPResponse(resp, client)
         self.render(Result(globus_resp))
 
     def run_and_render(self) -> Result:
