@@ -437,7 +437,7 @@ class RequestRunner:
         resp.status_code = status_code
         resp._content = json.dumps(d).encode("utf-8")
         resp.headers.update({"Content-Type": "application/json"})
-        globus_resp = GlobusHTTPResponse(resp, client)
+        globus_resp = GlobusHTTPResponse(resp, client=client)
         self.render(Result(globus_resp))
 
     def run_and_render(self) -> Result:
