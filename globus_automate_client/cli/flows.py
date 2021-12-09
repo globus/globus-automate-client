@@ -523,7 +523,7 @@ def flow_display(
         flow_dict = process_input(flow_definition)
 
     if output_format in {ImageOutputFormat.json, ImageOutputFormat.yaml}:
-        rr.render_as_result(flow_dict)
+        rr.render_as_result(flow_dict, client=fc, status_code=result.result.http_status)
     else:
         output_format.visualize(flow_dict)
 
