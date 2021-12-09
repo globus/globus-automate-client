@@ -10,6 +10,15 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.13.0b2 — 2021-12-09
+=====================
+
+Bugfixes
+--------
+
+-   Fix a ``KeyError`` crash that occurs when enabling verbose output using the ``-v`` argument. (#111)
+-   Fix a ``ValueError`` crash that occurs when displaying a flow. (#110)
+
 0.13.0b1 — 2021-12-09
 =====================
 
