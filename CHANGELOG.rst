@@ -10,6 +10,35 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.13.0b1 — 2021-12-09
+=====================
+
+Features
+--------
+
+-   Upgrade to Globus SDK v3.
+
+Bugfixes
+--------
+
+-   Fixes a bug in the SDK that prevented Flow updates from removing all
+    flow_administrators,  flow_viewers, and flow_starters. This bug also
+    prevented updates from setting text fields to empty strings.
+
+-   Fix a bug that could allow the Flows authorizer to be lost if an exception
+    was raised. (Authorizer swaps are now handled using a context manager.)
+
+-   Support strings (and tuples/sets containing strings) as argument values
+    when running, deploying, or updating an action or a flow and specifying
+    a keyword argument alias like ``visible_to`` or ``runnable_by``.
+
+Other
+-----
+
+-   Add code linting, documentation build testing, and a bunch of unit tests.
+-   Add GitHub Actions to run on push and pull requests.
+-   Add a pre-commit configuration file to increase overall code quality.
+
 0.12.3 — 2021-11-10
 ===================
 
