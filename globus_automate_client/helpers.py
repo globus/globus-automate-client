@@ -1,52 +1,59 @@
-import typing as t
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 
-def merge_lists(*args, pop_dict_lists: bool = True) -> t.Optional[t.List]:
-    """Merge/concatenate a set of lists passed in the args. If any value in the args list is
-    None, it is ignored. If all values in the args list are None (or the args list is
-    empty) None is returned.
+def merge_keywords(
+    base: Optional[Iterable[str]],
+    kwargs: Dict[str, Union[str, Iterable[str]]],
+    *keywords: str,
+) -> Optional[List[str]]:
+    """Merge all given keyword parameter aliases and deduplicate the values.
 
-    If an arg encountered in the list is a dict rather than a list, all subsequent values
-    in the args list will be treated as keys into the dict and the value for those keys
-    in the dict will be treated as lists to be concatenated as with the other lists
-    passed in the args prior to the dict.
+    ..  warning::
 
-    Intended use is for the case of setting up a merged list from a function that has
-    arguments as lists and potential (alias) kwargs that need to be merged. In such a
-    case, this could be called as:
+        This function has a side-effect. It deliberately modifies *kwargs* in-place.
+        Any keyword alias that exists in *kwargs* will be removed from *kwargs*.
 
-    merge_lists(list_arg, kwargs, "alias_list_name")
+    If an alias key exists in *kwargs* and has a value other than None
+    then it will be included in the final result that is returned.
 
-    which would yield a list containing the list_args merged with any potential
-    alias_list_name from the kwargs.
+    If *base* is None and all found aliases have a value of None,
+    then None will be returned.
 
-    Merging also includes performing de-duplication of values.
+    For example, given a function with the following call signature:
 
-    If pop_dict_lists is True (the default) lists found in the dict will also be removed
-    from the dict.
+    ..  code-block:: python
+
+        def example(names=None, **kwargs):
+            pass
+
+    It is possible to quickly add support for additional parameter names
+    so that users can call the function with alternative keyword parameters:
+
+    ..  code-block:: python
+
+        all_names = merge_keywords(names, kwargs, "pseudonyms", "nicknames")
 
     """
 
-    ret_set: t.Optional[t.Set] = None
-    dict_val: t.Optional[t.Dict] = None
-    for arg in args:
-        list_for_arg: t.Optional[t.List] = None
-        if isinstance(arg, dict):
-            dict_val = arg
-        elif dict_val is not None and arg in dict_val:
-            list_for_arg = dict_val.get(arg)
-            if pop_dict_lists:
-                dict_val.pop(arg, None)
-            if not isinstance(list_for_arg, list):
-                list_for_arg = None
-        elif isinstance(arg, list):
-            list_for_arg = arg
-        if list_for_arg is not None:
-            if ret_set is None:
-                ret_set = set(list_for_arg)
-            else:
-                ret_set.update(list_for_arg)
-    if ret_set is None:
+    result: Optional[Set[str]] = None
+    if base is not None:
+        result = set(base)
+
+    for keyword in keywords:
+        # Consume the keyword alias.
+        # NOTE: .pop() is a destructive operation with a deliberate side-effect.
+        value = kwargs.pop(keyword, None)
+        if value is None:
+            continue
+
+        # Update the final result.
+        if result is None:
+            result = set()
+        if isinstance(value, str):
+            result.add(value)
+        else:
+            result |= set(value)
+
+    if result is None:
         return None
-    else:
-        return list(ret_set)
+    return list(result)

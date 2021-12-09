@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 from pathlib import Path
@@ -6,7 +7,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
     Set,
@@ -14,20 +14,21 @@ from typing import (
     TypeVar,
     Union,
 )
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin
 
 from globus_sdk import (
     AccessTokenAuthorizer,
+    BaseClient,
     ClientCredentialsAuthorizer,
     GlobusHTTPResponse,
     RefreshTokenAuthorizer,
 )
-from globus_sdk.base import BaseClient
+from globus_sdk.authorizers import GlobusAuthorizer
 from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
 
-from .helpers import merge_lists
+from .helpers import merge_keywords
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -75,7 +76,7 @@ AuthorizerCallbackType = Callable[..., AllowedAuthorizersType]
 
 
 class FlowValidationError(Exception):
-    def __init__(self, errors: Iterable[str], **kwargs):
+    def __init__(self, errors: Iterable[str]):
         message = "; ".join(errors)
         super().__init__(message)
 
@@ -216,17 +217,38 @@ class FlowsClient(BaseClient):
         ClientCredentialsAuthorizer,
     )
 
+    base_path: str = ""
+    service_name: str = "flows"
+
     def __init__(
         self,
         client_id: str,
         get_authorizer_callback: AuthorizerCallbackType,
-        *args,
         **kwargs,
     ) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self.client_id = client_id
-        self.flow_management_authorizer: AllowedAuthorizersType = self.authorizer
         self.get_authorizer_callback = get_authorizer_callback
+
+    @contextlib.contextmanager
+    def use_temporary_authorizer(self, authorizer):
+        """Temporarily swap out the authorizer instance variable.
+
+        This is a context manager. Use it like this:
+
+        ..  code-block:: python
+
+            authorizer = self._get_authorizer_for_flow(...)
+            with self.alternate_authorizer(authorizer):
+                ...
+
+        """
+
+        original, self.authorizer = self.authorizer, authorizer
+        try:
+            yield
+        finally:
+            self.authorizer = original
 
     def deploy_flow(
         self,
@@ -283,37 +305,40 @@ class FlowsClient(BaseClient):
         :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to deploy the Flow.
 
+        :param dry_run: Set to ``True`` to test whether the Flow can be
+            deployed successfully.
+
         """
         if validate_definition:
             validate_flow_definition(flow_definition)
         if validate_schema:
             validate_input_schema(input_schema)
-        self.authorizer = self.flow_management_authorizer
-        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
-        temp_body["subtitle"] = subtitle
-        temp_body["description"] = description
-        temp_body["keywords"] = keywords
-        # We'll accept some aliases for the role lists passed in kwargs
-        temp_body["flow_viewers"] = merge_lists(
-            flow_viewers, kwargs, "visible_to", "viewers"
-        )
-        temp_body["flow_starters"] = merge_lists(
-            flow_starters, kwargs, "runnable_by", "starters"
-        )
-        temp_body["flow_administrators"] = merge_lists(
-            flow_administrators, kwargs, "administered_by", "administrators"
-        )
-        temp_body["subscription_id"] = subscription_id
-        # Remove None / empty list items from the temp_body
+        temp_body: Dict[str, Any] = {
+            "definition": flow_definition,
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "keywords": keywords,
+            "flow_viewers": merge_keywords(
+                flow_viewers, kwargs, "visible_to", "viewers"
+            ),
+            "flow_starters": merge_keywords(
+                flow_starters, kwargs, "runnable_by", "starters"
+            ),
+            "flow_administrators": merge_keywords(
+                flow_administrators, kwargs, "administered_by", "administrators"
+            ),
+            "subscription_id": subscription_id,
+        }
+        # Remove None / empty list items from the temp_body.
         req_body = {k: v for k, v in temp_body.items() if v}
-        # We do this after clearing false truthy values since an empty input schema is a
-        # valid thing
+        # Add the input_schema last since an empty input schema is valid.
         if input_schema is not None:
             req_body["input_schema"] = input_schema
         url = "/flows"
         if dry_run:
             url = "/flows/dry-run"
-        return self.post(url, req_body, **kwargs)
+        return self.post(url, data=req_body, **kwargs)
 
     def update_flow(
         self,
@@ -322,10 +347,10 @@ class FlowsClient(BaseClient):
         title: Optional[str] = None,
         subtitle: Optional[str] = None,
         description: Optional[str] = None,
-        keywords: Iterable[str] = (),
-        flow_viewers: Iterable[str] = (),
-        flow_starters: Iterable[str] = (),
-        flow_administrators: Iterable[str] = (),
+        keywords: Optional[Iterable[str]] = None,
+        flow_viewers: Optional[Iterable[str]] = None,
+        flow_starters: Optional[Iterable[str]] = None,
+        flow_administrators: Optional[Iterable[str]] = None,
         subscription_id: Optional[str] = None,
         input_schema: Optional[Mapping[str, Any]] = None,
         validate_definition: bool = True,
@@ -374,31 +399,30 @@ class FlowsClient(BaseClient):
         :param validate_schema: Set to ``True`` to validate the provided
             ``input_schema`` before attempting to update the Flow.
         """
+
         if validate_definition and flow_definition is not None:
             validate_flow_definition(flow_definition)
         if validate_schema and input_schema is not None:
             validate_input_schema(input_schema)
-        self.authorizer = self.flow_management_authorizer
-        temp_body: Dict[str, Any] = {"definition": flow_definition, "title": title}
-        temp_body["subtitle"] = subtitle
-        temp_body["description"] = description
-        temp_body["keywords"] = keywords
-        temp_body["flow_viewers"] = merge_lists(
-            flow_viewers, kwargs, "visible_to", "viewers"
-        )
-        temp_body["flow_starters"] = merge_lists(
-            flow_starters, kwargs, "runnable_by", "starters"
-        )
-        temp_body["flow_administrators"] = merge_lists(
-            flow_administrators, kwargs, "administered_by", "administrators"
-        )
-        temp_body["subscription_id"] = subscription_id
-        # Remove None / empty list items from the temp_body
-        data = {k: v for k, v in temp_body.items() if v}
-        # After removing false-y values, add the input schema.
-        if input_schema is not None:
-            data["input_schema"] = input_schema
-        return self.put(f"/flows/{flow_id}", data, **kwargs)
+
+        temp_body: Dict[str, Any] = {
+            "definition": flow_definition,
+            "title": title,
+            "subtitle": subtitle,
+            "description": description,
+            "keywords": keywords,
+            "flow_viewers": merge_keywords(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_starters": merge_keywords(
+                flow_starters, kwargs, "runnable_by", "starters"
+            ),
+            "flow_administrators": merge_keywords(
+                flow_administrators, kwargs, "administered_by", "administrators"
+            ),
+            "subscription_id": subscription_id,
+            "input_schema": input_schema,
+        }
+        data = {k: v for k, v in temp_body.items() if v is not None}
+        return self.put(f"/flows/{flow_id}", data=data, **kwargs)
 
     def get_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -407,9 +431,8 @@ class FlowsClient(BaseClient):
         :param flow_id: The UUID identifying the Flow for which to retrieve
             details
         """
-        self.authorizer = self.flow_management_authorizer
-        path = self.qjoin_path("/flows/", flow_id)
-        return self.get(path, **kwargs)
+
+        return self.get(f"/flows/{quote(flow_id)}", **kwargs)
 
     def list_flows(
         self,
@@ -462,7 +485,6 @@ class FlowsClient(BaseClient):
             OrderedDict if trying to apply multiple orderings.
 
         """
-        self.authorizer = self.flow_management_authorizer
 
         params = {}
 
@@ -492,7 +514,7 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        return self.get("/flows", params=params, **kwargs)
+        return self.get("/flows", query_params=params, **kwargs)
 
     def delete_flow(self, flow_id: str, **kwargs) -> GlobusHTTPResponse:
         """
@@ -500,7 +522,6 @@ class FlowsClient(BaseClient):
 
         :param flow_id: The UUID identifying the Flow to delete
         """
-        self.authorizer = self.flow_management_authorizer
         return self.delete(f"/flows/{flow_id}", **kwargs)
 
     def scope_for_flow(self, flow_id: str) -> str:
@@ -569,7 +590,12 @@ class FlowsClient(BaseClient):
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise the
             authorizer_callback defined for the FlowsClient will be used.
+
+        :param dry_run: Set to ``True`` to test what will happen if the Flow is run
+            without actually running the Flow.
+
         """
+
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
@@ -577,8 +603,8 @@ class FlowsClient(BaseClient):
         # Merge monitors and managers with aliases.
         # If either list is empty it will be replaced with None
         # to prevent empty lists from appearing in the JSON request.
-        run_monitors = merge_lists(run_monitors, kwargs, "monitor_by") or None
-        run_managers = merge_lists(run_managers, kwargs, "manage_by") or None
+        run_monitors = merge_keywords(run_monitors, kwargs, "monitor_by") or None
+        run_managers = merge_keywords(run_managers, kwargs, "manage_by") or None
 
         if dry_run:
             path = flow_url + "/dry-run"
@@ -792,10 +818,9 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        self.authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
-        response = self.get(f"/runs", params=params, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow("", RUN_STATUS_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.get("/runs", query_params=params, **kwargs)
 
     def enumerate_actions(
         self,
@@ -908,10 +933,9 @@ class FlowsClient(BaseClient):
             filters.pop("per_page", None)
             params.update(filters)
 
-        self.authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
-        response = self.get(f"/flows/{flow_id}/actions", params=params, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
 
     def flow_action_update(
         self,
@@ -944,10 +968,9 @@ class FlowsClient(BaseClient):
         if run_monitors is not None:
             payload["run_monitors"] = run_monitors
 
-        self.authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
-        response = self.put(f"/runs/{action_id}", payload, **kwargs)
-        self.authorizer = self.flow_management_authorizer
-        return response
+        authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.put(f"/runs/{action_id}", data=payload, **kwargs)
 
     def flow_action_log(
         self,
@@ -1000,7 +1023,7 @@ class FlowsClient(BaseClient):
         cls: Type[_FlowsClient],
         client_id: str,
         authorizer_callback: AuthorizerCallbackType,
-        authorizer: AllowedAuthorizersType,
+        authorizer: Optional[GlobusAuthorizer],
         base_url: Optional[str] = None,
         http_timeout: int = 10,
     ) -> _FlowsClient:
@@ -1045,9 +1068,10 @@ class FlowsClient(BaseClient):
         return cls(
             client_id,
             authorizer_callback,
-            "flows_client",
             app_name="Globus Automate SDK FlowsClient",
             base_url=base_url,
             authorizer=authorizer,
-            http_timeout=http_timeout,
+            transport_params={
+                "http_timeout": http_timeout,
+            },
         )

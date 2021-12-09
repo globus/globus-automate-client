@@ -6,37 +6,41 @@ Unreleased changes
 
 Unreleased changes are documented in files in the `changelog.d`_ directory.
 
-..  _changelog.d: https://github.com/globus/globus-automate-client/tree/master/changelog.d
+..  _changelog.d: https://github.com/globus/globus-automate-client/tree/main/changelog.d
 
 ..  scriv-insert-here
 
-0.12.3 — 2021-11-10
-===================
+0.13.0b1 — 2021-12-09
+=====================
+
+Features
+--------
+
+-   Upgrade to Globus SDK v3.
 
 Bugfixes
 --------
 
--   Fix a bug that prevented the Flows client from properly validating flow definition states in lists.
--   Prevent empty values from appearing in query parameters or JSON submissions.
--   Fix a bug that prevented the input schema of an existing Flow from being set to an all-permissive JSON schema.
--   Fix a bug that prevented a custom authorizer from being used if attempting to list all runs of a specific flow without specifying the flow ID.
--   Fix a bug that introduced duplicate forward slashes in some API URL's.
+-   Fixes a bug in the SDK that prevented Flow updates from removing all
+    flow_administrators,  flow_viewers, and flow_starters. This bug also
+    prevented updates from setting text fields to empty strings.
 
-Documentation
--------------
+-   Fix a bug that could allow the Flows authorizer to be lost if an exception
+    was raised. (Authorizer swaps are now handled using a context manager.)
 
-- Add a CHANGELOG and include it in the documentation.
-- Use scriv for CHANGELOG management.
+-   Support strings (and tuples/sets containing strings) as argument values
+    when running, deploying, or updating an action or a flow and specifying
+    a keyword argument alias like ``visible_to`` or ``runnable_by``.
 
-- Added documentation for the new Action Providers for:
-  - Make a directory via Globus Transfer (mkdir)
-  - Get collection information via Globus Transfer (collection_info)
-- Added documentation for new feature of the list directory Action Provider to get information only about the path provided as input
+Other
+-----
 
-- Added documentation related to use of built-in functions in expressions. Documented the new functions ``pathsplit``, ``is_present`` and ``getattr``.
+-   Add code linting, documentation build testing, and a bunch of unit tests.
+-   Add GitHub Actions to run on push and pull requests.
+-   Add a pre-commit configuration file to increase overall code quality.
 
-TEST — 2021-11-04
-=================
+0.12.3 — 2021-11-10
+===================
 
 Bugfixes
 --------
@@ -265,7 +269,7 @@ Documentation
 -   Improves documentation around manually creating authorizers and how to use them to create ``ActionClients`` and ``FlowsClient``:
     https://globus-automate-client.readthedocs.io/en/latest/python_sdk.html#sdk-the-hard-way
 -   Adds examples for Flow definitions as YAML:
-    https://github.com/globus/globus-automate-client/tree/master/examples/flows/hello-world-yaml
+    https://github.com/globus/globus-automate-client/tree/main/examples/flows/hello-world-yaml
 
 0.10.5 — 2020-12-11
 ===================

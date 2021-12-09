@@ -47,6 +47,9 @@ def create_action_client(
         triggering the login flow for this ActionClient
 
     **Examples**
+
+    ..  code-block:: pycon
+
         >>> from globus_automate_client import create_action_client
         >>> # Create an ActionClient for the HelloWorld Action
         >>> ac = create_action_client("https://actions.globus.org/hello_world")
@@ -92,7 +95,7 @@ def create_flows_client(
     specific Flow will similarly search for valid tokens in the local cache,
     triggering an interactive log-in if they cannot be found.
 
-    :param: scope: The Globus Auth scope to which the FlowsClient should be
+    :param scope: The Globus Auth scope to which the FlowsClient should be
         created with consents to
     :param client_id: The Globus ID to associate with this instance of the
         FlowsClient
@@ -108,6 +111,9 @@ def create_flows_client(
         parameter's value
 
     **Examples**
+
+    ..  code-block:: pycon
+
         >>> from globus_automate_client import create_flows_client
         >>> # Create an authenticated FlowsClient that can run operations against the Flows
         >>> # service

@@ -1,32 +1,22 @@
 import uuid
 from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
+from urllib.parse import quote
 
-from globus_sdk import (
-    AccessTokenAuthorizer,
-    ClientCredentialsAuthorizer,
-    GlobusHTTPResponse,
-    RefreshTokenAuthorizer,
-)
-from globus_sdk.base import BaseClient
+from globus_sdk import BaseClient, GlobusHTTPResponse
+from globus_sdk.authorizers import GlobusAuthorizer
 
-from .helpers import merge_lists
+from .helpers import merge_keywords
 
 _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
 class ActionClient(BaseClient):
-    allowed_authorizer_types = (
-        AccessTokenAuthorizer,
-        RefreshTokenAuthorizer,
-        ClientCredentialsAuthorizer,
-    )
+    base_path: str = ""
+    service_name: str = "actions"
 
-    AllowedAuthorizersType = Union[
-        AccessTokenAuthorizer, RefreshTokenAuthorizer, ClientCredentialsAuthorizer
-    ]
-
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._action_scope: Optional[str] = None
 
     @property
     def action_scope(self) -> str:
@@ -38,7 +28,7 @@ class ActionClient(BaseClient):
         have to have been provided on initialization to the ``ActionClient``.
         Otherwise, this call will fail.
         """
-        if not hasattr(self, "_action_scope"):
+        if self._action_scope is None:
             resp = self.introspect()
             if resp.data is None:
                 self._action_scope = ""
@@ -46,7 +36,7 @@ class ActionClient(BaseClient):
                 self._action_scope = resp.data.get("globus_auth_scope", "")
         return self._action_scope
 
-    def introspect(self, **kwargs) -> GlobusHTTPResponse:
+    def introspect(self, **_) -> GlobusHTTPResponse:
         """
         Introspect the details of an Action Provider to discover information
         such as its expected ``action_scope``, its ``input_schema``, and who to
@@ -54,6 +44,7 @@ class ActionClient(BaseClient):
         """
         return self.get("")
 
+    # noinspection PyIncorrectDocstring
     def run(
         self,
         body: Mapping[str, Any],
@@ -62,7 +53,7 @@ class ActionClient(BaseClient):
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
         force_path: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> GlobusHTTPResponse:
         """
         Invoke the Action Provider to execute an Action with the given
@@ -89,19 +80,19 @@ class ActionClient(BaseClient):
         if request_id is None:
             request_id = str(uuid.uuid4())
 
-        path = self.qjoin_path("run")
+        path = "/run"
         if force_path:
             path = force_path
         body = {
             "request_id": str(request_id),
             "body": body,
-            "monitor_by": merge_lists(monitor_by, kwargs, "run_monitors"),
-            "manage_by": merge_lists(manage_by, kwargs, "run_managers"),
+            "monitor_by": merge_keywords(monitor_by, kwargs, "run_monitors"),
+            "manage_by": merge_keywords(manage_by, kwargs, "run_managers"),
             "label": label,
         }
         # Remove None items from the temp_body
-        body = {k: v for k, v in body.items() if v is not None}
-        return self.post(path, body)
+        data = {k: v for k, v in body.items() if v is not None}
+        return self.post(path, data=data)
 
     def status(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -110,8 +101,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "status")
-        return self.get(path)
+
+        return self.get(f"{quote(action_id)}/status")
 
     def resume(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -125,8 +116,8 @@ class ActionClient(BaseClient):
             executed on this Action Provider.
 
         """
-        path = self.qjoin_path(action_id, "resume")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/resume")
 
     def cancel(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -135,8 +126,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "cancel")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/cancel")
 
     def release(self, action_id: str) -> GlobusHTTPResponse:
         """
@@ -145,8 +136,8 @@ class ActionClient(BaseClient):
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
         """
-        path = self.qjoin_path(action_id, "release")
-        return self.post(path)
+
+        return self.post(f"{quote(action_id)}/release")
 
     def log(
         self,
@@ -175,22 +166,21 @@ class ActionClient(BaseClient):
 
         # *reverse_order* MUST BE None to prevent reversing the sort order.
         # Any other value, including False, will reverse the sort order.
-        params: Dict[str, Union[int, str]] = {
-            "reverse_order": reverse_order or None,
+        params: Dict[str, Union[int, str, bool, None]] = {
+            "reverse_order": True if reverse_order else None,
             "limit": limit,
         }
         if marker is not None:
             params["pagination_token"] = marker
         if per_page is not None and marker is None:
             params["per_page"] = per_page
-        path = self.qjoin_path(action_id, "log")
-        return self.get(path, params=params)
+        return self.get(f"{quote(action_id)}/log", query_params=params)
 
     @classmethod
     def new_client(
         cls: Type[_ActionClient],
         action_url: str,
-        authorizer: AllowedAuthorizersType,
+        authorizer: Optional[GlobusAuthorizer],
         http_timeout: int = 10,
     ) -> _ActionClient:
         """
@@ -206,15 +196,19 @@ class ActionClient(BaseClient):
             the Action Provider to be made.
 
         **Examples**
-            >>> authorizer = ...
-            >>> action_url = "https://actions.globus.org/hello_world"
-            >>> ac = ActionClient.new_client(action_url, authorizer)
+
+        ..  code-block:: pycon
+
+            >>> auth = ...
+            >>> url = "https://actions.globus.org/hello_world"
+            >>> ac = ActionClient.new_client(url, auth)
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
         return cls(
-            "action_client",
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
-            http_timeout=http_timeout,
+            transport_params={
+                "http_timeout": http_timeout,
+            },
         )

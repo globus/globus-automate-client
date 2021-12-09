@@ -43,8 +43,6 @@ def state_colors_for_log(flow_action_log_entries: List[Mapping]) -> Dict[str, st
 def graphviz_format(
     flow: Dict[str, Any], state_colors: Optional[Dict[str, str]] = None
 ) -> Digraph:
-    start_at = flow.get("StartAt")
-    comment = flow.get("Comment")
     states = flow.get("States")
     graph = Digraph()
 
@@ -54,7 +52,6 @@ def graphviz_format(
     if isinstance(states, dict):
         for state_name, state_def in states.items():
             state_type = state_def.get("Type")
-            state_comment = state_def.get("Comment")
             # At least on Choice, Default also exists as a next state name
             next_state = state_def.get("Next", state_def.get("Default"))
             node_params = _SHAPE_TYPES.get(state_type, {"shape": "ellipse"})
