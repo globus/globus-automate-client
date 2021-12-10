@@ -17,7 +17,7 @@ from globus_automate_client import helpers
         #
         # Dict with no list
         ((None, {}, "-"), None, "dict without matching key must return None"),
-        ((None, {"k": ["1"]},), None, "dict with no key specified must return None"),
+        ((None, {"k": ["1"]}), None, "dict with no key specified must return None"),
         ((None, {"k": ["1"]}, "-"), None, "dict without matching key must return None"),
         ((None, {"k": ["1"]}, "k"), {"1"}, "dict with matching key must be added"),
         ((None, {"k": ["1", "1"]}, "k"), {"1"}, "dict values must be de-duped"),

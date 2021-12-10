@@ -40,8 +40,8 @@ def get_http_details(result: Union[GlobusHTTPResponse, GlobusAPIError]) -> str:
     if isinstance(result, GlobusHTTPResponse):
         if isinstance(result._response, requests.Response):
             base_request = result._response.request
-        elif (
-            result._wrapped and isinstance(result._wrapped._response, requests.Response)
+        elif result._wrapped and isinstance(
+            result._wrapped._response, requests.Response
         ):
             base_request = result._wrapped._response.request
         else:
