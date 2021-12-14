@@ -40,17 +40,6 @@ updates, or other tooling changes.
 
 Feature development begins by creating a new branch off of `main`.
 
-> NOTE: **Shortcut integration**
->
-> It is recommended that you include the Shortcut story number in the branch name.
-> Doing so allows Shortcut to automatically track the branch
-> and move the associated story through the Shortcut workflow.
->
-> The only requirement for this to work is to include the text `sc-<STORY_ID>` in the branch name
-> with an appropriate delimiter like `-` or `/`.
-> For example, `support-something/sc-12345` or `fix-something-sc-12345`.
-
-
 The script below can create a branch off of `main`:
 
 ```shell
