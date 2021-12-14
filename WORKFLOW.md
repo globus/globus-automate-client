@@ -112,7 +112,8 @@ the branch to `production` and `main`:
 1. On the branch that is to be released, prepare the code and documentation for
    release.
    1. Bump the version.
-        - If the release is a backwards compatible change use 
+        - If the release is a hotfix, use ``poetry version patch``
+        - If the release is a backwards-compatible change use 
           ``poetry version patch``
         - If the release is non-backwards compatible, use 
           ``poetry version minor``
@@ -147,14 +148,17 @@ the branch to `production` and `main`:
    5. Click "Publish release" to publish the new tag and release on GitHub.
 
 5. Publish the release
-   1. Documentation updates will be pulled direction from the `production`
+   1. Documentation updates will be pulled directly from the `production`
       branch. If the release is purely documentation, there are no further steps
       to publishing.
    2. Code updates need to be published to PyPI. To do so, the following steps
       will need to be performed on a Terminal window:
-      1. git checkout production
-      2. git pull --tags
-      3. poetry publish --build
+      
+      ```shell
+      git checkout production
+      git pull --tags
+      poetry publish --build
+      ```
 
 6. Create a new pull request to merge to `main`.
    1. Select `main` as the "base" merge branch.
