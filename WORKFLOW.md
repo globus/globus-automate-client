@@ -38,10 +38,24 @@ out-of-cycle release to the production environment. This may include
 non-critical bug fixes, documentation updates, CI/CD changes, dependency 
 updates, or other tooling changes.
 
-Feature development begins by creating a new branch off of `main`:
+Feature development begins by creating a new branch off of `main`.
+
+> NOTE: **Shortcut integration**
+>
+> It is recommended that you include the Shortcut story number in the branch name.
+> Doing so allows Shortcut to automatically track the branch
+> and move the associated story through the Shortcut workflow.
+>
+> The only requirement for this to work is to include the text `sc-<STORY_ID>` in the branch name
+> with an appropriate delimiter like `-` or `/`.
+> For example, `support-something/sc-12345` or `fix-something-sc-12345`.
+
+
+The script below can create a branch off of `main`:
 
 ```shell
 read -p "Enter the feature branch name: " BRANCH_NAME
+
 # Everything below can run unmodified.
 git checkout main
 git pull
@@ -53,15 +67,20 @@ Feature branches are merged back to `main`, and only to `main`.
 ## Preparing a feature release
 
 When the code or documentation is ready for release, a new feature release will
-be created. Feature releases begin by creating a new branch off of `main`:
+be created. Feature releases begin by creating a new branch off of `main`
+(or, alternatively, by branching off an agreed-upon merge commit in `main`).
 
 ```shell
 read -p "Enter the feature release version: " NEW_VERSION
-# Everything below can run unmodified.
-BRANCH_NAME="release-$NEW_VERSION"
+BRANCH_NAME="release/$NEW_VERSION"
+
+# If deploying from main:
 git checkout main
 git pull origin
 git checkout -b "$BRANCH_NAME"
+
+# Alternatively, if deploying from an agreed-upon merge commit:
+git checkout -b "$BRANCH_NAME" <SHA>
 ```
 
 Next, proceed to the [Merging release branches](#merging-release-branches) section.
@@ -77,7 +96,7 @@ Hotfix releases begin by creating a branch off of `production`:
 ```shell
 read -p "Enter the hotfix release version: " NEW_VERSION
 # Everything below can run unmodified.
-BRANCH_NAME="hotfix-$NEW_VERSION"
+BRANCH_NAME="hotfix/$NEW_VERSION"
 git checkout production
 git pull origin
 git checkout -b "$BRANCH_NAME"
@@ -101,29 +120,62 @@ section for steps to create a release or hotfix branch.
 After creating a release or hotfix branch, you must follow these steps to merge
 the branch to `production` and `main`:
 
-1. Bump the version.
-2. Bump copyright years as appropriate.
-3. Collect changelog fragments as appropriate.
-4. Commit all changes to git.
-5. Submit a PR to merge the release branch into `production`.
-   1. Wait for linting and unit/integration/CI/doc tests to pass.
-   2. It is the release engineer's discretion to ask for and require PR
+1. On the branch that is to be released, prepare the code and documentation for
+   release.
+   1. Bump the version.
+        - If the release is a backwards compatible change use 
+          ``poetry version patch``
+        - If the release is non-backwards compatible, use 
+          ``poetry version minor``
+   2. Bump copyright years as appropriate.
+   3. Collect changelog fragments as appropriate.
+   4. Run unit/integration/CI/doc tests as appropriate.
+   5. Commit all changes to git.
+
+2. Push the branch to GitHub.
+
+3. Create a new pull request to merge to `production`.
+   1. Select `production` as the "base" merge branch.
+   2. Select the release or hotfix branch as the "compare" merge branch.
+   3. Wait for CI test results (and approvals, when possible).
+      1. It is the release engineer's discretion to ask for and require PR
       approvals. A release branch will usually contain code that has already 
       been reviewed, unless it is a hotfix. If the release is a hotfix, it is
       recommended to get approvals.
-6. Merge the release branch to `production`.
-   1. After merging, tag the version in git.
-   2. After tagging, create a new release with release notes.
-7. Merge `production` into `main`.
-8. Delete the remote and local release branch.
 
-We should create a Github Action to automate steps 6.1, 6.2, 7, 8 and the production deployment.
+      > WARNING: **Merge conflicts**
+      >
+      > Merge conflicts halt the release process when merging to `production`
+      > unless it is a trivial conflict (like the "version" in `pyproject.toml`).
+   4. Merge the branch to `production`. Do not delete the branch!
 
-## Deploying to production
+4. Create a new tag and a new release.
+   1. Click on the "Releases" section. Then click "Draft a new release".
+   2. Click the "Choose a tag" dropdown, type the new version, and press Enter.
+   2. Select `production` as the target branch.
+   3. Type the new version as the release title.
+   4. Paste the changelog as the release description.
+   5. Click "Publish release" to publish the new tag and release on GitHub.
 
-Merges into `production` will trigger a documentation deployment to ReadTheDocs
-and a Github Action will run to build and deploy the package to PyPI. Once the 
-release is successfully merged into `production`, automated processes take over
-and the public components will be released. It is the release engineer's
-responsibility to ensure that the Github Action executes successfully and the 
-changes are successfully deployed.
+5. Publish the release
+   1. Documentation updates will be pulled direction from the `production`
+      branch. If the release is purely documentation, there are no further steps
+      to publishing.
+   2. Code updates need to be published to PyPI. To do so, the following steps
+      will need to be performed on a Terminal window:
+      1. git checkout production
+      2. git pull --tags
+      3. poetry publish --build
+
+6. Create a new pull request to merge to `main`.
+   1. Select `main` as the "base" merge branch.
+   2. Select the release or hotfix branch as the "compare" merge branch.
+   3. Wait for CI test results (and approvals, if needed).
+
+      > NOTE: **Merge conflicts**
+      >
+      > A merge conflict at this stage does NOT halt the release process.
+      > However, approval is required after resolving the conflict.
+   4. Merge the branch to `main`.
+
+6. Delete the release branch.
