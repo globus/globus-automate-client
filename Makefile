@@ -38,7 +38,7 @@ develop: poetry.lock
 	$(POETRY) install
 
 requirements.txt: poetry.lock
-	 $(POETRY export -f requirements.txt -o $@
+	 $(POETRY) export -f requirements.txt -o $@
 
 # linting is flake8
 lint: develop
