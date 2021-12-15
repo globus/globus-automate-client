@@ -7,5 +7,8 @@
             "destination_path": "/~/dmz_temp/",
             "recursive": true
         }
-    ]
+    ],
+    "notify_on_succeeded": false,
+    "notify_on_failed": true,
+    "notify_on_inactive": true
 }

@@ -88,7 +88,7 @@ Synchronous / Asynchronous: Asynchronous
 
 Globus Transfer / delete data works much like the "Transfer /
 transfer" provider. It takes a source collection and path as inputs
-and uses the `Globus Transfer Task API`_ to intiate an
+and uses the `Globus Transfer Task API`_ to initiate an
 asynchronous delete operation. Also like the transfer operation,
 labels and recursive options may be set. The status body comes
 directly from the Task status in the Globus Transfer API.
@@ -370,7 +370,7 @@ multiple expressions. An Expression request consists of up to three parts:
 * | A ``result_path`` (optional) which is a path where the result will be
     stored. It may be in "Reference Path" format as defined in the AWS Step
     Functions State Machine Language specification or it may simply be a dot
-    separated string of the path elements. In either case, the path indidcates where
+    separated string of the path elements. In either case, the path indicates where
     in the ``details`` of the returned action status the value for the evaluated
     expression should be placed. If ``result_path`` is not present, the result will
     be stored in the ``details`` under the key ``result``.
