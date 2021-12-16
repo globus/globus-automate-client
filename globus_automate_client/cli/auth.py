@@ -207,7 +207,9 @@ class TokenCache:
             token_set = TokenSet(
                 access_token=cast(str, token_info.get("access_token")),
                 refresh_token=cast(Optional[str], token_info.get("refresh_token")),
-                expiration_time=cast(Optional[int], token_info.get("expires_at_seconds")),
+                expiration_time=cast(
+                    Optional[int], token_info.get("expires_at_seconds")
+                ),
                 dependent_scopes=dependent_scopes,
             )
             self.set_tokens(scope, token_set)
