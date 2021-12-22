@@ -342,12 +342,12 @@ of 10 minutes. Thus, detection of the completion will not be
 instantaneous compared to when the action "actually" completes and may
 be delayed up to the maximum poll interval of 10 minutes.
 
-It is important to remember that this delay between an Action actually
-being completed and it being recognized by the Flow can occur. A user
-running a flow may observe or receive other notification (such as an
-email for a Globus Transfer) that an Action has completed but the
-Flows service may not poll to discover the same state has been
-reached. This is an inherent property of the system.
+It is important to remember that this delay between an Action's actual
+completion and it being detected by the Flow service can occur. A user
+running a flow may observe or receive another form of notification
+(such as an email from Globus Transfer) that an Action has completed
+prior to the Flows service polling to discover the same progress has
+occurred. This is an inherent property of the system.
 
 Managing Exceptions
 -------------------
