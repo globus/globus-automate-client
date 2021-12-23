@@ -41,7 +41,7 @@ below) the same manor as defined in the States Language:
 .. note::
 
    The exception is the use of the ``OutputPath`` property in
-   the ``Pass`` or ``Choice`` states.``OutputPath`` is not allowed in
+   the ``Pass`` or ``Choice`` states. ``OutputPath`` is not allowed in
    a Flow definition. Instead, the ``ResultPath`` must always be used
    to specify where the result of a state execution will be stored
    into the state of the Flow.
