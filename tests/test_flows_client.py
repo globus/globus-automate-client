@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from globus_automate_client import flows_client
+from globus_automate_client.models import FlowValidationError
 
 VALID_FLOW_DEFINITION = {
     "StartAt": "perfect",
@@ -76,13 +77,15 @@ def test_validate_flow_definition_multiple_validity_errors():
     schema = {
         # "StartAt" is missing
         "States": {
-            "bogus": {},
-        },
+            "unreferenced": {
+                "Type": "Pass",
+                "End": True,
+            },
+        }
     }
-    with pytest.raises(flows_client.FlowValidationError) as raised:
+    with pytest.raises(FlowValidationError) as raised:
         flows_client.validate_flow_definition(schema)
-    assert "'StartAt' is a required property" in raised.value.args[0]
-    assert "'States.bogus'" in raised.value.args[0]
+    assert "field required" == raised.value.errors()[0]["msg"]
 
 
 def test_validate_flow_definition_multiple_ill_formed_errors():
@@ -97,10 +100,13 @@ def test_validate_flow_definition_multiple_ill_formed_errors():
             },
         },
     }
-    with pytest.raises(flows_client.FlowValidationError) as raised:
+    with pytest.raises(FlowValidationError) as raised:
         flows_client.validate_flow_definition(schema)
-    assert "not referenced" in raised.value.args[0]
-    assert "not defined" in raised.value.args[0]
+
+    assert (
+        'StartAt state "undefined" is not defined in States'
+        in raised.value.errors()[0]["msg"]
+    )
 
 
 input_schemas = pathlib.Path(__file__).parent.rglob("../examples/**/*schema.*")
@@ -124,7 +130,7 @@ def test_validate_input_schema(filename):
 def test_validate_input_schema_bad_type(schema):
     """Confirm that a bad input type results in failures."""
 
-    with pytest.raises(flows_client.FlowValidationError):
+    with pytest.raises(flows_client.FlowSchemaValidationError):
         flows_client.validate_input_schema(schema)
 
 
@@ -139,7 +145,7 @@ def test_validate_input_schema_multiple_failures():
         },
         "required": False,
     }
-    with pytest.raises(flows_client.FlowValidationError) as raised:
+    with pytest.raises(flows_client.FlowSchemaValidationError) as raised:
         flows_client.validate_input_schema(schema)
     assert "'properties.trouble.type' invalid" in raised.value.args[0]
     assert "'required' invalid" in raised.value.args[0]
@@ -275,7 +281,7 @@ def test_deploy_flow_aliases(fc, mocked_responses):
 def test_invalid_flow_definition_failure(fc, method):
     """Verify that an invalid flow definition triggers a failure."""
 
-    with pytest.raises(flows_client.FlowValidationError):
+    with pytest.raises(FlowValidationError):
         getattr(fc, method)(
             flow_id="bogus-id",
             flow_definition={"bogus": True},
@@ -288,7 +294,7 @@ def test_invalid_flow_definition_failure(fc, method):
 def test_invalid_input_schema_failure(fc, method):
     """Verify that an invalid input schema triggers a failure."""
 
-    with pytest.raises(flows_client.FlowValidationError):
+    with pytest.raises(flows_client.FlowSchemaValidationError):
         getattr(fc, method)(
             flow_id="bogus-id",
             flow_definition=VALID_FLOW_DEFINITION,

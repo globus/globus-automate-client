@@ -44,9 +44,9 @@ from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
     RUN_STATUS_SCOPE,
-    FlowValidationError,
     validate_flow_definition,
 )
+from globus_automate_client.models import FlowValidationError
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 

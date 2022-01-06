@@ -1,7 +1,5 @@
 import contextlib
-import json
 import os
-from pathlib import Path
 from typing import (
     Any,
     Callable,
@@ -16,6 +14,7 @@ from typing import (
 )
 from urllib.parse import quote, urljoin
 
+import pydantic
 from globus_sdk import (
     AccessTokenAuthorizer,
     BaseClient,
@@ -27,6 +26,7 @@ from globus_sdk.authorizers import GlobusAuthorizer
 from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
+from globus_automate_client.models import FlowDefinition
 
 from .helpers import merge_keywords
 
@@ -75,7 +75,7 @@ AllowedAuthorizersType = Union[
 AuthorizerCallbackType = Callable[..., AllowedAuthorizersType]
 
 
-class FlowValidationError(Exception):
+class FlowSchemaValidationError(Exception):
     def __init__(self, errors: Iterable[str]):
         message = "; ".join(errors)
         super().__init__(message)
@@ -114,70 +114,12 @@ def _all_vals_for_keys(
 
 
 def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
-    """Perform local, JSONSchema based validation of a Flow definition. This is validation
-    on the basic structure of your Flow definition.such as required fields / properties
-    for the various state types and the overall structure of the Flow. This schema based
-    validation *does not* do any validation of input values or parameters passed to
-    Actions as those Actions define their own schemas and the Flow may generate or
-    compute values to these Actions and thus static, schema based validation cannot
-    determine if the Action parameter values generated during execution are correct.
-
-    The input is the dictionary containing the flow definition.
-
-    If the flow passes validation, no value is returned. If validation errors are found,
-    a FlowValidationError exception will be raised containing a string message describing
-    the error(s) encountered.
-    """
-    schema_path = Path(__file__).parent / "flows_schema.json"
-    with schema_path.open() as sf:
-        flow_schema = json.load(sf)
-    validator = Draft7Validator(flow_schema)
-    errors = validator.iter_errors(flow_definition)
-    error_msgs = set()
-    for error in errors:
-        if error.path:
-            # Elements of the error path may be integers or other non-string types,
-            # but we need strings for use with join()
-            error_path_for_message = ".".join([str(x) for x in error.path])
-            error_message = (
-                f"'{error_path_for_message}' invalid due to {error.message}: "
-                f" {error.context}"
-            )
-        else:
-            error_message = f"{error.message}: {error.context}"
-        error_msgs.add(error_message)
-    if error_msgs:
-        raise FlowValidationError(error_msgs)
-
-    # We can be aggressive about indexing these maps as it has already passed schema
-    # validation
-    state_names = set(flow_definition["States"].keys())
-    flow_state_refs = _all_vals_for_keys(
-        {"Next", "Default", "StartAt"},
-        flow_definition,
-        stop_traverse_key_set={"Parameters"},
-    )
-
-    unreferenced = state_names - flow_state_refs
-    not_present = flow_state_refs - state_names
-    if len(unreferenced) > 0:
-        error_msgs.add(
-            "The following states are defined but not referenced by any "
-            f"other states in the flow: {unreferenced}"
-        )
-    if len(not_present) > 0:
-        error_msgs.add(
-            "The following states are referenced but are not defined by the"
-            f" flow: {not_present}"
-        )
-    if error_msgs:
-        raise FlowValidationError(error_msgs)
-    return
+    FlowDefinition(**flow_definition)
 
 
 def validate_input_schema(input_schema: Optional[Mapping[str, Any]]) -> None:
     if input_schema is None:
-        raise FlowValidationError(["No input schema provided"])
+        raise FlowSchemaValidationError(["No input schema provided"])
     validator = Draft7Validator(Draft7Validator.META_SCHEMA)
     errors = validator.iter_errors(input_schema)
     error_msgs = set()
@@ -194,7 +136,7 @@ def validate_input_schema(input_schema: Optional[Mapping[str, Any]]) -> None:
             error_message = f"{error.message}: {error.context}"
         error_msgs.add(error_message)
     if error_msgs:
-        raise FlowValidationError(error_msgs)
+        raise FlowSchemaValidationError(error_msgs)
 
 
 def _get_flows_base_url_for_environment():
