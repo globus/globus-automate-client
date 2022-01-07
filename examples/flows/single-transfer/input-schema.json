@@ -1,0 +1,31 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "source_endpoint_id",
+        "destination_endpoint_id",
+        "transfer_items"
+    ],
+    "properties": {
+        "source_endpoint_id": {
+            "type": "string"
+        },
+        "destination_endpoint_id": {
+            "type": "string"
+        },
+        "transfer_items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "source_path": {
+                        "type": "string"
+                    },
+                    "destination_path": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
