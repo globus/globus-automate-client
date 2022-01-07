@@ -1,0 +1,12 @@
+{
+  "Comment": "A single Pass Flow with an incorrect StartAt value",
+  "StartAt": "NotThePass",
+  "States": {
+    "ThePass": {
+      "Type": "Pass",
+      "InputPath": "$.",
+      "ResultPath": "$.",
+      "End": true
+    }
+  }
+}

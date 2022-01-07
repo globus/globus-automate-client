@@ -1,0 +1,11 @@
+{
+  "Comment": "A single Pass Flow with no StartAt value",
+  "States": {
+    "ThePass": {
+      "Type": "Pass",
+      "InputPath": "$.",
+      "ResultPath": "$",
+      "End": true
+    }
+  }
+}
