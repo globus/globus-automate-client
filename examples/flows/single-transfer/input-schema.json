@@ -17,12 +17,20 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "source_path",
+                    "destination_path"
+                ],
                 "properties": {
                     "source_path": {
                         "type": "string"
                     },
                     "destination_path": {
                         "type": "string"
+                    },
+                    "recursive": {
+                        "type": "boolean"
                     }
                 }
             }
