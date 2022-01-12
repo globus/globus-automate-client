@@ -14,7 +14,6 @@ from typing import (
 )
 from urllib.parse import quote, urljoin
 
-import pydantic
 from globus_sdk import (
     AccessTokenAuthorizer,
     BaseClient,

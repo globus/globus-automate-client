@@ -14,6 +14,8 @@ from pydantic import (
     validator,
 )
 
+FlowValidationError
+
 
 def enforce_jsonpath(v: t.Optional[str]):
     if v is not None and not v.startswith("$."):

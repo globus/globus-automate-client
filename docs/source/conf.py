@@ -21,6 +21,8 @@ autodoc_mock_imports = [
     "click",
     "typer",
     "rich",
+    "pydantic",
+    "typing_extensions",
 ]
 autodoc_typehints = "description"
 

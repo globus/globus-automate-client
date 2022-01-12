@@ -1,6 +1,5 @@
 import glob
 import os
-import typing as t
 
 import pytest
 import yaml
