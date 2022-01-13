@@ -92,12 +92,12 @@ class DataTestExpression(BaseModel):
     TimestampLessThanEqualsPath: t.Optional[str]
     TimestampGreaterThanEquals: t.Optional[str]
     TimestampGreaterThanEqualsPath: t.Optional[str]
-    IsNull: t.Optional[str]
-    IsPresent: t.Optional[str]
-    IsNumeric: t.Optional[str]
-    IsString: t.Optional[str]
-    IsBoolean: t.Optional[str]
-    IsTimestamp: t.Optional[str]
+    IsNull: t.Optional[StrictBool]
+    IsPresent: t.Optional[StrictBool]
+    IsNumeric: t.Optional[StrictBool]
+    IsString: t.Optional[StrictBool]
+    IsBoolean: t.Optional[StrictBool]
+    IsTimestamp: t.Optional[StrictBool]
 
     class Config:
         extra = Extra.forbid

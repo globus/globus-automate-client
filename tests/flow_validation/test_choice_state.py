@@ -315,6 +315,35 @@ choice_state_with_conjunctive_nested_boolean_condition_with_extra_fields = {
     "Default": "DefaultState",
 }
 
+choice_state_with_non_boolean_data_test_expression = {
+    "Type": "Choice",
+    "Comment": "No info",
+    "Choices": [
+        {
+            "Not": {
+                "Variable": "$.SomePath.status",
+                "IsString": "True",  # this must be a boolean
+            },
+            "Next": "ChoiceAState",
+        }
+    ],
+    "Default": "DefaultState",
+}
+
+choice_state_with_boolean_data_test_expression = {
+    "Type": "Choice",
+    "Comment": "No info",
+    "Choices": [
+        {
+            "Not": {
+                "Variable": "$.SomePath.status",
+                "IsString": True,
+            },
+            "Next": "ChoiceAState",
+        }
+    ],
+    "Default": "DefaultState",
+}
 
 valid_state_definitions = [
     simple_choice_state,
@@ -324,6 +353,7 @@ valid_state_definitions = [
     choice_state_without_default,
     choice_state_with_simple_nested_boolean_condition,
     choice_state_with_conjunctive_nested_boolean_condition,
+    choice_state_with_boolean_data_test_expression,
 ]
 invalid_state_definitions = [
     choice_state_using_empty_or,
@@ -335,6 +365,7 @@ invalid_state_definitions = [
     choice_state_with_invalid_comparison_operator,
     choice_state_with_conjunctive_nested_boolean_condition_using_next,
     choice_state_with_conjunctive_nested_boolean_condition_with_extra_fields,
+    choice_state_with_non_boolean_data_test_expression,
 ]
 
 
