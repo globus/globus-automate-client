@@ -16,7 +16,6 @@ expected_top_level_fields = {
     },
 }
 
-
 unexpected_top_level_fields = {
     "StartAt": "SimplePass",
     "Comment": "This is allowed",

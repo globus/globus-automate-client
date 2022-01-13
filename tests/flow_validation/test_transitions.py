@@ -4,6 +4,7 @@ import pytest
 
 from globus_automate_client.models import FlowDefinition, FlowValidationError
 
+# TODO
 valid_start_state = {
     "StartAt": "SimplePass",
     "States": {
@@ -25,11 +26,11 @@ non_existant_start_state = {
 }
 
 non_existant_next_state = {
-    "StartAt": "DoesNotExistAsAState",
+    "StartAt": "SimplePass",
     "States": {
         "SimplePass": {
             "Type": "Pass",
-            "Next": "SimplePass2",
+            "Next": "SomeUndefinedState",
         },
         "SimplePass2": {
             "Type": "Pass",
@@ -38,21 +39,21 @@ non_existant_next_state = {
     },
 }
 
-multiple_end_states_defined = {
+flow_defines_an_unreachable_state = {
     "StartAt": "SimplePass",
     "States": {
         "SimplePass": {
             "Type": "Pass",
             "End": True,
         },
-        "SimplePass2": {
+        "UnreachableState": {
             "Type": "Pass",
             "End": True,
         },
     },
 }
 
-both_next_and_end_states_defined = {
+state_defines_next_and_end_states = {
     "StartAt": "SimplePass",
     "States": {
         "SimplePass": {
@@ -82,12 +83,55 @@ action_catch_refers_to_nonexistent_state = {
     },
 }
 
+action_catch_refers_to_existing_state = {
+    "StartAt": "SimpleAction",
+    "States": {
+        "SimpleAction": {
+            "Type": "Action",
+            "ActionUrl": "https://actions.automate.globus.org/hello_world",
+            "Parameters": {},
+            "Catch": [
+                {
+                    "ErrorEquals": ["SomeError"],
+                    "Next": "HandlerState",
+                }
+            ],
+            "End": True,
+        },
+        "HandlerState": {
+            "Type": "Pass",
+            "End": True,
+        },
+    },
+}
+
 choice_state_default_refers_to_nonexistent_state = {
     "StartAt": "ChoiceState",
     "States": {
         "ChoiceState": {
             "Type": "Choice",
             "Default": "NotAState",
+            "Choices": [
+                {
+                    "Variable": "$.some_variable",
+                    "BooleanEquals": False,
+                    "Next": "FinalState",
+                }
+            ],
+        },
+        "FinalState": {
+            "Type": "Pass",
+            "End": True,
+        },
+    },
+}
+
+choice_state_default_refers_to_existing_state = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Default": "FinalState",
             "Choices": [
                 {
                     "Variable": "$.some_variable",
@@ -124,7 +168,7 @@ choice_state_rule_refers_to_nonexistent_state = {
     },
 }
 
-unreferenced_state_defined = {
+choice_state_rule_refers_to_existing_state = {
     "StartAt": "ChoiceState",
     "States": {
         "ChoiceState": {
@@ -134,13 +178,9 @@ unreferenced_state_defined = {
                 {
                     "Variable": "$.some_variable",
                     "BooleanEquals": False,
-                    "Next": "NotAState",
+                    "Next": "FinalState",
                 }
             ],
-        },
-        "SuperfluousState": {
-            "Type": "Pass",
-            "Next": "FinalState",
         },
         "FinalState": {
             "Type": "Pass",
@@ -149,16 +189,51 @@ unreferenced_state_defined = {
     },
 }
 
-valid_flow_definitions = [valid_start_state]
+boolean_expression_choice_state_refers_to_non_existant_state = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Or": [
+                        {
+                            "Variable": "$.SomePath.status",
+                            "StringEquals": "FAILED",
+                        },
+                        {
+                            "Variable": "$.SomePath.status",
+                            "StringEquals": "FAILED",
+                        },
+                    ],
+                    "Next": "NonExistantState",
+                }
+            ],
+        },
+        "FinalState": {
+            "Type": "Pass",
+            "End": True,
+        },
+    },
+}
+
+
+valid_flow_definitions = [
+    valid_start_state,
+    action_catch_refers_to_existing_state,
+    choice_state_default_refers_to_existing_state,
+    choice_state_rule_refers_to_existing_state,
+]
 invalid_flow_definitions = [
     non_existant_start_state,
     non_existant_next_state,
-    multiple_end_states_defined,
-    both_next_and_end_states_defined,
+    flow_defines_an_unreachable_state,
+    state_defines_next_and_end_states,
     action_catch_refers_to_nonexistent_state,
     choice_state_default_refers_to_nonexistent_state,
     choice_state_rule_refers_to_nonexistent_state,
-    unreferenced_state_defined,
+    boolean_expression_choice_state_refers_to_non_existant_state,
 ]
 
 
@@ -175,4 +250,3 @@ def test_invalid_flows_fail_validation(flow_def: t.Dict[str, t.Any]):
         FlowDefinition(**flow_def)
 
     assert ve.type is FlowValidationError
-    # Assert that we're only triggering the Exception under test

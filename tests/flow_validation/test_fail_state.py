@@ -2,70 +2,49 @@ import typing as t
 
 import pytest
 
-from globus_automate_client.models import FlowDefinition, FlowValidationError
+from globus_automate_client.models import FailState, FlowValidationError
 
 simple_fail_state = {
-    "StartAt": "InstantFail",
-    "States": {
-        "InstantFail": {
-            "Type": "Fail",
-            "Comment": "No info",
-        },
-    },
+    "Type": "Fail",
+    "Comment": "No info",
 }
 
 detailed_fail_state = {
-    "StartAt": "InstantFail",
-    "States": {
-        "InstantFail": {
-            "Type": "Fail",
-            "Comment": "No info",
-            "Cause": "SomeCause",
-            "Error": "SomeError",
-        },
-    },
+    "Type": "Fail",
+    "Comment": "No info",
+    "Cause": "SomeCause",
+    "Error": "SomeError",
 }
 
 extra_fields_fail_state = {
-    "StartAt": "InstantFail",
-    "States": {
-        "InstantFail": {
-            "Type": "Fail",
-            "Comment": "No info",
-            "Cause": "SomeCause",
-            "Error": "SomeError",
-            "SomeExtraField": "SomeValue",
-        },
-    },
+    "Type": "Fail",
+    "Comment": "No info",
+    "Cause": "SomeCause",
+    "Error": "SomeError",
+    "SomeExtraField": "SomeValue",
 }
 
 next_state_not_allowed = {
-    "StartAt": "InstantFail",
-    "States": {
-        "InstantFail": {
-            "Type": "Fail",
-            "Comment": "No info",
-            "Next": "SomeState",
-        },
-        "SomeState": {"Type": "Pass", "End": True},
-    },
+    "Type": "Fail",
+    "Comment": "No info",
+    "Next": "SomeState",
 }
 
 
-valid_flow_definitions = [simple_fail_state, detailed_fail_state]
-invalid_flow_definitions = [extra_fields_fail_state, next_state_not_allowed]
+valid_state_definitions = [simple_fail_state, detailed_fail_state]
+invalid_state_definitions = [extra_fields_fail_state, next_state_not_allowed]
 
 
-@pytest.mark.parametrize("flow_def", valid_flow_definitions)
-def test_valid_flows_pass_validation(flow_def: t.Dict[str, t.Any]):
-    flow_model = FlowDefinition(**flow_def)
-    flow_def_out = flow_model.dict(exclude_unset=True)
-    assert flow_def_out == flow_def
+@pytest.mark.parametrize("state_def", valid_state_definitions)
+def test_valid_fail_states_pass_validation(state_def: t.Dict[str, t.Any]):
+    state_model = FailState(**state_def)
+    state_def_out = state_model.dict(exclude_unset=True)
+    assert state_def_out == state_def
 
 
-@pytest.mark.parametrize("flow_def", invalid_flow_definitions)
-def test_invalid_flows_fail_validation(flow_def: t.Dict[str, t.Any]):
+@pytest.mark.parametrize("state_def", invalid_state_definitions)
+def test_invalid_fail_states_fail_validation(state_def: t.Dict[str, t.Any]):
     with pytest.raises(FlowValidationError) as ve:
-        FlowDefinition(**flow_def)
+        FailState(**state_def)
 
     assert ve.type is FlowValidationError
