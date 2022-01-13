@@ -547,6 +547,41 @@ choice_state_with_conjunctive_nested_boolean_condition_using_next = {
     },
 }
 
+choice_state_with_conjunctive_nested_boolean_condition_with_extra_fields = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Not": {
+                        "Or": [
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                                "ThisIsAnExtraField": True,
+                            },
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                            },
+                        ],
+                    },
+                    "Next": "ChoiceAState",
+                }
+            ],
+            "Default": "DefaultState",
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
+
 valid_flow_definitions = [
     simple_choice_state,
     choice_state_using_and,
@@ -568,6 +603,7 @@ invalid_flow_definitions = [
     choice_state_with_invalid_comparison_operator,
     choice_state_default_state_references_non_existant_state,
     choice_state_with_conjunctive_nested_boolean_condition_using_next,
+    choice_state_with_conjunctive_nested_boolean_condition_with_extra_fields,
 ]
 
 

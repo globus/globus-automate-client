@@ -103,5 +103,3 @@ def test_invalid_flows_fail_validation(flow_def: t.Dict[str, t.Any]):
         FlowDefinition(**flow_def)
 
     assert ve.type is FlowValidationError
-    # Assert that we're only triggering the Exception under test
-    # assert len(ve.value.errors()) == 1

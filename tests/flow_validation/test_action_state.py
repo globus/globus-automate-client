@@ -132,6 +132,28 @@ action_state_with_catchers_with_undefined_next = {
     },
 }
 
+action_state_with_catchers_with_extra_fields = {
+    "StartAt": "ActionState",
+    "States": {
+        "ActionState": {
+            "Type": "Action",
+            "Comment": "No info",
+            "ActionUrl": "http://localhost:5000",
+            "Parameters": {},
+            "ResultPath": "$.some_path",
+            "End": True,
+            "ExceptionOnActionFailure": True,
+            "Catch": [
+                {
+                    "ErrorEquals": ["ErrorA"],
+                    "Next": "TerminalState",
+                    "ThisIsAnExtraField": True,
+                }
+            ],
+        },
+    },
+}
+
 action_state_with_exception_on_fail = {
     "StartAt": "ActionState",
     "States": {
@@ -308,6 +330,7 @@ invalid_flow_definitions = [
     action_state_with_catchers_with_empty_errors,
     action_state_with_catchers_with_undefined_next,
     action_state_with_catchers_with_invalid_result_path,
+    action_state_with_catchers_with_extra_fields,
 ]
 
 
