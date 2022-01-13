@@ -32,10 +32,6 @@ def check_jsonpath_syntax_in_dict(item: t.Optional[dict]):
             raise ValueError(
                 f'Key "{k}" indicates its value will be a JSONPath, however its value "{v}" is not a JSONPath'
             )
-        elif not k.endswith(".$") and (isinstance(v, str) and v.startswith("$.")):
-            raise ValueError(
-                f'Value "{v}" is a JSONPath, however its key "{k}" does not indicate a JSONPath'
-            )
         elif isinstance(v, dict):
             check_jsonpath_syntax_in_dict(v)
     return item
@@ -58,7 +54,7 @@ class Catchers(BaseModel):
     _enforce_jsonpath = validator("ResultPath", allow_reuse=True)(enforce_jsonpath)
 
 
-class ChoiceRule(BaseModel):
+class DataTestExpression(BaseModel):
     Variable: str
     StringEquals: t.Optional[str]
     StringEqualsPath: t.Optional[str]
@@ -81,7 +77,7 @@ class ChoiceRule(BaseModel):
     NumericLessThanEqualsPath: t.Optional[str]
     NumericGreaterThanEquals: t.Optional[str]
     NumericGreaterThanEqualsPath: t.Optional[str]
-    BooleanEquals: t.Optional[str]
+    BooleanEquals: t.Optional[StrictBool]
     BooleanEqualsPath: t.Optional[str]
     TimestampEquals: t.Optional[str]
     TimestampEqualsPath: t.Optional[str]
@@ -138,11 +134,32 @@ class ChoiceRule(BaseModel):
         return values
 
 
-class DataTestExpressionChoiceRule(ChoiceRule):
+class DataTestExpressionWithTransitions(DataTestExpression):
     Next: str
 
 
-class BooleanExpressionChoiceRule(BaseModel):
+class BooleanExpression(BaseModel):
+    And: t.Optional[t.List[t.Union[DataTestExpression, "BooleanExpression"]]] = Field(
+        None, min_items=1
+    )
+    Or: t.Optional[t.List[t.Union[DataTestExpression, "BooleanExpression"]]] = Field(
+        None, min_items=1
+    )
+    Not: t.Optional[t.Union[DataTestExpression, "BooleanExpression"]] = None
+
+    @root_validator(skip_on_failure=True)
+    def validate_only_one_boolean_choice_rule_set(cls, values):
+        set_fields = {
+            k for k, v in values.items() if k not in {"Next"} and v is not None
+        }
+        if len(set_fields) != 1:
+            raise ValueError(
+                'Exactly one of "And", "Or", or "Not" must be specified in a BooleanExpression'
+            )
+        return values
+
+
+class BooleanExpressionWithTransitions(BooleanExpression):
     """
     A Boolean Expression is a JSON object which contains a field named "And",
     "Or", or "Not". If the field name is "And" or "Or", the value MUST be an
@@ -156,28 +173,14 @@ class BooleanExpressionChoiceRule(BaseModel):
     of the boolean to which the Choice Rule evaluates.
     """
 
-    And: t.Optional[t.List[ChoiceRule]] = Field(None, min_items=1)
-    Or: t.Optional[t.List[ChoiceRule]] = Field(None, min_items=1)
-    Not: t.Optional[ChoiceRule] = None
     Next: str
-
-    @root_validator(skip_on_failure=True)
-    def validate_only_one_boolean_choice_rule_set(cls, values):
-        set_fields = {
-            k for k, v in values.items() if k not in {"Next"} and v is not None
-        }
-        if len(set_fields) == 0:
-            raise ValueError(
-                'One of "And", "Or", or "Not" must be specified in a BooleanExpression'
-            )
-        return values
 
 
 class ChoiceState(BaseModel):
     Type: te.Literal[StateType.Choice]
     Comment: t.Optional[str] = None
     Choices: t.List[
-        t.Union[DataTestExpressionChoiceRule, BooleanExpressionChoiceRule]
+        t.Union[BooleanExpressionWithTransitions, DataTestExpressionWithTransitions]
     ] = Field(..., min_items=1)
     Default: t.Optional[str]
 
@@ -354,7 +357,7 @@ class FlowDefinition(BaseModel):
         defined_states = set(states.keys())
         referenced_states = {values["StartAt"]}
 
-        for _, state in states.items():
+        for state in states.values():
             if state.Type not in {StateType.Choice, StateType.Fail}:
                 # Ensure that all state's with a Next property have a valid transition
                 next_state = state.Next
@@ -383,7 +386,7 @@ class FlowDefinition(BaseModel):
             )
         if unreferenced_states:
             raise ValueError(
-                f'Flow definition contained unreachable state(s): {",".join(unreferenced_states)}'
+                f'Flow definition contained unreachable state(s): {", ".join(unreferenced_states)}'
             )
 
         return values

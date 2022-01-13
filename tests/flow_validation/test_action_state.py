@@ -260,19 +260,6 @@ nested_parameters_with_json_path_syntax = {
     },
 }
 
-nested_parameters_with_invalid_json_path_key = {
-    "StartAt": "ActionState",
-    "States": {
-        "ActionState": {
-            "Type": "Action",
-            "Comment": "No info",
-            "ActionUrl": "http://localhost:5000",
-            "Parameters": {"not_a_json_path": "$.a_json_path"},
-            "ResultPath": "$.some_path",
-            "End": True,
-        },
-    },
-}
 
 nested_parameters_with_invalid_json_path_value = {
     "StartAt": "ActionState",
@@ -315,7 +302,6 @@ invalid_flow_definitions = [
     result_path_is_not_json_path,
     input_path_is_not_json_path,
     parameters_are_non_dict,
-    nested_parameters_with_invalid_json_path_key,
     nested_parameters_with_invalid_json_path_value,
     missing_action_url,
     action_state_with_non_boolean_exception_on_fail,
@@ -327,7 +313,9 @@ invalid_flow_definitions = [
 
 @pytest.mark.parametrize("flow_def", valid_flow_definitions)
 def test_valid_flows_pass_validation(flow_def: t.Dict[str, t.Any]):
-    FlowDefinition(**flow_def)
+    flow_model = FlowDefinition(**flow_def)
+    flow_def_out = flow_model.dict(exclude_unset=True)
+    assert flow_def_out == flow_def
 
 
 @pytest.mark.parametrize("flow_def", invalid_flow_definitions)
@@ -336,4 +324,3 @@ def test_invalid_flows_fail_validation(flow_def: t.Dict[str, t.Any]):
         FlowDefinition(**flow_def)
 
     assert ve.type is FlowValidationError
-    # assert False, ve.value.errors()

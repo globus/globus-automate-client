@@ -116,7 +116,9 @@ invalid_flow_definitions = [
 
 @pytest.mark.parametrize("flow_def", valid_flow_definitions)
 def test_valid_flows_pass_validation(flow_def: t.Dict[str, t.Any]):
-    FlowDefinition(**flow_def)
+    flow_model = FlowDefinition(**flow_def)
+    flow_def_out = flow_model.dict(exclude_unset=True)
+    assert flow_def_out == flow_def
 
 
 @pytest.mark.parametrize("flow_def", invalid_flow_definitions)

@@ -395,12 +395,166 @@ choice_state_with_invalid_comparison_operator = {
     },
 }
 
+choice_state_default_state_references_non_existant_state = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Variable": "$.SomePath.status",
+                    "StringEquals": "FAILED",
+                    "Next": "ChoiceAState",
+                },
+                {
+                    "Variable": "$.SomePath.status",
+                    "StringEquals": "FAILED",
+                    "Next": "DefaultState",
+                },
+            ],
+            "Default": "THIS_TRANSITION_STATE_DOES_NOT_EXIST",
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
+
+choice_state_without_default = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Variable": "$.SomePath.status",
+                    "StringEquals": "FAILED",
+                    "Next": "ChoiceAState",
+                },
+                {
+                    "Variable": "$.SomePath.status",
+                    "StringEquals": "FAILED",
+                    "Next": "DefaultState",
+                },
+            ],
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
+
+
+choice_state_with_simple_nested_boolean_condition = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Not": {"Not": {"Variable": "$.key", "StringEquals": "value"}},
+                    "Next": "ChoiceAState",
+                }
+            ],
+            "Default": "DefaultState",
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
+
+
+choice_state_with_conjunctive_nested_boolean_condition = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Not": {
+                        "Or": [
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                            },
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                            },
+                        ],
+                    },
+                    "Next": "ChoiceAState",
+                }
+            ],
+            "Default": "DefaultState",
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
+
+
+choice_state_with_conjunctive_nested_boolean_condition_using_next = {
+    "StartAt": "ChoiceState",
+    "States": {
+        "ChoiceState": {
+            "Type": "Choice",
+            "Comment": "No info",
+            "Choices": [
+                {
+                    "Not": {
+                        "Or": [
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                                "Next": "DefaultState",
+                            },
+                            {
+                                "Variable": "$.SomePath.status",
+                                "StringEquals": "FAILED",
+                            },
+                        ],
+                    },
+                    "Next": "ChoiceAState",
+                }
+            ],
+            "Default": "DefaultState",
+        },
+        "DefaultState": {
+            "Type": "Fail",
+        },
+        "ChoiceAState": {
+            "Type": "Fail",
+        },
+    },
+}
 
 valid_flow_definitions = [
     simple_choice_state,
     choice_state_using_and,
     choice_state_using_or,
     choice_state_using_not,
+    choice_state_without_default,
+    choice_state_with_simple_nested_boolean_condition,
+    choice_state_with_conjunctive_nested_boolean_condition,
 ]
 invalid_flow_definitions = [
     invalid_next_in_choice,
@@ -412,12 +566,16 @@ invalid_flow_definitions = [
     choice_state_using_or_where_next_is_defined,
     choice_state_using_not_where_next_is_defined,
     choice_state_with_invalid_comparison_operator,
+    choice_state_default_state_references_non_existant_state,
+    choice_state_with_conjunctive_nested_boolean_condition_using_next,
 ]
 
 
 @pytest.mark.parametrize("flow_def", valid_flow_definitions)
 def test_valid_flows_pass_validation(flow_def: t.Dict[str, t.Any]):
-    FlowDefinition(**flow_def)
+    flow_model = FlowDefinition(**flow_def)
+    flow_def_out = flow_model.dict(exclude_unset=True)
+    assert flow_def_out == flow_def
 
 
 @pytest.mark.parametrize("flow_def", invalid_flow_definitions)
