@@ -6,8 +6,8 @@
     "body_variables": {
         "Name": "Dude"
     },
-    "destination": "uriel@globus.org",
-    "sender": "uriel@globus.org",
+    "destination": "user@globus.org",
+    "sender": "user@globus.org",
     "subject": "Testing From Automate CLI",
     "send_credentials": [
         {
