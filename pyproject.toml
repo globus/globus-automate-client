@@ -3,11 +3,9 @@ name = "globus-automate-client"
 version = "0.13.0b2"
 description = "Client for the Globus Flows service"
 authors = [
-    "Uriel Mandujano <uriel@globus.org>",
-    "Rudyard Richter <rudyard@globus.org>",
-    "Jim Pruyne <pruyne@globus.org>",
     "Jake Lewis <jake@globus.org>",
     "Kurt McKee <kurt@globus.org>",
+    "Rudyard Richter <rudyard@globus.org>",
 ]
 keywords = [
     "globus",
