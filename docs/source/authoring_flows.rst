@@ -427,6 +427,49 @@ An example structure for an ``ExpressionEval`` state is as follows:
 
 All of the properties of the ``ExpressionEval`` state have the same meaning as described in the ``Action`` state. The ``ExpressionEval`` state cannot use the ``InputPath`` property (``Pass`` is appropriate if moving state from an ``InputPath`` to a ``ResultPath`` is needed), so ``Parameters`` must always be present. Just like in ``Action`` the ``Parameters`` may have constant, reference or expression types and portions of the state can be protected using a ``__Private_Parameters`` list. Like ``Action``, this state must have either a ``Next`` or an ``End: true``.
 
+``Globus Web App Custom Formats``
+---------------------------------
+
+The `Globus web app`_ supports two JSON schema formats in order to make starting flows a little more user friendly on the webapp.
+
+``globus-collection-id``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JSON
+
+    {
+      "source_endpoint_id": {
+        "description": "An example of globus-collection-id.",
+        "format": "globus-collection-id",
+        "title": "Find source collection ID.",
+        "type": "string"
+      }
+    }
+
+``globus-collection-id`` as a ``format`` in your ``input_schema`` will signal to the webapp to show a custom input field for searching for and selecting a Globus collection on the Guided tab when starting a Flow. Note: ``"type": "string"`` should be used in conjuction with this format.
+
+.. image:: _static/images/globus-collection-id-ex1.png
+  :alt: Example of the input created by globus collection id format
+
+``globus-collection-path``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JSON
+
+    {
+      "source_endpoint_id": {
+        "description": "An example of globus-collection-path.",
+        "format": "globus-collection-path",
+        "title": "Find source collection ID and then browse to the source path.",
+        "type": "string"
+      }
+    }
+
+``globus-collection-path`` as a ``format`` in your ``input_schema`` will signal to the webapp to show two input fields. The first is for selecting a Globus collection. The second will allow you to browse to a path on that collection. Note: ``"type": "string"`` should be used in conjuction with this format.
+
+.. image:: _static/images/globus-collection-path-ex1.png
+  :alt: Example of the input created by globus collection id format
+
 .. _example-flows-details:
 
 Example Flows
@@ -519,3 +562,4 @@ View the `Transfer Set Permissions flow definition`_ in the Globus web app.
 ..  _Move flow definition: https://app.globus.org/flows/9123c20b-61e0-46e8-9469-92c999b6b8f2/definition
 ..  _2 Stage Transfer flow definition: https://app.globus.org/flows/79a4653f-f8da-43b6-a581-5d3b345ad575/definition
 ..  _Transfer Set Permissions flow definition: https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition
+..  _Globus web app: https://app.globus.org/
