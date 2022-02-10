@@ -65,15 +65,25 @@ node_modules: package.json
 api-docs: node_modules docs/actions-api-spec.html docs/flows-api-spec.html
 
 clean:
-	rm -rf $(VIRTUAL_ENV)
-	rm -rf .make_install_flag
+	rm -rf \
+		$(VIRTUAL_ENV) \
+		.mypy_cache/ \
+		.tox/ \
+		*.egg-info/ \
+		dist/ \
+		docs/build/ \
+		htmlcov/ \
+		tar-source/ \
+		# END rm -rf
+
+	rm -f \
+		.coverage \
+		*.tar.gz \
+		cli_docs.md \
+		# END rm -f
+
 	find . -name "*.pyc" -delete
-	rm -rf *.egg-info
-	rm -f *.tar.gz
-	rm -rf tar-source
-	rm -rf dist
-	rm -rf .tox/
-	rm -rf htmlcov/
+
 
 docs: develop
 	poetry run typer globus_automate_client/cli/main.py utils docs --name "globus-automate" --output cli_docs.md;
