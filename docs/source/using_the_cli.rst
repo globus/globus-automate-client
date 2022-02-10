@@ -177,7 +177,7 @@ Globus Auth credentials may use this ``Action Provider`` to create Actions.
 The most important information for our next step is the ``input_schema`` element
 as it provides a description of the input we need to form for running an Action
 on this ``Action Provider``. The ``input_schema`` element is in `JSON Schema
-<https://https://json-schema.org/>`_ format. This schema defines there properties:
+<https://https://json-schema.org/>`_ format. This schema defines three properties:
 ``echo_string``, ``sleep_time``, and ``required_dependent_scope``. We will use
 this information in the next section on running an Action.
 
