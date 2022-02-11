@@ -1,6 +1,0 @@
-
-Documentation
--------------
-
-- Add documentation for `globus-collection-id` and `globus-collection-path` formats
-
