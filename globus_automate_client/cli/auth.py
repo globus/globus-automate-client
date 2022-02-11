@@ -225,10 +225,13 @@ def _get_globus_sdk_native_client(
     return NativeAppAuthClient(client_id, app_name=client_name)
 
 
-def safeprint(s):
+def safeprint(s, err: bool = False):
     try:
-        typer.secho(s)
-        sys.stdout.flush()
+        typer.secho(s, err=err)
+        if err:
+            sys.stderr.flush()
+        else:
+            sys.stdout.flush()
     except IOError:
         pass
 
@@ -252,8 +255,8 @@ def _do_login_for_scopes(
         f"{native_client.oauth2_get_authorize_url()}\n"
         "----------------------------\n"
     )
-    safeprint(linkprompt)
-    auth_code = typer.prompt("Enter the resulting Authorization Code here")
+    safeprint(linkprompt, err=True)
+    auth_code = typer.prompt("Enter the resulting Authorization Code here", err=True)
     return native_client.oauth2_exchange_code_for_tokens(auth_code)
 
 
