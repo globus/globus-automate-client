@@ -5,12 +5,11 @@ PYTHON_VERSION ?= python3.6
 POETRY ?= poetry
 
 .PHONY: all lock test build clean help lint develop format typecheck lint_all api-docs docs
-LINT_PATHS = globus_automate_client/
 
 # settings from .pytest.cfg file
 PYTEST_OPTS?=-c .pytest.cfg
 
-all: autoformat lint test docs
+all: autoformat test docs
 
 help:
 	@echo "These are our make targets and what they do."
@@ -38,28 +37,24 @@ develop: poetry.lock
 	$(POETRY) install
 
 requirements.txt: poetry.lock
-	 $(POETRY export -f requirements.txt -o $@
+	 $(POETRY) export -f requirements.txt -o $@
 
-# linting is flake8
 lint: develop
-	$(POETRY) run isort --check .
-	$(POETRY) run black --check $(LINT_PATHS)
-	$(POETRY) run flake8
-	$(POETRY) run mypy
+	$(POETRY) run tox -e isort,black,flake8,mypy,docs
 
 # formatting is black
 autoformat: develop
 	$(POETRY) run isort .
-	$(POETRY) run black $(LINT_PATHS)
+	$(POETRY) run black globus_automate_client/
 
 # typecheck with mypy
 typecheck: develop
-	$(POETRY) run mypy globus_automate_client
+	$(POETRY) run tox -e mypy
 
-lint_all: develop format lint typecheck
+lint_all: develop format lint
 
-test: lint_all
-	$(POETRY) run pytest --verbose $(PYTEST_OPTS)
+test: develop
+	$(POETRY) run tox
 
 %.html: %.yaml
 	npx redoc-cli bundle --output $@ --title "Globus Automate APIs" $<
@@ -70,13 +65,25 @@ node_modules: package.json
 api-docs: node_modules docs/actions-api-spec.html docs/flows-api-spec.html
 
 clean:
-	rm -rf $(VIRTUAL_ENV)
-	rm -rf .make_install_flag
+	rm -rf \
+		$(VIRTUAL_ENV) \
+		.mypy_cache/ \
+		.tox/ \
+		*.egg-info/ \
+		dist/ \
+		docs/build/ \
+		htmlcov/ \
+		tar-source/ \
+		# END rm -rf
+
+	rm -f \
+		.coverage \
+		*.tar.gz \
+		cli_docs.md \
+		# END rm -f
+
 	find . -name "*.pyc" -delete
-	rm -rf *.egg-info
-	rm -f *.tar.gz
-	rm -rf tar-source
-	rm -rf dist
+
 
 docs: develop
 	poetry run typer globus_automate_client/cli/main.py utils docs --name "globus-automate" --output cli_docs.md;

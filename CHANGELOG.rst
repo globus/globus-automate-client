@@ -10,6 +10,20 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.13.0 — 2022-02-11
+===================
+
+Documentation
+-------------
+
+- Add the ``"notify_on_*"`` parameters to the transfer action provider JSON example.
+
+- The description of the Action polling policy has been updated and a discussion of how caching of token validation checks may impact users who invalidate their tokens has been added.
+
+- Adds an input schema for the example single-transfer Flow definition.
+
+- Add documentation for `globus-collection-id` and `globus-collection-path` formats
+
 0.13.0b2 — 2021-12-09
 =====================
 

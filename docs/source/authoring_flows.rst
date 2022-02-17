@@ -41,7 +41,7 @@ below) the same manor as defined in the States Language:
 .. note::
 
    The exception is the use of the ``OutputPath`` property in
-   the ``Pass`` or ``Choice`` states.``OutputPath`` is not allowed in
+   the ``Pass`` or ``Choice`` states. ``OutputPath`` is not allowed in
    a Flow definition. Instead, the ``ResultPath`` must always be used
    to specify where the result of a state execution will be stored
    into the state of the Flow.
@@ -101,7 +101,7 @@ in further sections below this enumeration.
 
 *  ``ActionUrl`` (required): The base URL of the Action. As defined by the Action Interface, this URL has methods such as ``/run``, ``/status``, ``/cancel`` and so on defined to manage the life-cycle of an Action. The Action Flow state manages the life-cycle of the invoked Action using these methods and assumes that the specific operations are appended to the base URL defined in this property. For Globus operated actions, the base URLs are as defined previously in this document.
 
-*  ``InputPath`` or ``Parameters`` (mutually exclusive options, at least one is required): Either ``InputPath`` or ``Parameters`` can be used to identify or form the input to the Action to be run. as passed in the ``body`` of the call to the action ``/run`` operation.
+*  ``InputPath`` or ``Parameters`` (mutually exclusive options, at least one is required): Either ``InputPath`` or ``Parameters`` can be used to identify or form the input to the Action to be run as passed in the ``body`` of the call to the action ``/run`` operation.
 
    *  ``Parameters``: The Parameters property is defined as an object that becomes the input to the Action. As such, it becomes relatively plain in the ``Action`` state definition that the structure of the ``Parameters`` object matches the structure of the body of the input to the Action being invoked. Some of the fields in the ``Parameters`` object can be protected from introspection later so that secret or sensitive information, such as credentials, can be encoded in the parameter values without allowing visibility outside the flow, including by those running the Flow. The private parameter functionality is described in `Protecting Action and Flow State`_. Values in ``Parameters`` can be specified in a variety of ways:
 
@@ -119,7 +119,7 @@ in further sections below this enumeration.
 
 *  ``ExceptionOnActionFailure`` (optional, default value ``true``): When an Action is executed but is unable complete successfully, it returns a ``status`` value of ``FAILED``. It is commonly useful to treat this "Action Failed" occurrence as an Exception in the execution of the Flow. Setting this property to ``true`` will cause a Run-time exception of type ``ActionFailedException`` to be raised which can be managed with a ``Catch`` statement (as shown in the example). Further details on discussion of the ``Catch`` property of the Action state and in the `Managing Exceptions`_ section. If the value is ``false``, the status of the Action, including the value of ``FAILED`` for the status value will be placed into the Flow state as referenced by ``ResultPath``.
 
-*  ``RunAs`` (option, default value ``User``): When the Flow executes the Action, it will, by default, execute the Action using the identity of the user invoking the Flow. Thus, from the perspective of the Action, it is the user who invoked the Flow who is also invoking the Action, and thus the Action will make authorization decisions based on the identity of the User invoking the Flow. In some circumstances, it will be beneficial for the Action to be invoked as if from a user identity other than the user who invoked the Flow. See `Identities and Roles, Scopes and Tokens`_ for additional information and a discussion of use cases for providing different ``RunAs`` values.
+*  ``RunAs`` (optional, default value ``User``): When the Flow executes the Action, it will, by default, execute the Action using the identity of the user invoking the Flow. Thus, from the perspective of the Action, it is the user who invoked the Flow who is also invoking the Action, and thus the Action will make authorization decisions based on the identity of the User invoking the Flow. In some circumstances, it will be beneficial for the Action to be invoked as if from a user identity other than the user who invoked the Flow. See `Identities and Roles, Scopes and Tokens`_ for additional information and a discussion of use cases for providing different ``RunAs`` values.
 
 *   ``Catch``: When Actions end abnormally, an Exception is raised. A ``Catch`` property defines how the Exception should be handled by identifying the Exception name in the ``ErrorEquals`` property and identifying a ``Next`` state to transition to when the Exception occurs. If no ``Catch`` can handle an exception, the Flow execution will abort on the Exception. A variety of exception types are defined and are enumerated in `Managing Exceptions`_.
 
@@ -282,6 +282,25 @@ The ``RunAs`` property of an ``Action`` state can be used to control the identit
 
 * An arbitrary "role name" can also be specified as in ``"RunAs": "AdminUser"``. The identity for this role will be determined by an additional Globus Auth access token which is passed into the Flow at run-time as part of the initial state. The flows service will use this token when invoking the Action and so the Action will see the request as if coming from the user associated with this token. We describe how these role-specific tokens are passed next.
 
+.. note::
+
+   When a Flow is run, the identity of the running user is determined
+   by examining the token passed on the header of the HTTP request,
+   and, as described in the next section, other tokens may be passed
+   in the body of the request. In either case, the Flows service will
+   validate the token by interacting with the Globus Auth
+   service. These interactions with Globus Auth require additional
+   time when a Flow is being started. To help alleviate this overhead,
+   the Flows service will retain (cache) results from token validity
+   checks for up to 30 seconds. That is, if the same token is
+   presented more than once within 30 seconds, the results from the
+   previous check will be re-used.
+
+   Thus, if a user should request that a token's validity be
+   rescinded, it is _possible_ that use of the token may be considered
+   valid for up to 30 seconds after the time the user rescinds the
+   token's validity.
+
 Providing Role-Specific Tokens
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -313,24 +332,22 @@ The method for generating the required tokens is outside the scope of this docum
 Action Execution Monitoring
 ---------------------------
 
-``Action`` states will block waiting until the executed action reaches a
-completion state with status value either ``SUCCEEDED`` or ``FAILED`` or when
-the ``WaitTime`` duration is reached. Within this time interval, the Flow will
-periodically poll the Action to determine if it has reached a completion state.
-The interval between polls increases using an exponential back-off strategy
-(i.e. the amount of time between two polls is a multiple of the interval between
-the previous two polls). Thus, detection of the completion will not be
-instantaneous compared to when the action "actually" completes. And, the longer
-the wait time, the longer the interval between "actual" completion and the poll
-detecting completion may be. This "slop" time is related to both the total run
-time for the Action and the exponential back-off factor increasing the time
-between polls.
+``Action`` states will block until the executed action reaches a
+completion state with status value either ``SUCCEEDED`` or ``FAILED``
+or when the ``WaitTime`` duration is reached. Within this time, the
+Flow will periodically poll the Action to determine if it has reached
+a completion state.  The interval between polls doubles after each
+poll ("exponential back-off") up to a maximum interval between polls
+of 10 minutes. Thus, detection of the completion will not be
+instantaneous compared to when the action "actually" completes and may
+be delayed up to the maximum poll interval of 10 minutes.
 
-When using the Flows service, it is important to remember that this slop time
-can occur. One may observe or receive other notification (such as an email for
-a Globus Transfer) that an Action has completed but the Flows service may not
-poll to discover the same state has been reached. This is an inherent property
-of the system.
+It is important to remember that this delay between an Action's actual
+completion and it being detected by the Flow service can occur. A user
+running a flow may observe or receive another form of notification
+(such as an email from Globus Transfer) that an Action has completed
+prior to the Flows service polling to discover the same progress has
+occurred. This is an inherent property of the system.
 
 Managing Exceptions
 -------------------
@@ -409,6 +426,49 @@ An example structure for an ``ExpressionEval`` state is as follows:
     }
 
 All of the properties of the ``ExpressionEval`` state have the same meaning as described in the ``Action`` state. The ``ExpressionEval`` state cannot use the ``InputPath`` property (``Pass`` is appropriate if moving state from an ``InputPath`` to a ``ResultPath`` is needed), so ``Parameters`` must always be present. Just like in ``Action`` the ``Parameters`` may have constant, reference or expression types and portions of the state can be protected using a ``__Private_Parameters`` list. Like ``Action``, this state must have either a ``Next`` or an ``End: true``.
+
+``Globus Web App Custom Formats``
+---------------------------------
+
+The `Globus web app`_ supports two JSON schema formats in order to make starting flows a little more user friendly on the webapp.
+
+``globus-collection-id``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JSON
+
+    {
+      "source_endpoint_id": {
+        "description": "An example of globus-collection-id.",
+        "format": "globus-collection-id",
+        "title": "Find source collection ID.",
+        "type": "string"
+      }
+    }
+
+``globus-collection-id`` as a ``format`` in your ``input_schema`` will signal to the webapp to show a custom input field for searching for and selecting a Globus collection on the Guided tab when starting a Flow. Note: ``"type": "string"`` should be used in conjuction with this format.
+
+.. image:: _static/images/globus-collection-id-ex1.png
+  :alt: Example of the input created by globus collection id format
+
+``globus-collection-path``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JSON
+
+    {
+      "source_endpoint_id": {
+        "description": "An example of globus-collection-path.",
+        "format": "globus-collection-path",
+        "title": "Find source collection ID and then browse to the source path.",
+        "type": "string"
+      }
+    }
+
+``globus-collection-path`` as a ``format`` in your ``input_schema`` will signal to the webapp to show two input fields. The first is for selecting a Globus collection. The second will allow you to browse to a path on that collection. Note: ``"type": "string"`` should be used in conjuction with this format.
+
+.. image:: _static/images/globus-collection-path-ex1.png
+  :alt: Example of the input created by globus collection id format
 
 .. _example-flows-details:
 
@@ -502,3 +562,4 @@ View the `Transfer Set Permissions flow definition`_ in the Globus web app.
 ..  _Move flow definition: https://app.globus.org/flows/9123c20b-61e0-46e8-9469-92c999b6b8f2/definition
 ..  _2 Stage Transfer flow definition: https://app.globus.org/flows/79a4653f-f8da-43b6-a581-5d3b345ad575/definition
 ..  _Transfer Set Permissions flow definition: https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition
+..  _Globus web app: https://app.globus.org/

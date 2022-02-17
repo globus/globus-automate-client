@@ -1,6 +1,6 @@
 {
     "EmailNotificationInput": {
-        "destination": "uriel@globus.org",
+        "destination": "user@globus.org",
         "subject": "Notification via Flow",
         "body_template": "<html><body><h1>Hello $Name</h1></body></html>",
         "body_variables": {

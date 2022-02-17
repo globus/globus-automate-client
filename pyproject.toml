@@ -1,13 +1,11 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.13.0b2"
+version = "0.13.0"
 description = "Client for the Globus Flows service"
 authors = [
-    "Uriel Mandujano <uriel@globus.org>",
-    "Rudyard Richter <rudyard@globus.org>",
-    "Jim Pruyne <pruyne@globus.org>",
     "Jake Lewis <jake@globus.org>",
     "Kurt McKee <kurt@globus.org>",
+    "Rudyard Richter <rudyard@globus.org>",
 ]
 keywords = [
     "globus",
@@ -49,7 +47,6 @@ pytest = "^5.0"
 jupyter = "^1.0.0"
 sphinx = "^3.2.1"
 rstcheck = "^3.3.1"
-sphinx_material = "^0.0.30"
 furo = "^2021.4.11-beta.34"
 sphinx-copybutton = "^0.3.1"
 typer-cli = "^0.0.12"
@@ -57,7 +54,7 @@ pypandoc = "^1.5"
 importmagic = "^0.1.7"
 epc = "^0.0.5"
 flake8 = "^3.9.2"
-black = "^21.7b0"
+black = {extras = ["jupyter"], version = "^21.12b0"}
 mypy = "^0.910"
 types-PyYAML = "^5.4.6"
 types-requests = "^2.25.6"

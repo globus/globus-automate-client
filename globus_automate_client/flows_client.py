@@ -411,7 +411,9 @@ class FlowsClient(BaseClient):
             "subtitle": subtitle,
             "description": description,
             "keywords": keywords,
-            "flow_viewers": merge_keywords(flow_viewers, kwargs, "visible_to", "viewers"),
+            "flow_viewers": merge_keywords(
+                flow_viewers, kwargs, "visible_to", "viewers"
+            ),
             "flow_starters": merge_keywords(
                 flow_starters, kwargs, "runnable_by", "starters"
             ),
