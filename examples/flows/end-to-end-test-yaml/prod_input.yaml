@@ -3,6 +3,6 @@ source_path: /share/godata/file1.txt
 destination_endpoint_id: ddb59af0-6d04-11e5-ba46-22000b92c6ec
 destination_path: /~/automated-testing/transfer-successful.txt
 destination_path_parent_dir: /~/automated-testing/
-timer_url: https://timercheck.io/automate-80932743889269524169320866183160580494/120
+timer_url: https://timercheck.io/automate-80932743889269524169320866183160580494/300
 transfer_label: "end-to-end-test-transfer"
 delete_label: "end-to-end-test-clean-up"
