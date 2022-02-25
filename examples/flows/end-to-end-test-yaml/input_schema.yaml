@@ -1,31 +1,46 @@
 additionalProperties: false
 required:
-  - source_endpoint_id
-  - source_path
-  - destination_endpoint_id
-  - destination_path
+  - source
+  - destination
   - timer_url
 type: object
 properties:
-  source_endpoint_id:
-    default:
-    description: The uuid for the endpoint which serves as the source of the Move
-    type: string
-  source_path:
-    description: The path on the source endpoint for the data
-    type: string
-  destination_endpoint_id:
-    default:
-    description: The uuid for the endpoint which serves as the destination for the Move
-    type: string
-  destination_path:
-    default:
-    description: The path on the destination endpoint where the data will be stored
-    type: string
-  destination_path_parent_dir:
-    default:
-    description: The path on the destination endpoint where the data will be stored, minus the filename
-    type: string
+  source:
+    title: Source
+    description: The collection which serves as the source of the Move operation
+    type: object
+    format: globus-collection
+    required:
+      - id
+      - path
+    additionalProperties: false
+    properties:
+      id:
+        title: Source Collection ID
+        type: string
+        format: uuid
+      path:
+        title: Source Collection Path
+        description: The path on the source collection for the data
+        type: string
+  destination:
+    title: Destination
+    description: The collection which serves as the destination for the Move operation
+    type: object
+    format: globus-collection
+    required:
+      - id
+      - path
+    additionalProperties: false
+    properties:
+      id:
+        title: Destination Collection ID
+        type: string
+        format: uuid
+      path:
+        title: Destination Collection Path
+        description: The path on the destination collection where the data will be stored
+        type: string
   transfer_label:
     default: Test all action providers
     description: A label placed on the Transfer operation

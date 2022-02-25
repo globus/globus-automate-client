@@ -30,12 +30,12 @@ States:
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
-      source_endpoint_id.$: $.source_endpoint_id
-      destination_endpoint_id.$: $.destination_endpoint_id
+      source_endpoint_id.$: $.source.id
+      destination_endpoint_id.$: $.destination.id
       label.$: $.transfer_label
       transfer_items:
-        - source_path.$: $.source_path
-          destination_path.$: $.destination_path
+        - source_path.$: $.source.path
+          destination_path.$: $.destination.path
           recursive: false
     ResultPath: $.Stage1RunGlobusTransferResult
     Next: Stage1CheckTransferStatus
@@ -69,8 +69,8 @@ States:
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
-      endpoint_id.$: $.destination_endpoint_id
-      path.$: $.destination_path
+      endpoint_id.$: $.destination.id
+      path.$: $.destination.path
       path_only: true
     ResultPath: $.Stage2RunGlobusLsToConfirmTransferResult
     Next: Stage2RunGlobusLsToConfirmTransferStatus
@@ -120,10 +120,10 @@ States:
     WaitTime: 60
     ExceptionOnActionFailure: false
     Parameters:
-      endpoint_id.$: $.destination_endpoint_id
+      endpoint_id.$: $.destination.id
       recursive: true
       label.$: $.delete_label
-      items.=: '[`$.destination_path`]'
+      items.=: '[`$.destination.path`]'
     ResultPath: $.Stage3DeleteResult
     Next: Stage3CheckRunGlobusDeleteStatus
 
@@ -156,8 +156,8 @@ States:
     WaitTime: 30
     ExceptionOnActionFailure: false
     Parameters:
-      endpoint_id.$: $.destination_endpoint_id
-      path.$: $.destination_path
+      endpoint_id.$: $.destination.id
+      path.$: $.destination.path
       path_only: true
     ResultPath: $.Stage4RunGlobusLsToConfirmDeletionResult
     Next: Stage4RunGlobusLsToConfirmDeletionStatus
