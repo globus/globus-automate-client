@@ -380,7 +380,7 @@ def flow_list(
             "Display Flows where you have at least the selected role. "
             "Precedence of roles is: flow_viewer, flow_starter, flow_administrator, "
             "flow_owner. Thus, by specifying, for example, flow_starter, all flows "
-            "for which you hvae flow_starter, flow_administrator, or flow_owner roles "
+            "for which you have flow_starter, flow_administrator, or flow_owner roles "
             "will be displayed. Values visible_to, runnable_by, administered_by and "
             "created_by are deprecated. [repeatable use deprecated as the lowest "
             "precedence value provided will determine the flows displayed.]"
@@ -409,7 +409,7 @@ def flow_list(
         help="A filtering criteria in the form 'key=value' to apply to the "
         "resulting Flow listing. The key indicates the filter, the value "
         "indicates the pattern to match. Multiple patterns for a single key may "
-        "be specified as a comma seperated string, the results for which will "
+        "be specified as a comma separated string, the results for which will "
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
@@ -488,7 +488,7 @@ def flow_display(
     flows_endpoint: str = flows_env_var_option,
 ):
     """
-    Visualize a local or deployed Flow defintion. If providing a Flows's ID, You
+    Visualize a local or deployed Flow definition. If providing a Flow's ID, You
     must have either created the Flow or be present in the Flow's "flow_viewers"
     list to view it.
     """
@@ -695,7 +695,7 @@ def flow_actions_list(
             "Display Actions/Runs where you have at least the selected role. "
             "Precedence of roles is: run_monitor, run_manager, "
             "run_owner. Thus, by specifying, for example, run_manager, all runs "
-            "for which you hvae run_manager or run_owner roles "
+            "for which you have run_manager or run_owner roles "
             "will be displayed. [repeatable use deprecated as the lowest precedence "
             "value provided will determine the flows displayed.]"
         ),
@@ -725,7 +725,7 @@ def flow_actions_list(
         help="A filtering criteria in the form 'key=value' to apply to the "
         "resulting Action listing. The key indicates the filter, the value "
         "indicates the pattern to match. Multiple patterns for a single key may "
-        "be specified as a comma seperated string, the results for which will "
+        "be specified as a comma separated string, the results for which will "
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
@@ -1060,7 +1060,7 @@ def flow_action_enumerate(
         help="Display Actions/Runs where you have at least the selected role. "
         "Precedence of roles is: run_monitor, run_manager, run_owner. "
         "Thus, by specifying, for example, run_manager, all flows "
-        "for which you hvae run_manager or run_owner roles "
+        "for which you have run_manager or run_owner roles "
         "will be displayed. Values monitored_by, managed_by and created_by "
         "are deprecated. [repeatable use deprecated as the lowest "
         "precedence value provided will determine the Actions/Runs displayed.]",
@@ -1090,7 +1090,7 @@ def flow_action_enumerate(
         help="A filtering criteria in the form 'key=value' to apply to the "
         "resulting Action listing. The key indicates the filter, the value "
         "indicates the pattern to match. Multiple patterns for a single key may "
-        "be specified as a comma seperated string, the results for which will "
+        "be specified as a comma separated string, the results for which will "
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
