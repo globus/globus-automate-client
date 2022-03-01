@@ -488,7 +488,7 @@ def flow_display(
     flows_endpoint: str = flows_env_var_option,
 ):
     """
-    Visualize a local or deployed Flow defintion. If providing a Flows's ID, You
+    Visualize a local or deployed Flow definition. If providing a Flow's ID, You
     must have either created the Flow or be present in the Flow's "flow_viewers"
     list to view it.
     """

@@ -244,7 +244,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``action-update``: Update a Run on the Flows service
 -  ``delete``: Delete a Flow.
 -  ``deploy``: Deploy a new Flow.
--  ``display``: Visualize a local or deployed Flow defintion.
+-  ``display``: Visualize a local or deployed Flow definition.
 -  ``get``: Get a Flow’s definition as it exists on the…
 -  ``lint``: Parse and validate a Flow definition by…
 -  ``list``: List Flows for which you have access.
@@ -612,9 +612,9 @@ Deploy a new Flow.
 ``globus-automate flow display``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Visualize a local or deployed Flow defintion. If providing a Flows’s ID,
-You must have either created the Flow or be present in the Flow’s
-“flow_viewers” list to view it.
+Visualize a local or deployed Flow definition. If providing a Flow's ID,
+you must have either created the Flow or be present in the Flow's
+"flow_viewers" list to view it.
 
 **Usage**:
 
