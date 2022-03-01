@@ -301,7 +301,7 @@ Retrieve all Flow Runs you have access to view.
 -  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
    Display Actions/Runs where you have at least the selected role.
    Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
-   specifying, for example, run_manager, all flows for which you hvae
+   specifying, for example, run_manager, all flows for which you have
    run_manager or run_owner roles will be displayed. Values
    monitored_by, managed_by and created_by are deprecated. [repeatable
    use deprecated as the lowest precedence value provided will determine
@@ -315,7 +315,7 @@ Retrieve all Flow Runs you have access to view.
 -  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
    apply to the resulting Action listing. The key indicates the filter,
    the value indicates the pattern to match. Multiple patterns for a
-   single key may be specified as a comma seperated string, the results
+   single key may be specified as a comma separated string, the results
    for which will represent a logical OR. If multiple filters are
    applied, the returned data will be the result of a logical AND
    between them. [repeatable]
@@ -351,7 +351,7 @@ List a Flow definition’s discrete invocations.
 -  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
    Display Actions/Runs where you have at least the selected role.
    Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
-   specifying, for example, run_manager, all runs for which you hvae
+   specifying, for example, run_manager, all runs for which you have
    run_manager or run_owner roles will be displayed. [repeatable use
    deprecated as the lowest precedence value provided will determine the
    flows displayed.]
@@ -364,7 +364,7 @@ List a Flow definition’s discrete invocations.
 -  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
    apply to the resulting Action listing. The key indicates the filter,
    the value indicates the pattern to match. Multiple patterns for a
-   single key may be specified as a comma seperated string, the results
+   single key may be specified as a comma separated string, the results
    for which will represent a logical OR. If multiple filters are
    applied, the returned data will be the result of a logical AND
    between them. [repeatable]
@@ -690,7 +690,7 @@ List Flows for which you have access.
    Display Flows where you have at least the selected role. Precedence
    of roles is: flow_viewer, flow_starter, flow_administrator,
    flow_owner. Thus, by specifying, for example, flow_starter, all flows
-   for which you hvae flow_starter, flow_administrator, or flow_owner
+   for which you have flow_starter, flow_administrator, or flow_owner
    roles will be displayed. Values visible_to, runnable_by,
    administered_by and created_by are deprecated. [repeatable use
    deprecated as the lowest precedence value provided will determine the
@@ -702,7 +702,7 @@ List Flows for which you have access.
 -  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
    apply to the resulting Flow listing. The key indicates the filter,
    the value indicates the pattern to match. Multiple patterns for a
-   single key may be specified as a comma seperated string, the results
+   single key may be specified as a comma separated string, the results
    for which will represent a logical OR. If multiple filters are
    applied, the returned data will be the result of a logical AND
    between them. [repeatable]
@@ -804,7 +804,7 @@ Retrieve all Flow Runs you have access to view.
 -  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
    Display Actions/Runs where you have at least the selected role.
    Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
-   specifying, for example, run_manager, all flows for which you hvae
+   specifying, for example, run_manager, all flows for which you have
    run_manager or run_owner roles will be displayed. Values
    monitored_by, managed_by and created_by are deprecated. [repeatable
    use deprecated as the lowest precedence value provided will determine
@@ -818,7 +818,7 @@ Retrieve all Flow Runs you have access to view.
 -  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
    apply to the resulting Action listing. The key indicates the filter,
    the value indicates the pattern to match. Multiple patterns for a
-   single key may be specified as a comma seperated string, the results
+   single key may be specified as a comma separated string, the results
    for which will represent a logical OR. If multiple filters are
    applied, the returned data will be the result of a logical AND
    between them. [repeatable]
@@ -854,7 +854,7 @@ List a Flow definition’s discrete invocations.
 -  ``--role [run_monitor|run_manager|run_owner|created_by|monitor_by|manage_by]``:
    Display Actions/Runs where you have at least the selected role.
    Precedence of roles is: run_monitor, run_manager, run_owner. Thus, by
-   specifying, for example, run_manager, all runs for which you hvae
+   specifying, for example, run_manager, all runs for which you have
    run_manager or run_owner roles will be displayed. [repeatable use
    deprecated as the lowest precedence value provided will determine the
    flows displayed.]
@@ -867,7 +867,7 @@ List a Flow definition’s discrete invocations.
 -  ``--filter TEXT``: A filtering criteria in the form ‘key=value’ to
    apply to the resulting Action listing. The key indicates the filter,
    the value indicates the pattern to match. Multiple patterns for a
-   single key may be specified as a comma seperated string, the results
+   single key may be specified as a comma separated string, the results
    for which will represent a logical OR. If multiple filters are
    applied, the returned data will be the result of a logical AND
    between them. [repeatable]
