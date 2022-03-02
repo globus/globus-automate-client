@@ -427,48 +427,87 @@ An example structure for an ``ExpressionEval`` state is as follows:
 
 All of the properties of the ``ExpressionEval`` state have the same meaning as described in the ``Action`` state. The ``ExpressionEval`` state cannot use the ``InputPath`` property (``Pass`` is appropriate if moving state from an ``InputPath`` to a ``ResultPath`` is needed), so ``Parameters`` must always be present. Just like in ``Action`` the ``Parameters`` may have constant, reference or expression types and portions of the state can be protected using a ``__Private_Parameters`` list. Like ``Action``, this state must have either a ``Next`` or an ``End: true``.
 
+.. _example-flows-custom-format:
+
 ``Globus Web App Custom Formats``
 ---------------------------------
 
-The `Globus web app`_ supports two JSON schema formats in order to make starting flows a little more user friendly on the webapp.
+The `Globus web app`_ supports a JSON schema format in order to make starting flows a little more user friendly on the webapp.
 
-``globus-collection-id``
-^^^^^^^^^^^^^^^^^^^^^^^^
+``globus-collection``
+^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: JSON
+``globus-collection`` as a ``format`` in your ``input_schema`` will signal to the webapp to show a custom input field for searching for and selecting a Globus collection on the Guided tab when starting a Flow.
 
-    {
-      "source_endpoint_id": {
-        "description": "An example of globus-collection-id.",
-        "format": "globus-collection-id",
-        "title": "Find source collection ID.",
-        "type": "string"
-      }
-    }
-
-``globus-collection-id`` as a ``format`` in your ``input_schema`` will signal to the webapp to show a custom input field for searching for and selecting a Globus collection on the Guided tab when starting a Flow. Note: ``"type": "string"`` should be used in conjuction with this format.
-
-.. image:: _static/images/globus-collection-id-ex1.png
-  :alt: Example of the input created by globus collection id format
-
-``globus-collection-path``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example input schema shows how to configure a basic Transfer flow using this format:
 
 .. code-block:: JSON
+    :emphasize-lines: 6,9-10,13-19
 
     {
-      "source_endpoint_id": {
-        "description": "An example of globus-collection-path.",
-        "format": "globus-collection-path",
-        "title": "Find source collection ID and then browse to the source path.",
-        "type": "string"
-      }
+        "additionalProperties": false,
+        "properties": {
+            "source": {
+                "type": "object",
+                "format": "globus-collection",
+                "title": "Find source collection ID and path",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "path": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "destination": {
+                "type": "object",
+                "format": "globus-collection",
+                "title": "Find destination endpoint ID and path",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "path": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "recursive": {
+                "type": "boolean",
+                "title": "Recursive transfer",
+                "description": "Whether or not to transfer a directory recursively, must be true when transferring a directory."
+            }
+        },
+        "required": ["source", "destination", "recursive"]
     }
 
-``globus-collection-path`` as a ``format`` in your ``input_schema`` will signal to the webapp to show two input fields. The first is for selecting a Globus collection. The second will allow you to browse to a path on that collection. Note: ``"type": "string"`` should be used in conjuction with this format.
+The above will cause the Globus we application to display a set of inputs that map to the id and path fields for source and destination:
 
-.. image:: _static/images/globus-collection-path-ex1.png
-  :alt: Example of the input created by globus collection id format
+.. image:: _static/images/globus-collection-ex.png
+  :alt: Example of the input created by globus collection format
+
+Important notes about the ``globus-collection`` format:
+-------------------------------------------------------
+
+* The properties inside ``globus-collection`` must be named "id" and "path"
+* The ``required`` field inside ``globus-collection`` determines behavior of the component as follows:
+   * If both "id" and "path" are required, the component will display and require both collection and path inputs
+   * If only "id" is required, the component will only display the Collection input
+   * If only "path" is required, the component will display both inputs but only the path field will be required. The collection input is provided to allow browsing of that collection's directory listing
+* This format is used to provide a UI component for `Globus web app`_ and will not substantively affect Flow usage from the Automate CLI or programmatic access
 
 .. _example-flows-details:
 
