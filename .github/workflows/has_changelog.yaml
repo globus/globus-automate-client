@@ -5,7 +5,7 @@ on:
 
 jobs:
   check_has_news_in_changelog_dir:
-    if: ${{ ! contains(github.event.pull_request.labels.*.name, 'no-news-is-good-news') }}
+    if: ${{ ! (contains(github.event.pull_request.labels.*.name, 'no-news-is-good-news') || contains(github.event.pull_request.labels.*.name, 'dependencies'))}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
