@@ -10,6 +10,20 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.13.1 — 2022-03-02
+===================
+
+Bugfixes
+--------
+
+-   Output login prompts to STDERR.
+    This protects serialized output to STDOUT so it can be piped to tools like `jq`.
+
+Documentation
+-------------
+
+- Documentation and examples for the ``globus-collection`` input schema format.
+
 0.13.0 — 2022-02-11
 ===================
 
