@@ -937,7 +937,7 @@ class FlowsClient(BaseClient):
 
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         with self.use_temporary_authorizer(authorizer):
-            return self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
+            return self.get(f"/flows/{flow_id}/runs", query_params=params, **kwargs)
 
     def flow_action_update(
         self,

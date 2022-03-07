@@ -36,7 +36,6 @@ from globus_automate_client.cli.rich_helpers import (
     FlowListDisplayFields,
     LogCompletionDetector,
     RequestRunner,
-    RunEnumerateDisplayFields,
     RunListDisplayFields,
     RunLogDisplayFields,
 )
@@ -1144,7 +1143,7 @@ def flow_action_enumerate(
             format=output_format,
             verbose=verbose,
             watch=watch,
-            fields=RunEnumerateDisplayFields,
+            fields=RunListDisplayFields,
         ).run_and_render()
 
 
