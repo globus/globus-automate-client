@@ -1,0 +1,10 @@
+source:
+  id: 25fbda1e-5ae6-11e5-b577-22000b47140e
+  path: /share/godata/file1.txt
+destination:
+  id: b88da93e-4186-11e7-8e40-22000b508383
+  path: /~/automated-testing/transfer-successful.txt
+destination_path_parent_dir: /~/automated-testing/
+timer_url: https://timercheck.io/automate-80932743889269524169320866183160580494/120
+transfer_label: "transfer1"
+delete_label: "delete1"

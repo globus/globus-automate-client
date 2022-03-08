@@ -24,7 +24,7 @@ States:
   CheckTransfer:
     Comment: >-
       Examine the status of the Transfer Action. If it failed, branch to a state
-      the reports the error
+      that reports the error
     Type: Choice
     Choices:
       - Variable: $.TransferResult.status
@@ -49,7 +49,7 @@ States:
   CheckDelete:
     Comment: >-
       Examine the status of the Delete Action. If it failed, branch to a state
-      the reports the error
+      that reports the error
     Type: Choice
     Choices:
       - Variable: $.DeleteResult.status
