@@ -137,8 +137,8 @@ class TokenCache:
             pass
         except JSONDecodeError:
             raise EnvironmentError(
-                "Token cache for Timer CLI is corrupted; please run a `session revoke`"
-                " and try again"
+                "Token cache is corrupted; please run `session revoke` or remove "
+                f"file {self.token_store} and try again"
             )
 
     @staticmethod
