@@ -128,17 +128,8 @@ class RunListDisplayFields(DisplayFields):
         Field("created_by", "", humanize_auth_urn),
         Field("flow_id", "<DELETED>"),
     ]
-    path_to_data_list = "actions"
-    prehook = functools.partial(identity_to_user, "created_by")
-
-
-class RunEnumerateDisplayFields(RunListDisplayFields):
-    """
-    This object defines the fields and display style of a Run enumeration into a
-    table.
-    """
-
     path_to_data_list = "runs"
+    prehook = functools.partial(identity_to_user, "created_by")
 
 
 class FlowListDisplayFields(DisplayFields):
