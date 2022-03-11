@@ -43,22 +43,13 @@ _ENVIRONMENT_FLOWS_BASE_URLS = {
     "staging": "https://staging.flows.automate.globus.org",
 }
 
-MANAGE_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
-)
-VIEW_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/view_flows"
-)
-RUN_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run"
-)
-RUN_STATUS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_status"
-)
-RUN_MANAGE_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_manage"
-)
-NULL_SCOPE = "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/null"
+FLOWS_CLIENT_ID = "eec9b274-0c81-4334-bdc2-54e90e689b9a"
+MANAGE_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/manage_flows"
+VIEW_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/view_flows"
+RUN_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run"
+RUN_STATUS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run_status"
+RUN_MANAGE_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run_manage"
+NULL_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/null"
 
 ALL_FLOW_SCOPES = (
     MANAGE_FLOWS_SCOPE,
