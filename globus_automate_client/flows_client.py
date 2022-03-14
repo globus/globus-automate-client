@@ -980,6 +980,168 @@ class FlowsClient(BaseClient):
         with self.use_temporary_authorizer(authorizer):
             return self.put(f"/runs/{action_id}", data=payload, **kwargs)
 
+    def update_runs(
+        self,
+        # Filters
+        run_ids: Iterable[str],
+        # Tags
+        add_tags: Optional[Iterable[str]] = None,
+        remove_tags: Optional[Iterable[str]] = None,
+        set_tags: Optional[Iterable[str]] = None,
+        # Run managers
+        add_run_managers: Optional[Iterable[str]] = None,
+        remove_run_managers: Optional[Iterable[str]] = None,
+        set_run_managers: Optional[Iterable[str]] = None,
+        # Run monitors
+        add_run_monitors: Optional[Iterable[str]] = None,
+        remove_run_monitors: Optional[Iterable[str]] = None,
+        set_run_monitors: Optional[Iterable[str]] = None,
+        # Status
+        status: Optional[str] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        Update a Flow Action.
+
+        :param run_ids:
+            A list of Run ID's to query.
+
+        :param set_tags:
+            A list of tags to set on the specified Run ID's.
+
+            If the list is empty, all tags will be deleted from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param add_tags:
+            A list of tags to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param remove_tags:
+            A list of tags to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param set_run_managers:
+            A list of Globus Auth URN's to set on the specified Run ID's.
+
+            If the list is empty, all Run managers will be deleted
+            from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param add_run_managers:
+            A list of Globus Auth URN's to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param remove_run_managers:
+            A list of Globus Auth URN's to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param set_run_monitors:
+            A list of Globus Auth URN's to set on the specified Run ID's.
+
+            If the list is empty, all Run monitors will be deleted
+            from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param add_run_monitors:
+            A list of Globus Auth URN's to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param remove_run_monitors:
+            A list of Globus Auth URN's to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param status:
+            A status to set for all specified Run ID's.
+
+        :param kwargs:
+            Any additional keyword arguments passed to this method
+            are passed to the Globus BaseClient.
+
+            If an "authorizer" keyword argument is passed,
+            it will be used to authorize the Flow operation.
+            Otherwise, the authorizer_callback defined for the FlowsClient will be used.
+
+        :raises ValueError:
+            If more than one mutually-exclusive argument is provided.
+            For example, if ``set_tags`` and ``add_tags`` are both specified,
+            or if ``add_run_managers`` and ``remove_run_managers`` are both specified.
+        """
+
+        multi_fields = ("tags", "run_managers", "run_monitors")
+        multi_ops = ("add", "remove", "set")
+
+        # Enforce mutual exclusivity of arguments.
+        for field in multi_fields:
+            values = (
+                locals()[f"set_{field}"],
+                locals()[f"add_{field}"],
+                locals()[f"remove_{field}"],
+            )
+            if sum(1 for value in values if value is not None) > 1:
+                raise ValueError(
+                    f"`set_{field}`, `add_{field}`, and `remove_{field}`"
+                    " are mutually exclusive. Only one can be used."
+                )
+
+        # Populate the JSON document to submit.
+        data: dict = {
+            "filters": {
+                "run_ids": list(run_ids),
+            },
+            "set": {},
+            "add": {},
+            "remove": {},
+        }
+        for field in multi_fields:
+            if locals()[f"add_{field}"] is not None:
+                data["add"][field] = locals()[f"add_{field}"]
+            if locals()[f"remove_{field}"] is not None:
+                data["remove"][field] = locals()[f"remove_{field}"]
+            if locals()[f"set_{field}"] is not None:
+                data["set"][field] = locals()[f"set_{field}"]
+        if status is not None:
+            data["set"]["status"] = status
+
+        authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.post("/batch/runs", data=data, **kwargs)
+
     def flow_action_log(
         self,
         flow_id: str,
