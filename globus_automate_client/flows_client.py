@@ -937,6 +937,8 @@ class FlowsClient(BaseClient):
         action_id: str,
         run_managers: Optional[Iterable[str]] = None,
         run_monitors: Optional[Iterable[str]] = None,
+        tags: Optional[Iterable[str]] = None,
+        label: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -956,12 +958,23 @@ class FlowsClient(BaseClient):
             onto the Globus BaseClient. If there exists an "authorizer" keyword
             argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
+
+        :param tags:
+            A list of tags to apply to the Run.
+
+        :param label:
+            A label to apply to the Run.
         """
+
         payload = {}
         if run_managers is not None:
             payload["run_managers"] = run_managers
         if run_monitors is not None:
             payload["run_monitors"] = run_monitors
+        if tags is not None:
+            payload["tags"] = tags
+        if label is not None:
+            payload["label"] = label
 
         authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
         with self.use_temporary_authorizer(authorizer):
