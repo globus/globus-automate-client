@@ -6,6 +6,7 @@ import typer
 
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
+    custom_principal_validator,
     flow_input_validator,
     input_validator,
     principal_or_all_authenticated_users_validator,
@@ -1149,38 +1150,66 @@ def flow_action_enumerate(
 
 @app.command("action-update")
 @app.command("run-update")
-def flow_action_update(
-    action_id: str = typer.Argument(...),
-    run_manager: Optional[List[str]] = typer.Option(
+def update_run(
+    run_id: str = typer.Argument(...),
+    run_managers: Optional[List[str]] = typer.Option(
         None,
+        "--run-manager",
         help="A principal which may change the execution of the Run."
         + _principal_description
+        + " Specify an empty string once to erase all Run managers."
         + " [repeatable]",
-        callback=principal_validator,
+        callback=custom_principal_validator({""}),
     ),
-    run_monitor: Optional[List[str]] = typer.Option(
+    run_monitors: Optional[List[str]] = typer.Option(
         None,
+        "--run-monitor",
         help="A principal which may monitor the execution of the Run."
         + _principal_description
         + " [repeatable]",
-        callback=principal_validator,
+        callback=custom_principal_validator({""}),
+    ),
+    tags: Optional[List[str]] = typer.Option(
+        None,
+        "--tag",
+        help=(
+            "A tag to associate with the Run."
+            " If specified, the existing tags on the Run will be replaced"
+            " with the list of tags specified here."
+            " Specify an empty string once to erase all tags."
+            " [repeatable]"
+        ),
+    ),
+    label: Optional[str] = typer.Option(
+        None,
+        help="A label to associate with the Run.",
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
     output_format: OutputFormat = output_format_option,
 ):
     """
-    Update a Run on the Flows service
+    Update a Run on the Flows service.
     """
-    run_manager = run_manager if run_manager else None
-    run_monitor = run_monitor if run_monitor else None
+
+    # Special cases:
+    # * If the user specifies a single empty string, replace [""] with []
+    #   so all values currently set on the Run will be erased.
+    # * If the user specifies nothing, replace the default empty list with None
+    #   to prevent erasure of the values currently set on the Run.
+    run_managers = [] if run_managers == [""] else (run_managers or None)
+    run_monitors = [] if run_monitors == [""] else (run_monitors or None)
+    tags = [] if tags and list(tags) == [""] else (tags or None)
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
     RequestRunner(
         functools.partial(
             fc.flow_action_update,
-            action_id,
-            run_managers=run_manager,
-            run_monitors=run_monitor,
+            run_id,
+            label=label,
+            run_managers=run_managers,
+            run_monitors=run_monitors,
+            tags=tags,
         ),
         format=output_format,
         verbose=verbose,

@@ -9,6 +9,7 @@ from typing import (
     Iterable,
     Mapping,
     Optional,
+    Sequence,
     Set,
     Type,
     TypeVar,
@@ -935,9 +936,9 @@ class FlowsClient(BaseClient):
     def flow_action_update(
         self,
         action_id: str,
-        run_managers: Optional[Iterable[str]] = None,
-        run_monitors: Optional[Iterable[str]] = None,
-        tags: Optional[Iterable[str]] = None,
+        run_managers: Optional[Sequence[str]] = None,
+        run_monitors: Optional[Sequence[str]] = None,
+        tags: Optional[Sequence[str]] = None,
         label: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
