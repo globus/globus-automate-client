@@ -9,7 +9,6 @@ from globus_automate_client.cli.callbacks import (
     custom_principal_validator,
     flow_input_validator,
     input_validator,
-    principal_or_all_authenticated_users_validator,
     principal_or_public_validator,
     principal_validator,
     url_validator_callback,
@@ -133,14 +132,18 @@ def flow_deploy(
             "'all_authenticated_users' may be used to indicate that any authenticated user "
             "can invoke this flow. [repeatable]"
         ),
-        callback=principal_or_all_authenticated_users_validator,
+        callback=custom_principal_validator({"all_authenticated_users"}),
     ),
     # starter and runnable_by are aliases for the full flow_starter
     starter: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     runnable_by: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     flow_administrator: List[str] = typer.Option(
         None,
@@ -275,13 +278,17 @@ def flow_update(
         + " The special value of "
         "'all_authenticated_users' may be used to indicate that any "
         "authenticated user can invoke this flow. [repeatable]",
-        callback=principal_or_all_authenticated_users_validator,
+        callback=custom_principal_validator({"all_authenticated_users"}),
     ),
     starter: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     runnable_by: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     flow_administrator: List[str] = typer.Option(
         None,

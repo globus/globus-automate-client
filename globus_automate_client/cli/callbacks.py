@@ -91,18 +91,6 @@ def custom_principal_validator(special_values: AbstractSet[str]) -> Callable:
     return wrapper
 
 
-def principal_or_all_authenticated_users_validator(principals: List[str]) -> List[str]:
-    """
-    Certain fields expect values to be a valid Globus Auth UUID or one of a set
-    of special strings that are meaningful in the context of authentication.
-    This callback is a specialized form of the principal_validator where the
-    special value of 'all_authenticated_users' is accepted.
-    """
-    return _base_principal_validator(
-        principals, special_vals={"all_authenticated_users"}
-    )
-
-
 def principal_or_public_validator(principals: List[str]) -> List[str]:
     """
     Certain fields expect values to be a valid Globus Auth UUID or one of a set
