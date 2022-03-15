@@ -9,7 +9,6 @@ from globus_automate_client.cli.callbacks import (
     custom_principal_validator,
     flow_input_validator,
     input_validator,
-    principal_or_public_validator,
     principal_validator,
     url_validator_callback,
 )
@@ -109,18 +108,18 @@ def flow_deploy(
             + " The special value of 'public' may be used to "
             "indicate that any user can view this Flow. [repeatable]"
         ),
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=False,
     ),
     # viewer and visible_to are aliases for the full flow_viewer
     viewer: List[str] = typer.Option(
         None,
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
     visible_to: List[str] = typer.Option(
         None,
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
     flow_starter: List[str] = typer.Option(
@@ -263,13 +262,13 @@ def flow_update(
         + _principal_description
         + "The special value of 'public' may be used to "
         "indicate that any user can view this Flow. [repeatable]",
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
     ),
     viewer: List[str] = typer.Option(
-        None, callback=principal_or_public_validator, hidden=True
+        None, callback=custom_principal_validator({"public"}), hidden=True
     ),
     visible_to: List[str] = typer.Option(
-        None, callback=principal_or_public_validator, hidden=True
+        None, callback=custom_principal_validator({"public"}), hidden=True
     ),
     flow_starter: List[str] = typer.Option(
         None,

@@ -91,16 +91,6 @@ def custom_principal_validator(special_values: AbstractSet[str]) -> Callable:
     return wrapper
 
 
-def principal_or_public_validator(principals: List[str]) -> List[str]:
-    """
-    Certain fields expect values to be a valid Globus Auth UUID or one of a set
-    of special strings that are meaningful in the context of authentication.
-    This callback is a specialized form of the principal_validator where the
-    special value of 'public' is accepted.
-    """
-    return _base_principal_validator(principals, special_vals={"public"})
-
-
 def flows_endpoint_envvar_callback(default_value: str) -> str:
     """
     This callback searches the caller's environment for an environment variable
