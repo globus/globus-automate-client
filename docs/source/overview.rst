@@ -17,7 +17,7 @@ Use Cases
 
 The key to the platform is enabling users to orchestrate multiple processing
 steps into a single workflow, or ``Flow``. Some of these steps are provided by
-``Globus Automate`` and othes of which may be custom implementations supporting
+``Globus Automate`` and others of which may be custom implementations supporting
 a specific need. Examples of these workflows might be:
 
 - Automatically detect data output from scientific instruments which is then
