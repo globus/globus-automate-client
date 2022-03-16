@@ -29,7 +29,7 @@ useful for reusing tokens, debugging purposes, or for getting more familiar with
 the Globus Automate services' APIs.
 
 Each command also supports a ``--help`` option which provides concise
-information on the the command and documents its expected inputs.
+information on the command and documents its expected inputs.
 
 In almost all cases, the output from each command will be in JSON format. The
 CLI will format the output to try to improve readability, however, you may
@@ -163,7 +163,7 @@ introspect operation to get a description of the ``Action Provider``:
     </details>
 
 From this introspection response we can see that the *scope string* for
-this ``Action Provider`` is the the value of the ``globus_auth_scope`` field,
+this ``Action Provider`` is the value of the ``globus_auth_scope`` field,
 ``https://auth.globus.org/scopes/actions.globus.org/hello_world``. We
 can also see that the ``admin_contact`` is Globus.
 
@@ -514,7 +514,7 @@ view the Flow and only they will be able to run an instance of the Flow. When
 deploying, it's possible to specify who should be able to see and run the Flow.
 Using the ``visible_to`` flag, you can indicate which Globus identities can view
 the deployed Flow, or set it to ``public``, which creates a Flow viewable by
-anyone. Using the ``runnable_by`` flag, you can indicate which Globus ideneties
+anyone. Using the ``runnable_by`` flag, you can indicate which Globus identities
 can run an instance of the deployed Flow, or set a value of
 ``all_authenticated_users`` which allows any authenticated user to run an
 instance of the Flow.
