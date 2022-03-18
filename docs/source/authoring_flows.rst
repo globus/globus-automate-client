@@ -494,7 +494,7 @@ This example input schema shows how to configure a basic Transfer flow using thi
         "required": ["source", "destination", "recursive"]
     }
 
-The above will cause the Globus we application to display a set of inputs that map to the id and path fields for source and destination:
+The above will cause the Globus web application to display a set of inputs that map to the id and path fields for source and destination:
 
 .. image:: _static/images/globus-collection-ex.png
   :alt: Example of the input created by globus collection format
