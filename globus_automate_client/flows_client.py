@@ -7,6 +7,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    List,
     Mapping,
     Optional,
     Sequence,
@@ -556,6 +557,7 @@ class FlowsClient(BaseClient):
         run_monitors: Optional[Iterable[str]] = None,
         dry_run: bool = False,
         label: Optional[str] = None,
+        tags: Optional[List[str]] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -581,6 +583,8 @@ class FlowsClient(BaseClient):
             'urn:globus:auth:identity:'
 
         :param label: An optional label which can be used to identify this run
+
+        :param tags: Tags that will be associated with this Run.
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
@@ -610,6 +614,7 @@ class FlowsClient(BaseClient):
                 monitor_by=run_monitors,
                 force_path=path,
                 label=label,
+                tags=tags,
                 **kwargs,
             )
         else:
@@ -618,6 +623,7 @@ class FlowsClient(BaseClient):
                 manage_by=run_managers,
                 monitor_by=run_monitors,
                 label=label,
+                tags=tags,
                 **kwargs,
             )
 

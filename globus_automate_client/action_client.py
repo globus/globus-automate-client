@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Iterable, Mapping, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote
 
 from globus_sdk import BaseClient, GlobusHTTPResponse
@@ -52,6 +52,7 @@ class ActionClient(BaseClient):
         manage_by: Optional[Iterable[str]] = None,
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
+        tags: Optional[List[str]] = None,
         force_path: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
@@ -74,6 +75,7 @@ class ActionClient(BaseClient):
         :param force_path: A URL to use for running this action, ignoring any
             previous configuration
         :param label: Set a label for the Action that is run.
+        :param tags: A list of tags to associate with the Run.
         :param run_monitors: May be used as an alias for ``monitor_by``
         :param run_managers: May be used as an alias for ``manage_by``
         """
@@ -89,6 +91,7 @@ class ActionClient(BaseClient):
             "monitor_by": merge_keywords(monitor_by, kwargs, "run_monitors"),
             "manage_by": merge_keywords(manage_by, kwargs, "run_managers"),
             "label": label,
+            "tags": tags,
         }
         # Remove None items from the temp_body
         data = {k: v for k, v in body.items() if v is not None}

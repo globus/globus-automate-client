@@ -616,6 +616,18 @@ def flow_run(
         "-l",
         help="Label to mark this run.",
     ),
+    tags: Optional[List[str]] = typer.Option(
+        None,
+        "--tag",
+        help=dedent(
+            """
+            A tag to associate with this Run.
+
+            This option can be used multiple times.
+            The full collection of tags will associated with the Run.
+            """
+        )
+    ),
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -660,6 +672,7 @@ def flow_run(
         dry_run=dry_run,
         monitor_by=monitor_by,
         manage_by=manage_by,
+        tags=tags,
     )
     with live_content:
         result = RequestRunner(
