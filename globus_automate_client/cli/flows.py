@@ -1,4 +1,5 @@
 import functools
+import textwrap
 import uuid
 from typing import List, Optional
 
@@ -6,10 +7,9 @@ import typer
 
 from globus_automate_client.cli.auth import CLIENT_ID
 from globus_automate_client.cli.callbacks import (
+    custom_principal_validator,
     flow_input_validator,
     input_validator,
-    principal_or_all_authenticated_users_validator,
-    principal_or_public_validator,
     principal_validator,
     url_validator_callback,
 )
@@ -55,6 +55,12 @@ _principal_description = (
     "UUID in the form urn:globus:auth:identity:<UUID>. A Globus Group may also be "
     "used using the form urn:globus:groups:id:<GROUP_UUID>."
 )
+
+
+def dedent(text: str) -> str:
+    """Dedent help text, so it wraps neatly on the command line."""
+
+    return textwrap.dedent(text).strip()
 
 
 @app.callback()
@@ -109,18 +115,18 @@ def flow_deploy(
             + " The special value of 'public' may be used to "
             "indicate that any user can view this Flow. [repeatable]"
         ),
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=False,
     ),
     # viewer and visible_to are aliases for the full flow_viewer
     viewer: List[str] = typer.Option(
         None,
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
     visible_to: List[str] = typer.Option(
         None,
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
     flow_starter: List[str] = typer.Option(
@@ -132,14 +138,18 @@ def flow_deploy(
             "'all_authenticated_users' may be used to indicate that any authenticated user "
             "can invoke this flow. [repeatable]"
         ),
-        callback=principal_or_all_authenticated_users_validator,
+        callback=custom_principal_validator({"all_authenticated_users"}),
     ),
     # starter and runnable_by are aliases for the full flow_starter
     starter: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     runnable_by: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     flow_administrator: List[str] = typer.Option(
         None,
@@ -259,13 +269,13 @@ def flow_update(
         + _principal_description
         + "The special value of 'public' may be used to "
         "indicate that any user can view this Flow. [repeatable]",
-        callback=principal_or_public_validator,
+        callback=custom_principal_validator({"public"}),
     ),
     viewer: List[str] = typer.Option(
-        None, callback=principal_or_public_validator, hidden=True
+        None, callback=custom_principal_validator({"public"}), hidden=True
     ),
     visible_to: List[str] = typer.Option(
-        None, callback=principal_or_public_validator, hidden=True
+        None, callback=custom_principal_validator({"public"}), hidden=True
     ),
     flow_starter: List[str] = typer.Option(
         None,
@@ -274,13 +284,17 @@ def flow_update(
         + " The special value of "
         "'all_authenticated_users' may be used to indicate that any "
         "authenticated user can invoke this flow. [repeatable]",
-        callback=principal_or_all_authenticated_users_validator,
+        callback=custom_principal_validator({"all_authenticated_users"}),
     ),
     starter: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     runnable_by: List[str] = typer.Option(
-        None, callback=principal_or_all_authenticated_users_validator, hidden=True
+        None,
+        callback=custom_principal_validator({"all_authenticated_users"}),
+        hidden=True,
     ),
     flow_administrator: List[str] = typer.Option(
         None,
@@ -602,6 +616,18 @@ def flow_run(
         "-l",
         help="Label to mark this run.",
     ),
+    tags: Optional[List[str]] = typer.Option(
+        None,
+        "--tag",
+        help=dedent(
+            """
+            A tag to associate with this Run.
+
+            This option can be used multiple times.
+            The full collection of tags will associated with the Run.
+            """
+        )
+    ),
     watch: bool = typer.Option(
         False,
         "--watch",
@@ -646,6 +672,7 @@ def flow_run(
         dry_run=dry_run,
         monitor_by=monitor_by,
         manage_by=manage_by,
+        tags=tags,
     )
     with live_content:
         result = RequestRunner(
@@ -1149,38 +1176,228 @@ def flow_action_enumerate(
 
 @app.command("action-update")
 @app.command("run-update")
-def flow_action_update(
-    action_id: str = typer.Argument(...),
-    run_manager: Optional[List[str]] = typer.Option(
+def update_run(
+    run_id: str = typer.Argument(...),
+    run_managers: Optional[List[str]] = typer.Option(
         None,
+        "--run-manager",
         help="A principal which may change the execution of the Run."
         + _principal_description
+        + " Specify an empty string once to erase all Run managers."
         + " [repeatable]",
-        callback=principal_validator,
+        callback=custom_principal_validator({""}),
     ),
-    run_monitor: Optional[List[str]] = typer.Option(
+    run_monitors: Optional[List[str]] = typer.Option(
         None,
+        "--run-monitor",
         help="A principal which may monitor the execution of the Run."
         + _principal_description
         + " [repeatable]",
-        callback=principal_validator,
+        callback=custom_principal_validator({""}),
+    ),
+    tags: Optional[List[str]] = typer.Option(
+        None,
+        "--tag",
+        help=(
+            "A tag to associate with the Run."
+            " If specified, the existing tags on the Run will be replaced"
+            " with the list of tags specified here."
+            " Specify an empty string once to erase all tags."
+            " [repeatable]"
+        ),
+    ),
+    label: Optional[str] = typer.Option(
+        None,
+        help="A label to associate with the Run.",
     ),
     flows_endpoint: str = flows_env_var_option,
     verbose: bool = verbosity_option,
     output_format: OutputFormat = output_format_option,
 ):
     """
-    Update a Run on the Flows service
+    Update a Run on the Flows service.
     """
-    run_manager = run_manager if run_manager else None
-    run_monitor = run_monitor if run_monitor else None
+
+    # Special cases:
+    # * If the user specifies a single empty string, replace [""] with []
+    #   so all values currently set on the Run will be erased.
+    # * If the user specifies nothing, replace the default empty list with None
+    #   to prevent erasure of the values currently set on the Run.
+    run_managers = [] if run_managers == [""] else (run_managers or None)
+    run_monitors = [] if run_monitors == [""] else (run_monitors or None)
+    tags = [] if tags and list(tags) == [""] else (tags or None)
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
     RequestRunner(
         functools.partial(
             fc.flow_action_update,
-            action_id,
-            run_managers=run_manager,
-            run_monitors=run_monitor,
+            run_id,
+            label=label,
+            run_managers=run_managers,
+            run_monitors=run_monitors,
+            tags=tags,
+        ),
+        format=output_format,
+        verbose=verbose,
+    ).run_and_render()
+
+
+@app.command("batch-run-update")
+def update_runs(
+    run_ids: List[str] = typer.Argument(...),
+    #
+    # Run manager parameters
+    set_run_managers: Optional[List[str]] = typer.Option(
+        None,
+        "--set-run-manager",
+        help="Set a principal on affected Runs that can change the Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    add_run_managers: Optional[List[str]] = typer.Option(
+        None,
+        "--add-run-manager",
+        help="Add a principal to affected Runs that can change the Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    remove_run_managers: Optional[List[str]] = typer.Option(
+        None,
+        "--remove-run-manager",
+        help="Remove a principal from affected Runs that can change the Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    #
+    # Run monitor parameters
+    set_run_monitors: Optional[List[str]] = typer.Option(
+        None,
+        "--set-run-monitor",
+        help="Set a principal on affected Runs that can monitor Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    add_run_monitors: Optional[List[str]] = typer.Option(
+        None,
+        "--add-run-monitor",
+        help="Add a principal to affected Runs that can monitor Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    remove_run_monitors: Optional[List[str]] = typer.Option(
+        None,
+        "--remove-run-monitor",
+        help="Remove a principal from affected Runs that can monitor Run execution.",
+        callback=custom_principal_validator({""}),
+    ),
+    #
+    # Tag parameters
+    set_tags: Optional[List[str]] = typer.Option(
+        None,
+        "--set-tag",
+        help="A tag to set on the specified Runs.",
+    ),
+    add_tags: Optional[List[str]] = typer.Option(
+        None,
+        "--add-tag",
+        help="A tag to add to the affected Runs.",
+    ),
+    remove_tags: Optional[List[str]] = typer.Option(
+        None,
+        "--remove-tag",
+        help="A tag to remove from the affected Runs.",
+    ),
+    status: Optional[str] = typer.Option(
+        None,
+        help=dedent(
+            """
+            Set the status of the affected Runs.
+
+            Currently, "cancel" is the only valid value.
+            """
+        ),
+    ),
+    flows_endpoint: str = flows_env_var_option,
+    verbose: bool = verbosity_option,
+    output_format: OutputFormat = output_format_option,
+):
+    """
+    Update metadata and permissions on one or more Runs.
+
+    \b
+    Modifying lists of values
+    =========================
+
+    Most options support set, add, and remove operations.
+
+    The "add" option variants will add the specified value
+    to whatever is set on each affected Run.
+    For example, if one Run has a "star" tag and another has a "circle" tag,
+    `--add-tag square` will result in a Run with "star" and "square" tags,
+    and the other Run will have "circle" and "square" tags.
+
+    The "remove" option variants will remove the specified value
+    from whatever is set on each affected Run.
+    There will not be an error if the value is not set on a Run.
+    For example, if one Run has a "star" tag and another has a "circle" tag,
+    `--remove-tag star` will result in a Run with no tags
+    while the other still has a "circle" tag.
+
+    The "set" option variants will overwrite the metadata and permissions
+    currently set on all affected Runs.
+    For example, `--set-tag example` will standardize all affected Runs
+    so that they have just one tag: "example".
+
+    To remove all values on all affected Runs,
+    use the "set" variant of an option with an empty string.
+    For example, to erase all Run monitors, use `--set-run-monitors ""`.
+
+    All options with "set", "add", and "remove" variants can be used multiple times.
+    However, only one variation of an option can be specified at a time.
+    For example, `--set-tag` and `--add-tag` cannot be combined in the same command,
+    and `--set-run-manager` and `--add-run-manager` cannot be combined.
+    It is fine to combine `--add-tag` and `--remove-run-manager`.
+
+    \b
+    Modifying roles
+    ===============
+
+    Run managers and monitors must be specified in one of these forms:
+
+    \b
+    *   A user's Globus Auth username
+    *   A user's identity UUID in the form urn:globus:auth:identity:<UUID>
+    *   A group's identity UUID in the form urn:globus:groups:id:<GROUP_UUID>
+    """
+
+    # Until typing.Literal is available on all supported Python versions,
+    # `status` must be checked in-code.
+    if status is not None and status != "cancel":
+        raise ValueError("'cancel' is the only valid --status value.")
+
+    # Special cases:
+    # * If the user specifies a single empty string, replace [""] with []
+    #   so all values currently set on the Run will be erased.
+    # * If the user specifies nothing, replace the default empty list with None
+    #   to prevent erasure of the values currently set on the Run.
+    set_run_managers = [] if set_run_managers == [""] else (set_run_managers or None)
+    set_run_monitors = [] if set_run_monitors == [""] else (set_run_monitors or None)
+    set_tags = [] if set_tags and list(set_tags) == [""] else (set_tags or None)
+
+    fc = create_flows_client(CLIENT_ID, flows_endpoint, RUN_STATUS_SCOPE)
+    RequestRunner(
+        functools.partial(
+            fc.update_runs,
+            run_ids=run_ids,
+            # Run managers
+            add_run_managers=add_run_managers or None,
+            remove_run_managers=remove_run_managers or None,
+            set_run_managers=set_run_managers,
+            # Run monitors
+            add_run_monitors=add_run_monitors or None,
+            remove_run_monitors=remove_run_monitors or None,
+            set_run_monitors=set_run_monitors,
+            # Tags
+            add_tags=add_tags or None,
+            remove_tags=remove_tags or None,
+            set_tags=set_tags,
+            # Status
+            status=status,
         ),
         format=output_format,
         verbose=verbose,
