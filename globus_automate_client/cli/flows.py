@@ -626,7 +626,7 @@ def flow_run(
             This option can be used multiple times.
             The full collection of tags will associated with the Run.
             """
-        )
+        ),
     ),
     watch: bool = typer.Option(
         False,
