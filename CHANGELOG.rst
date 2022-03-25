@@ -10,6 +10,25 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.14.0 — 2022-03-25
+===================
+
+Features
+--------
+
+-   `[sc-13426] <https://app.shortcut.com/globus/story/13426>`_
+    Support setting tags when using the ``flow run`` subcommand.
+-   Support batch updates of one or more Runs.
+-   Support updating tags and labels using the ``flow run-update`` subcommand.
+-   Support erasing the list of Run managers and Run monitors using the ``flow run-update`` subcommand.
+    This can be done by specifying an empty string for the value of the ``--run-manager`` and ``--run-monitor`` options.
+
+Bugfixes
+--------
+
+-   `[sc-13664] <https://app.shortcut.com/globus/story/13664/>`_
+    Fix tabular ``run-list`` output.
+
 0.13.1 — 2022-03-02
 ===================
 
