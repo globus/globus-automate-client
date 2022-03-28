@@ -30,6 +30,8 @@ Bugfixes
     Fix tabular ``run-list`` output.
 -   `[sc-14109] <https://app.shortcut.com/globus/story/14109>`_
     Mark the ``run-status`` subcommand's ``--flow-id`` option as a mandatory UUID.
+-   `[sc-14127] <https://app.shortcut.com/globus/story/14127>`_
+    Prevent a validation error that occurs when an input schema is not provided to the ``flow deploy`` subcommand.
 
 0.13.1 — 2022-03-02
 ===================

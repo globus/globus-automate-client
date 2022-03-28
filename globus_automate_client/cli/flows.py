@@ -195,6 +195,9 @@ def flow_deploy(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
+    if input_schema_dict is None:
+        # If no input schema is provided, default to a no-op schema.
+        input_schema_dict = {}
 
     method = functools.partial(
         fc.deploy_flow,
