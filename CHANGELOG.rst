@@ -28,6 +28,8 @@ Bugfixes
 
 -   `[sc-13664] <https://app.shortcut.com/globus/story/13664/>`_
     Fix tabular ``run-list`` output.
+-   `[sc-14109] <https://app.shortcut.com/globus/story/14109>`_
+    Mark the ``run-status`` subcommand's ``--flow-id`` option as a mandatory UUID.
 
 0.13.1 — 2022-03-02
 ===================

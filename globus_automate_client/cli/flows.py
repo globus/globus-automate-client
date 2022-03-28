@@ -816,8 +816,8 @@ def flow_actions_list(
 @app.command("run-status")
 def flow_action_status(
     action_id: str = typer.Argument(...),
-    flow_id: str = typer.Option(
-        None,
+    flow_id: uuid.UUID = typer.Option(
+        ...,
         help="The ID for the Flow which triggered the Action.",
     ),
     flow_scope: str = typer.Option(
