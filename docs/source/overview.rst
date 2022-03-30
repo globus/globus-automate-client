@@ -46,7 +46,7 @@ service. Access to ``Action Providers`` and their invocation is controlled via
 ``Globus Auth``. Some of these services may be *synchronous* meaning that an
 invocation will complete in the context of the HTTP request that triggered it.
 Other services support *asynchronous* activities, meaning that the invocation
-will persist beyond the HTTP request that invoked it and the the caller must
+will persist beyond the HTTP request that invoked it and the caller must
 monitor the ``Action`` for updates on when it is completed and its result.
 
 Globus operates a series of these ``Action Providers`` available for

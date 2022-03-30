@@ -772,7 +772,7 @@ def test_list_flow_runs_role_precedence(
 ):
     """Verify the *role* and *roles* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/actions")
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
     fc.list_flow_runs(
         "-",
         role=role,
@@ -808,7 +808,7 @@ def test_list_flow_runs_pagination_parameters(
 ):
     """Verify *marker* and *per_page* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/actions")
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
     fc.list_flow_runs(
         "-",
         marker=marker,
@@ -828,7 +828,7 @@ def test_list_flow_runs_pagination_parameters(
 def test_list_flow_runs_filters(fc, mocked_responses):
     """Verify that filters are applied to the query parameters."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/actions")
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
     fc.list_flow_runs(
         "-",
         role="role",
@@ -844,7 +844,7 @@ def test_list_flow_runs_filters(fc, mocked_responses):
 def test_list_flow_runs_orderings(fc, mocked_responses):
     """Verify that orderings are serialized as expected."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/actions")
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
     fc.list_flow_runs(
         "-",
         orderings={"shape": "asc", "color": "DESC", "bogus": "bad"},
@@ -862,7 +862,7 @@ def test_list_flow_runs_orderings(fc, mocked_responses):
 def test_list_flow_runs_statuses(fc, mocked_responses):
     """Verify that orderings are serialized as expected."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/actions")
+    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
     fc.list_flow_runs(
         "-",
         statuses=("SUCCEEDED", "FAILED"),

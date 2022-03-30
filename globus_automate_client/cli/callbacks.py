@@ -3,7 +3,7 @@ import os
 import pathlib
 import re
 from errno import ENAMETOOLONG
-from typing import AbstractSet, List, Optional
+from typing import AbstractSet, Callable, List, Optional, cast
 from urllib.parse import urlparse
 
 import typer
@@ -77,32 +77,18 @@ def _base_principal_validator(
 
 
 def principal_validator(principals: List[str]) -> List[str]:
-    """
-    A principal ID needs to be a valid UUID.
-    """
-    return _base_principal_validator(principals)
+    """A principal ID needs to be a valid UUID."""
+
+    return _base_principal_validator(cast(List[str], principals))
 
 
-def principal_or_all_authenticated_users_validator(principals: List[str]) -> List[str]:
-    """
-    Certain fields expect values to be a valid Globus Auth UUID or one of a set
-    of special strings that are meaningful in the context of authentication.
-    This callback is a specialized form of the principal_validator where the
-    special value of 'all_authenticated_users' is accepted.
-    """
-    return _base_principal_validator(
-        principals, special_vals={"all_authenticated_users"}
-    )
+def custom_principal_validator(special_values: AbstractSet[str]) -> Callable:
+    """A principal ID needs to be a valid UUID."""
 
+    def wrapper(principals: List[str]) -> List[str]:
+        return _base_principal_validator(principals, special_vals=special_values)
 
-def principal_or_public_validator(principals: List[str]) -> List[str]:
-    """
-    Certain fields expect values to be a valid Globus Auth UUID or one of a set
-    of special strings that are meaningful in the context of authentication.
-    This callback is a specialized form of the principal_validator where the
-    special value of 'public' is accepted.
-    """
-    return _base_principal_validator(principals, special_vals={"public"})
+    return wrapper
 
 
 def flows_endpoint_envvar_callback(default_value: str) -> str:

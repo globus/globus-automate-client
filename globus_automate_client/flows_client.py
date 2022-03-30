@@ -7,8 +7,10 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    List,
     Mapping,
     Optional,
+    Sequence,
     Set,
     Type,
     TypeVar,
@@ -43,22 +45,13 @@ _ENVIRONMENT_FLOWS_BASE_URLS = {
     "staging": "https://staging.flows.automate.globus.org",
 }
 
-MANAGE_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/manage_flows"
-)
-VIEW_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/view_flows"
-)
-RUN_FLOWS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run"
-)
-RUN_STATUS_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_status"
-)
-RUN_MANAGE_SCOPE = (
-    "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/run_manage"
-)
-NULL_SCOPE = "https://auth.globus.org/scopes/eec9b274-0c81-4334-bdc2-54e90e689b9a/null"
+FLOWS_CLIENT_ID = "eec9b274-0c81-4334-bdc2-54e90e689b9a"
+MANAGE_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/manage_flows"
+VIEW_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/view_flows"
+RUN_FLOWS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run"
+RUN_STATUS_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run_status"
+RUN_MANAGE_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/run_manage"
+NULL_SCOPE = f"https://auth.globus.org/scopes/{FLOWS_CLIENT_ID}/null"
 
 ALL_FLOW_SCOPES = (
     MANAGE_FLOWS_SCOPE,
@@ -114,19 +107,21 @@ def _all_vals_for_keys(
 
 
 def validate_flow_definition(flow_definition: Mapping[str, Any]) -> None:
-    """Perform local, JSONSchema based validation of a Flow definition. This is validation
-    on the basic structure of your Flow definition.such as required fields / properties
-    for the various state types and the overall structure of the Flow. This schema based
-    validation *does not* do any validation of input values or parameters passed to
-    Actions as those Actions define their own schemas and the Flow may generate or
-    compute values to these Actions and thus static, schema based validation cannot
-    determine if the Action parameter values generated during execution are correct.
+    """Perform local, JSONSchema based validation of a Flow definition.
+
+    This is validation on the basic structure of your Flow definition such as required
+    fields / properties for the various state types and the overall structure of the
+    Flow. This schema based validation *does not* do any validation of input values or
+    parameters passed to Actions as those Actions define their own schemas and the Flow
+    may generate or compute values to these Actions and thus static, schema based
+    validation cannot determine if the Action parameter values generated during
+    execution are correct.
 
     The input is the dictionary containing the flow definition.
 
     If the flow passes validation, no value is returned. If validation errors are found,
-    a FlowValidationError exception will be raised containing a string message describing
-    the error(s) encountered.
+    a FlowValidationError exception will be raised containing a string message
+    describing the error(s) encountered.
     """
     schema_path = Path(__file__).parent / "flows_schema.json"
     with schema_path.open() as sf:
@@ -273,7 +268,7 @@ class FlowsClient(BaseClient):
         :param flow_definition: A mapping corresponding to a Globus Flows
             definition.
 
-        :param title: A simple, human readable title for the deployed Flow
+        :param title: A simple, human-readable title for the deployed Flow
 
         :param subtitle: A longer, more verbose title for the deployed Flow
 
@@ -367,7 +362,7 @@ class FlowsClient(BaseClient):
         :param flow_definition: A mapping corresponding to a Globus Flows
             definition
 
-        :param title: A simple, human readable title for the deployed Flow
+        :param title: A simple, human-readable title for the deployed Flow
 
         :param subtitle: A longer, more verbose title for the deployed Flow
 
@@ -430,8 +425,7 @@ class FlowsClient(BaseClient):
         """
         Retrieve a deployed Flow's definition and metadata
 
-        :param flow_id: The UUID identifying the Flow for which to retrieve
-            details
+        :param flow_id: The UUID identifying the Flow for which to retrieve details
         """
 
         return self.get(f"/flows/{quote(flow_id)}", **kwargs)
@@ -449,14 +443,15 @@ class FlowsClient(BaseClient):
         """Display all deployed Flows for which you have the selected role(s)
 
         :param roles:
-            .. deprecated:: 0.12
-               Use ``role`` instead
+            ..  deprecated:: 0.12
+                Use ``role`` instead
 
             See description for ``role`` parameter. Providing multiple roles behaves as
             if only a single ``role`` value is provided and displays the equivalent of
             the most permissive role.
 
-        :param role: A role value specifying the minimum role-level permission which will
+        :param role:
+            A role value specifying the minimum role-level permission which will
             be displayed based on the follow precedence of role values:
 
             - flow_viewer
@@ -465,8 +460,8 @@ class FlowsClient(BaseClient):
             - flow_owner
 
             Thus, if, for example, ``flow_starter`` is specified, flows for which the
-            user has the ``flow_starter``, ``flow_administrator`` or ``flow_owner`` roles
-            will be returned.
+            user has the ``flow_starter``, ``flow_administrator`` or ``flow_owner``
+            roles will be returned.
 
         :param marker: A pagination_token indicating the page of results to
             return and how many entries to return. This is created by the Flows
@@ -562,6 +557,7 @@ class FlowsClient(BaseClient):
         run_monitors: Optional[Iterable[str]] = None,
         dry_run: bool = False,
         label: Optional[str] = None,
+        tags: Optional[List[str]] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -569,7 +565,7 @@ class FlowsClient(BaseClient):
 
         :param flow_id: The UUID identifying the Flow to run
 
-        :param flow_scope:  The scope associated with the Flow ``flow_id``. If
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
             the Flow to determine its scope automatically
 
@@ -588,9 +584,11 @@ class FlowsClient(BaseClient):
 
         :param label: An optional label which can be used to identify this run
 
+        :param tags: Tags that will be associated with this Run.
+
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
 
         :param dry_run: Set to ``True`` to test what will happen if the Flow is run
@@ -616,6 +614,7 @@ class FlowsClient(BaseClient):
                 monitor_by=run_monitors,
                 force_path=path,
                 label=label,
+                tags=tags,
                 **kwargs,
             )
         else:
@@ -624,6 +623,7 @@ class FlowsClient(BaseClient):
                 manage_by=run_managers,
                 monitor_by=run_monitors,
                 label=label,
+                tags=tags,
                 **kwargs,
             )
 
@@ -639,12 +639,11 @@ class FlowsClient(BaseClient):
             not provided, the SDK will attempt to perform an introspection on
             the Flow to determine its scope automatically
 
-        :param flow_action_id: The ID specifying the Action for which's status
-            we want to query
+        :param flow_action_id: The ID specifying which Action's status to query
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
@@ -669,7 +668,7 @@ class FlowsClient(BaseClient):
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
@@ -693,7 +692,7 @@ class FlowsClient(BaseClient):
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
@@ -705,7 +704,7 @@ class FlowsClient(BaseClient):
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs
     ) -> GlobusHTTPResponse:
         """
-        Cancel the excution of an Action that was launched by a Flow
+        Cancel the execution of an Action that was launched by a Flow
 
         :param flow_id: The UUID identifying the Flow which launched the Action
 
@@ -717,7 +716,7 @@ class FlowsClient(BaseClient):
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
@@ -757,8 +756,8 @@ class FlowsClient(BaseClient):
             if only a single ``role`` value is provided and displays the equivalent of
             the most permissive role.
 
-        :param role: A role value specifying the minimum role-level permission on the runs which will
-            be returned based on the follow precedence of role values:
+        :param role: A role value specifying the minimum role-level permission on the
+            runs which will be returned based on the follow precedence of role values:
 
             - run_monitor
             - run_manager
@@ -855,18 +854,19 @@ class FlowsClient(BaseClient):
         role: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
-        """List all Runs for a particular Flow. If no flow_id is provided, all runs for all
-        Flows will be returned.
+        """List all Runs for a particular Flow.
 
-        :param flow_id: The UUID identifying the Flow which launched the Run. If not
-            provided, all runs will be returned regardless of which Flow was used to start
-            the Run (equivalent to ``enumerate_runs``).
+        If no flow_id is provided, all runs for all Flows will be returned.
+
+        :param flow_id: The UUID identifying the Flow which launched the Run.
+            If not provided, all runs will be returned regardless of which Flow was
+            used to start the Run (equivalent to ``enumerate_runs``).
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
             the Flow to determine its scope automatically
 
-        :param  statuses: The same as in ``enumerate_runs``.
+        :param statuses: The same as in ``enumerate_runs``.
 
         :param roles:
             ..  deprecated:: 0.12
@@ -874,19 +874,19 @@ class FlowsClient(BaseClient):
 
             The same as in ``enumerate_runs``.
 
-        :param  marker: The same as in ``enumerate_runs``.
+        :param marker: The same as in ``enumerate_runs``.
 
-        :param  per_page: The same as in ``enumerate_runs``.
+        :param per_page: The same as in ``enumerate_runs``.
 
-        :param  filters: The same as in ``enumerate_runs``.
+        :param filters: The same as in ``enumerate_runs``.
 
-        :param  orderings: The same as in ``enumerate_runs``.
+        :param orderings: The same as in ``enumerate_runs``.
 
-        :param  role: The same as in ``enumerate_runs``.
+        :param role: The same as in ``enumerate_runs``.
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
 
         """
@@ -937,13 +937,15 @@ class FlowsClient(BaseClient):
 
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
         with self.use_temporary_authorizer(authorizer):
-            return self.get(f"/flows/{flow_id}/actions", query_params=params, **kwargs)
+            return self.get(f"/flows/{flow_id}/runs", query_params=params, **kwargs)
 
     def flow_action_update(
         self,
         action_id: str,
-        run_managers: Optional[Iterable[str]] = None,
-        run_monitors: Optional[Iterable[str]] = None,
+        run_managers: Optional[Sequence[str]] = None,
+        run_monitors: Optional[Sequence[str]] = None,
+        tags: Optional[Sequence[str]] = None,
+        label: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -961,18 +963,191 @@ class FlowsClient(BaseClient):
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
+
+        :param tags:
+            A list of tags to apply to the Run.
+
+        :param label:
+            A label to apply to the Run.
         """
+
         payload = {}
         if run_managers is not None:
             payload["run_managers"] = run_managers
         if run_monitors is not None:
             payload["run_monitors"] = run_monitors
+        if tags is not None:
+            payload["tags"] = tags
+        if label is not None:
+            payload["label"] = label
 
         authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
         with self.use_temporary_authorizer(authorizer):
             return self.put(f"/runs/{action_id}", data=payload, **kwargs)
+
+    def update_runs(
+        self,
+        # Filters
+        run_ids: Iterable[str],
+        # Tags
+        add_tags: Optional[Iterable[str]] = None,
+        remove_tags: Optional[Iterable[str]] = None,
+        set_tags: Optional[Iterable[str]] = None,
+        # Run managers
+        add_run_managers: Optional[Iterable[str]] = None,
+        remove_run_managers: Optional[Iterable[str]] = None,
+        set_run_managers: Optional[Iterable[str]] = None,
+        # Run monitors
+        add_run_monitors: Optional[Iterable[str]] = None,
+        remove_run_monitors: Optional[Iterable[str]] = None,
+        set_run_monitors: Optional[Iterable[str]] = None,
+        # Status
+        status: Optional[str] = None,
+        **kwargs,
+    ) -> GlobusHTTPResponse:
+        """
+        Update a Flow Action.
+
+        :param run_ids:
+            A list of Run ID's to query.
+
+        :param set_tags:
+            A list of tags to set on the specified Run ID's.
+
+            If the list is empty, all tags will be deleted from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param add_tags:
+            A list of tags to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param remove_tags:
+            A list of tags to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_tags``, ``add_tags``, and ``remove_tags`` arguments
+                are mutually exclusive.
+
+        :param set_run_managers:
+            A list of Globus Auth URN's to set on the specified Run ID's.
+
+            If the list is empty, all Run managers will be deleted
+            from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param add_run_managers:
+            A list of Globus Auth URN's to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param remove_run_managers:
+            A list of Globus Auth URN's to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_managers``, ``add_run_managers``, and
+                ``remove_run_managers`` arguments are mutually exclusive.
+
+        :param set_run_monitors:
+            A list of Globus Auth URN's to set on the specified Run ID's.
+
+            If the list is empty, all Run monitors will be deleted
+            from the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param add_run_monitors:
+            A list of Globus Auth URN's to add to each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param remove_run_monitors:
+            A list of Globus Auth URN's to remove from each of the specified Run ID's.
+
+            ..  note::
+
+                The ``set_run_monitors``, ``add_run_monitors``, and
+                ``remove_run_monitors`` arguments are mutually exclusive.
+
+        :param status:
+            A status to set for all specified Run ID's.
+
+        :param kwargs:
+            Any additional keyword arguments passed to this method
+            are passed to the Globus BaseClient.
+
+            If an "authorizer" keyword argument is passed,
+            it will be used to authorize the Flow operation.
+            Otherwise, the authorizer_callback defined for the FlowsClient will be used.
+
+        :raises ValueError:
+            If more than one mutually-exclusive argument is provided.
+            For example, if ``set_tags`` and ``add_tags`` are both specified,
+            or if ``add_run_managers`` and ``remove_run_managers`` are both specified.
+        """
+
+        multi_fields = ("tags", "run_managers", "run_monitors")
+        multi_ops = ("add", "remove", "set")
+
+        # Enforce mutual exclusivity of arguments.
+        for field in multi_fields:
+            values = (
+                locals()[f"set_{field}"],
+                locals()[f"add_{field}"],
+                locals()[f"remove_{field}"],
+            )
+            if sum(1 for value in values if value is not None) > 1:
+                raise ValueError(
+                    f"`set_{field}`, `add_{field}`, and `remove_{field}`"
+                    " are mutually exclusive. Only one can be used."
+                )
+
+        # Populate the JSON document to submit.
+        data: dict = {
+            "filters": {
+                "run_ids": list(run_ids),
+            },
+            "set": {},
+            "add": {},
+            "remove": {},
+        }
+        for field in multi_fields:
+            if locals()[f"add_{field}"] is not None:
+                data["add"][field] = locals()[f"add_{field}"]
+            if locals()[f"remove_{field}"] is not None:
+                data["remove"][field] = locals()[f"remove_{field}"]
+            if locals()[f"set_{field}"] is not None:
+                data["set"][field] = locals()[f"set_{field}"]
+        if status is not None:
+            data["set"]["status"] = status
+
+        authorizer = self._get_authorizer_for_flow("", RUN_MANAGE_SCOPE, kwargs)
+        with self.use_temporary_authorizer(authorizer):
+            return self.post("/batch/runs", data=data, **kwargs)
 
     def flow_action_log(
         self,
@@ -989,14 +1164,13 @@ class FlowsClient(BaseClient):
         Retrieve an Action's execution log history for an Action that was launched by a
         specific Flow.
 
-        :param flow_id:  The UUID identifying the Flow which launched the Action
+        :param flow_id: The UUID identifying the Flow which launched the Action
 
         :param flow_scope: The scope associated with the Flow ``flow_id``. If
             not provided, the SDK will attempt to perform an introspection on
             the Flow to determine its scope automatically
 
-        :param flow_action_id: The ID specifying the Action for which's history
-            to query
+        :param flow_action_id: The ID specifying which Action's history to query
 
         :param limit: An integer specifying the maximum number of records for
             the Action's execution history to return.
@@ -1012,7 +1186,7 @@ class FlowsClient(BaseClient):
 
         :param kwargs: Any additional kwargs passed into this method are passed
             onto the Globus BaseClient. If there exists an "authorizer" keyword
-            argument, that gets used to run the Flow operation. Otherwise the
+            argument, that gets used to run the Flow operation. Otherwise, the
             authorizer_callback defined for the FlowsClient will be used.
         """
         authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)

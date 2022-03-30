@@ -24,7 +24,7 @@
       "Next": "CheckTransfer"
     },
     "CheckTransfer": {
-      "Comment": "Examine the status of the Transfer Action. If it failed, branch to a state the reports the error",
+      "Comment": "Examine the status of the Transfer Action. If it failed, branch to a state that reports the error",
       "Type": "Choice",
       "Choices": [
         {
@@ -51,7 +51,7 @@
       "Next": "CheckDelete"
     },
     "CheckDelete": {
-      "Comment": "Examine the status of the Delete Action. If it failed, branch to a state the reports the error",
+      "Comment": "Examine the status of the Delete Action. If it failed, branch to a state that reports the error",
       "Type": "Choice",
       "Choices": [
         {

@@ -516,8 +516,8 @@ Example Flows
 
 .. _example-flow-move:
 
-"Move" Flow
-^^^^^^^^^^^
+"Move (Globus Example)"
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Flow ID: ``9123c20b-61e0-46e8-9469-92c999b6b8f2``.
 
@@ -526,6 +526,8 @@ from a source to a destination and then deleting the directory from the source.
 The entire directory's contents, including files and subdirectories, will be
 moved to the destination and then removed from the source.
 
+Note that this flow requires at least one of the collections to be managed under a Globus subscription.
+
 View the `Move flow definition`_ in the Globus web app.
 (You may need to log in first.)
 
@@ -533,26 +535,31 @@ View the `Move flow definition`_ in the Globus web app.
     :caption: Example Input
 
     {
-        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/source-directory",
-        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/destination-directory",
-        "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1",
-        "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 2 to Globus Tutorial Endpoint 1"
+        "source": {
+          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+          "path": "/~/source-directory"
+        },
+        "destination": {
+          "id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+          "path": "/~/destination-directory"
+        }
+        "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2",
+        "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2"
     }
 
-(Choose different ``source_path`` and ``destination_path`` as needed to run this
-example flow.)
+(Choose different ``source.path`` and ``destination.path`` as needed to run this example flow.)
 
 .. _example-flow-2-stage-transfer:
 
-"2 Stage Transfer" Flow
-^^^^^^^^^^^^^^^^^^^^^^^
+"2 Stage Transfer (Globus Example)"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Flow ID: ``79a4653f-f8da-43b6-a581-5d3b345ad575``.
 
 Transfer from source to destination with an intermediate endpoint in-between.
 Remove from intermediate after completion.
+
+Note that this flow requires at least one of the collections to be managed under a Globus subscription.
 
 View the `2 Stage Transfer flow definition`_ in the Globus web app.
 
@@ -560,18 +567,26 @@ View the `2 Stage Transfer flow definition`_ in the Globus web app.
     :caption: Example Input
 
     {
-        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/~/source-directory",
-        "intermediate_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "intermediate_path": "/~/intermediate-directory-which-will-be-removed",
-        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/destination-directory",
+        "source": {
+          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+          "path": "/~/ep1-example-directory/"
+        },
+        "intermediate": {
+          "id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+          "path": "/~/ep2-intermediate-directory/"
+        },
+        "destination__": {
+          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+          "path": "/~/ep1-duplicate-example-directory/"
+        }
+        "transfer1_label": "This value will be used as a label for the Globus Transfer Task to copy data from the source collection to the intermediate collection",
+        "transfer2_label": "This value will be used as a label for the Globus Transfer Task to copy data from the intermediate collection to the destination collection"
     }
 
 .. _example-flow-transfer-set-permissions:
 
-"Transfer Set Permissions" Flow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"Transfer Set Permissions (Globus Example)"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Flow ID: ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``.
 
