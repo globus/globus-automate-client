@@ -195,6 +195,9 @@ def flow_deploy(
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
+    if input_schema_dict is None:
+        # If no input schema is provided, default to a no-op schema.
+        input_schema_dict = {}
 
     method = functools.partial(
         fc.deploy_flow,
@@ -626,7 +629,7 @@ def flow_run(
             This option can be used multiple times.
             The full collection of tags will associated with the Run.
             """
-        )
+        ),
     ),
     watch: bool = typer.Option(
         False,
@@ -816,8 +819,8 @@ def flow_actions_list(
 @app.command("run-status")
 def flow_action_status(
     action_id: str = typer.Argument(...),
-    flow_id: str = typer.Option(
-        None,
+    flow_id: uuid.UUID = typer.Option(
+        ...,
         help="The ID for the Flow which triggered the Action.",
     ),
     flow_scope: str = typer.Option(
