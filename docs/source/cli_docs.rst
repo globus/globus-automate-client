@@ -241,10 +241,11 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``action-release``: Remove execution history for a particular…
 -  ``action-resume``: Resume a Flow in the INACTIVE state.
 -  ``action-status``: Display the status for a Flow definition’s…
--  ``action-update``: Update a Run on the Flows service
+-  ``action-update``: Update a Run on the Flows service.
+-  ``batch-run-update``: Update metadata and permissions on one or…
 -  ``delete``: Delete a Flow.
 -  ``deploy``: Deploy a new Flow.
--  ``display``: Visualize a local or deployed Flow definition.
+-  ``display``: Visualize a local or deployed Flow…
 -  ``get``: Get a Flow’s definition as it exists on the…
 -  ``lint``: Parse and validate a Flow definition by…
 -  ``list``: List Flows for which you have access.
@@ -256,7 +257,7 @@ GLOBUS_AUTOMATE_FLOWS_ENDPOINT environment variable.
 -  ``run-release``: Remove execution history for a particular…
 -  ``run-resume``: Resume a Flow in the INACTIVE state.
 -  ``run-status``: Display the status for a Flow definition’s…
--  ``run-update``: Update a Run on the Flows service
+-  ``run-update``: Update a Run on the Flows service.
 -  ``update``: Update a Flow.
 
 ``globus-automate flow action-cancel``
@@ -493,7 +494,8 @@ Display the status for a Flow definition’s particular invocation.
 
 **Options**:
 
--  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+-  ``--flow-id UUID``: The ID for the Flow which triggered the Action.
+   [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
@@ -505,33 +507,116 @@ Display the status for a Flow definition’s particular invocation.
 ``globus-automate flow action-update``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Update a Run on the Flows service
+Update a Run on the Flows service.
 
 **Usage**:
 
 .. code:: console
 
-   $ globus-automate flow action-update [OPTIONS] ACTION_ID
+   $ globus-automate flow action-update [OPTIONS] RUN_ID
 
 **Arguments**:
 
--  ``ACTION_ID``: [required]
+-  ``RUN_ID``: [required]
 
 **Options**:
 
 -  ``--run-manager TEXT``: A principal which may change the execution of
    the Run.The principal value is the user’s Globus Auth username or
    their identity UUID in the form urn:globus:auth:identity:. A Globus
-   Group may also be used using the form urn:globus:groups:id:.
-   [repeatable]
+   Group may also be used using the form urn:globus:groups:id:. Specify
+   an empty string once to erase all Run managers. [repeatable]
 -  ``--run-monitor TEXT``: A principal which may monitor the execution
    of the Run.The principal value is the user’s Globus Auth username or
    their identity UUID in the form urn:globus:auth:identity:. A Globus
    Group may also be used using the form urn:globus:groups:id:.
    [repeatable]
+-  ``--tag TEXT``: A tag to associate with the Run. If specified, the
+   existing tags on the Run will be replaced with the list of tags
+   specified here. Specify an empty string once to erase all tags.
+   [repeatable]
+-  ``--label TEXT``: A label to associate with the Run.
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--help``: Show this message and exit.
+
+``globus-automate flow batch-run-update``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update metadata and permissions on one or more Runs.
+
+ Modifying lists of values =========================
+
+Most options support set, add, and remove operations.
+
+The “add” option variants will add the specified value to whatever is
+set on each affected Run. For example, if one Run has a “star” tag and
+another has a “circle” tag, ``--add-tag square`` will result in a Run
+with “star” and “square” tags, and the other Run will have “circle” and
+“square” tags.
+
+The “remove” option variants will remove the specified value from
+whatever is set on each affected Run. There will not be an error if the
+value is not set on a Run. For example, if one Run has a “star” tag and
+another has a “circle” tag, ``--remove-tag star`` will result in a Run
+with no tags while the other still has a “circle” tag.
+
+The “set” option variants will overwrite the metadata and permissions
+currently set on all affected Runs. For example, ``--set-tag example``
+will standardize all affected Runs so that they have just one tag:
+“example”.
+
+To remove all values on all affected Runs, use the “set” variant of an
+option with an empty string. For example, to erase all Run monitors, use
+``--set-run-monitors ""``.
+
+All options with “set”, “add”, and “remove” variants can be used
+multiple times. However, only one variation of an option can be
+specified at a time. For example, ``--set-tag`` and ``--add-tag`` cannot
+be combined in the same command, and ``--set-run-manager`` and
+``--add-run-manager`` cannot be combined. It is fine to combine
+``--add-tag`` and ``--remove-run-manager``.
+
+ Modifying roles ===============
+
+Run managers and monitors must be specified in one of these forms:
+
+ \* A user’s Globus Auth username \* A user’s identity UUID in the form
+urn:globus:auth:identity: \* A group’s identity UUID in the form
+urn:globus:groups:id:
+
+**Usage**:
+
+.. code:: console
+
+   $ globus-automate flow batch-run-update [OPTIONS] RUN_IDS...
+
+**Arguments**:
+
+-  ``RUN_IDS...``: [required]
+
+**Options**:
+
+-  ``--set-run-manager TEXT``: Set a principal on affected Runs that can
+   change the Run execution.
+-  ``--add-run-manager TEXT``: Add a principal to affected Runs that can
+   change the Run execution.
+-  ``--remove-run-manager TEXT``: Remove a principal from affected Runs
+   that can change the Run execution.
+-  ``--set-run-monitor TEXT``: Set a principal on affected Runs that can
+   monitor Run execution.
+-  ``--add-run-monitor TEXT``: Add a principal to affected Runs that can
+   monitor Run execution.
+-  ``--remove-run-monitor TEXT``: Remove a principal from affected Runs
+   that can monitor Run execution.
+-  ``--set-tag TEXT``: A tag to set on the specified Runs.
+-  ``--add-tag TEXT``: A tag to add to the affected Runs.
+-  ``--remove-tag TEXT``: A tag to remove from the affected Runs.
+-  ``--status TEXT``: Set the status of the affected Runs.
+
+Currently, “cancel” is the only valid value. \* ``-v, --verbose``: Run
+with increased verbosity \* ``-f, --format [json|yaml]``: Output display
+format. [default: json] \* ``--help``: Show this message and exit.
 
 ``globus-automate flow delete``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -612,9 +697,9 @@ Deploy a new Flow.
 ``globus-automate flow display``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Visualize a local or deployed Flow definition. If providing a Flow's ID,
-you must have either created the Flow or be present in the Flow's
-"flow_viewers" list to view it.
+Visualize a local or deployed Flow definition. If providing a Flow’s ID,
+You must have either created the Flow or be present in the Flow’s
+“flow_viewers” list to view it.
 
 **Usage**:
 
@@ -755,12 +840,14 @@ the Flow. You must be in the Flow’s “flow_starters” list.
    is enabled then the default is ‘table’, otherwise ‘json’ is the
    default.
 -  ``-l, --label TEXT``: Label to mark this run. [required]
--  ``-w, --watch``: Continuously poll this Action until it reaches a
-   completed state. If enabled the default output format is ‘table’.
-   [default: False]
--  ``--dry-run``: Do a dry run with your input to this flow to test the
-   input without actually running anything. [default: False]
--  ``--help``: Show this message and exit.
+-  ``--tag TEXT``: A tag to associate with this Run.
+
+This option can be used multiple times. The full collection of tags will
+associated with the Run. \* ``-w, --watch``: Continuously poll this
+Action until it reaches a completed state. If enabled the default output
+format is ‘table’. [default: False] \* ``--dry-run``: Do a dry run with
+your input to this flow to test the input without actually running
+anything. [default: False] \* ``--help``: Show this message and exit.
 
 ``globus-automate flow run-cancel``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -996,7 +1083,8 @@ Display the status for a Flow definition’s particular invocation.
 
 **Options**:
 
--  ``--flow-id TEXT``: The ID for the Flow which triggered the Action.
+-  ``--flow-id UUID``: The ID for the Flow which triggered the Action.
+   [required]
 -  ``--flow-scope TEXT``: The scope this Flow uses to authenticate
    requests.
 -  ``-w, --watch``: Continuously poll this Action until it reaches a
@@ -1008,30 +1096,35 @@ Display the status for a Flow definition’s particular invocation.
 ``globus-automate flow run-update``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Update a Run on the Flows service
+Update a Run on the Flows service.
 
 **Usage**:
 
 .. code:: console
 
-   $ globus-automate flow run-update [OPTIONS] ACTION_ID
+   $ globus-automate flow run-update [OPTIONS] RUN_ID
 
 **Arguments**:
 
--  ``ACTION_ID``: [required]
+-  ``RUN_ID``: [required]
 
 **Options**:
 
 -  ``--run-manager TEXT``: A principal which may change the execution of
    the Run.The principal value is the user’s Globus Auth username or
    their identity UUID in the form urn:globus:auth:identity:. A Globus
-   Group may also be used using the form urn:globus:groups:id:.
-   [repeatable]
+   Group may also be used using the form urn:globus:groups:id:. Specify
+   an empty string once to erase all Run managers. [repeatable]
 -  ``--run-monitor TEXT``: A principal which may monitor the execution
    of the Run.The principal value is the user’s Globus Auth username or
    their identity UUID in the form urn:globus:auth:identity:. A Globus
    Group may also be used using the form urn:globus:groups:id:.
    [repeatable]
+-  ``--tag TEXT``: A tag to associate with the Run. If specified, the
+   existing tags on the Run will be replaced with the list of tags
+   specified here. Specify an empty string once to erase all tags.
+   [repeatable]
+-  ``--label TEXT``: A label to associate with the Run.
 -  ``-v, --verbose``: Run with increased verbosity
 -  ``-f, --format [json|yaml]``: Output display format. [default: json]
 -  ``--help``: Show this message and exit.
