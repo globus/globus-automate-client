@@ -9,3 +9,4 @@ Development
 -   Temporarily remove typer-cli as a listed development dependency.
     It is still needed when generating the CLI documentation.
 -   Add safety as a test environment for local and CI testing.
+-   Test against Python 3.10 in CI.
