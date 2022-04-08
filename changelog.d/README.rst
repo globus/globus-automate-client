@@ -25,6 +25,4 @@ The fragments are collected and collated during the release process using this c
 
 ..  code-block:: shell
 
-    scriv collect --version $(poetry version -s)
-
-(`scriv issue #44 <https://github.com/nedbat/scriv/issues/44>`_ discusses how to read the version directly from ``pyproject.toml``.)
+    scriv collect

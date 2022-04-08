@@ -1241,7 +1241,7 @@ docutils = ">=0.7"
 
 [[package]]
 name = "scriv"
-version = "0.12.0"
+version = "0.14.0"
 description = "Scriv changelog management tool"
 category = "dev"
 optional = false
@@ -1664,7 +1664,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.2"
-content-hash = "43607feb756b228dfa4c34794be540e5c91e1e7d82e0545129601c75d8c84817"
+content-hash = "4ea47e96726263361074e59660a497463de76693d1d93392b9a841ca2d0ab80a"
 
 [metadata.files]
 alabaster = [
@@ -2332,8 +2332,8 @@ rstcheck = [
     {file = "rstcheck-3.3.1.tar.gz", hash = "sha256:92c4f79256a54270e0402ba16a2f92d0b3c15c8f4410cb9c57127067c215741f"},
 ]
 scriv = [
-    {file = "scriv-0.12.0-py2.py3-none-any.whl", hash = "sha256:62d9d91466a6c629fb72964290906eba1331d4d53c219e95c57f050b62d30ca5"},
-    {file = "scriv-0.12.0.tar.gz", hash = "sha256:0c1b055afea1773d50f13728f301dd4aa0d35e68be4e2f1e7373b51ec225de0a"},
+    {file = "scriv-0.14.0-py2.py3-none-any.whl", hash = "sha256:8236f8019f6b3ca407d1ce0992751e5b2498545135e32fa3e038eb12fcc2ab71"},
+    {file = "scriv-0.14.0.tar.gz", hash = "sha256:8c2523762a69a08c9cc44a99e747d4a0921b493f7c84c4b0d7c370a7b2044a61"},
 ]
 send2trash = [
     {file = "Send2Trash-1.8.0-py3-none-any.whl", hash = "sha256:f20eaadfdb517eaca5ce077640cb261c7d2698385a6a0f072a4a5447fd49fa08"},
