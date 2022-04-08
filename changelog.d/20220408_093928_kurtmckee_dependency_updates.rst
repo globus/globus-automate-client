@@ -8,3 +8,4 @@ Development
     scriv is a development dependency.
 -   Temporarily remove typer-cli as a listed development dependency.
     It is still needed when generating the CLI documentation.
+-   Add safety as a test environment for local and CI testing.
