@@ -10,6 +10,14 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.14.1 — 2022-04-13
+===================
+
+Bugfixes
+--------
+
+- Changed text on improper token cache file condition so that it doesn't reference the Timer CLI
+
 0.14.0 — 2022-03-25
 ===================
 
