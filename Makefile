@@ -17,7 +17,6 @@ help:
 	@echo "  help:      Show this helptext"
 	@echo ""
 	@echo "  install:   Setup repo, install build dependencies"
-	@echo "             touch a flagfile used by other make targets"
 	@echo ""
 	@echo "  test:      [install] + [lint] and run the full suite of tests"
 	@echo ""
@@ -25,33 +24,25 @@ help:
 	@echo ""
 	@echo "  clean:     Typical cleanup, also scrubs venv"
 
-poetry.lock: pyproject.toml
-	$(POETRY) lock
-
-lock: poetry.lock
-
-install: poetry.lock
-	$(POETRY) install --no-dev
+.PHONY: install
+install:
+	$(POETRY) install --no-dev --remove-untracked
 
 develop: poetry.lock
-	$(POETRY) install
-
-requirements.txt: poetry.lock
-	 $(POETRY) export -f requirements.txt -o $@
+	$(POETRY) install --remove-untracked
 
 lint: develop
 	$(POETRY) run tox -e isort,black,flake8,mypy,docs
 
-# formatting is black
+.PHONY: autoformat
 autoformat: develop
 	$(POETRY) run isort .
-	$(POETRY) run black globus_automate_client/
+	$(POETRY) run black .
 
-# typecheck with mypy
 typecheck: develop
 	$(POETRY) run tox -e mypy
 
-lint_all: develop format lint
+lint_all: develop autoformat lint
 
 test: develop
 	$(POETRY) run tox

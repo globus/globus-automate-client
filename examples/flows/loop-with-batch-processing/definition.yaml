@@ -1,0 +1,71 @@
+# Process an unknown quantity of items in batches.
+# The number of items in each batch is configurable at runtime.
+#
+# The flow defined below gets a list of files from the
+# Globus Tutorial Endpoint 1 and collects the list of files
+# into batches that can be processed in predictable quantities.
+#
+# The flow accepts a single input argument: `step`.
+#
+# Note that a `state_manager` variable is used so that a ResultPath
+# can be specified when evaluating the `i` and `batches` state variables.
+#
+# Example
+# =======
+#
+# If you create 10 files in your home directory on Tutorial Endpoint 1
+# named "a.txt" through "j.txt" and run this flow with an input of:
+#
+#   {"step": 3}
+#
+# then the files will be batched into groups of 3 similar to this:
+#
+#   [
+#     ["1.txt", "2.txt", "3.txt"],
+#     ["4.txt", "5.txt", "6.txt"],
+#     ["7.txt", "8.txt", "9.txt"],
+#     ["10.txt"]
+#   ]
+#
+StartAt: "setup"
+States:
+  setup:
+    Type: "Pass"
+    Parameters:
+      state:
+        i: 0
+        batches: []
+      "step.$": "$.step"
+    Next: "ls"
+  ls:
+    Type: "Action"
+    ActionUrl: "https://actions.globus.org/transfer/ls"
+    Parameters:
+      endpoint_id: "ddb59aef-6d04-11e5-ba46-22000b92c6ec"
+      path: "/~/"
+    ResultPath: "$.ls"
+    Next: "loop"
+  loop:
+    Type: "Choice"
+    Choices:
+    - Variable: "$.state.i"
+      NumericLessThanPath: "$.ls.details.length"
+      Next: "process-batch"
+    Default: "done"
+  process-batch:
+    Type: "ExpressionEval"
+    Parameters:
+      "i.$": "$.state.i"
+      "batches.=": "state.batches + [[file.name for file in ls.details.DATA[state.i:state.i+step]]]"
+    ResultPath: "$.state"
+    Next: "increment-batch"
+  increment-batch:
+    Type: "ExpressionEval"
+    Parameters:
+      "i.=": "state.i + step"
+      "batches.$": "$.state.batches"
+    ResultPath: "$.state"
+    Next: "loop"
+  done:
+    Type: "Pass"
+    End: true
