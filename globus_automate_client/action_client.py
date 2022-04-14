@@ -1,6 +1,6 @@
 import uuid
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Type, TypeVar, Union
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from globus_sdk import BaseClient, GlobusHTTPResponse
 from globus_sdk.authorizers import GlobusAuthorizer
@@ -207,11 +207,13 @@ class ActionClient(BaseClient):
             >>> ac = ActionClient.new_client(url, auth)
             >>> print(ac.run({"echo_string": "Hello from SDK"}))
         """
+        verify_ssl = urlparse(action_url).hostname not in {"localhost", "127.0.0.1"}
         return cls(
             app_name="Globus Automate SDK - ActionClient",
             base_url=action_url,
             authorizer=authorizer,
             transport_params={
                 "http_timeout": http_timeout,
+                "verify_ssl": verify_ssl,
             },
         )

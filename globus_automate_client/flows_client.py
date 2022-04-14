@@ -16,7 +16,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from urllib.parse import quote, urljoin
+from urllib.parse import quote, urljoin, urlparse
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -1241,6 +1241,7 @@ class FlowsClient(BaseClient):
         """
         if base_url is None:
             base_url = _get_flows_base_url_for_environment()
+        verify_ssl = urlparse(base_url).hostname not in {"localhost", "127.0.0.1"}
         return cls(
             client_id,
             authorizer_callback,
@@ -1249,5 +1250,6 @@ class FlowsClient(BaseClient):
             authorizer=authorizer,
             transport_params={
                 "http_timeout": http_timeout,
+                "verify_ssl": verify_ssl,
             },
         )
