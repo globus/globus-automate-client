@@ -15,7 +15,6 @@ from globus_automate_client.cli.helpers import (
     verbosity_option,
 )
 from globus_automate_client.cli.rich_helpers import RequestRunner
-from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_action_client
 
 app = typer.Typer(short_help="Manage Globus Automate Actions")
@@ -110,24 +109,23 @@ def action_run(
     method = functools.partial(
         ac.run, parsed_body, request_id, manage_by, monitor_by, label=label
     )
-    with live_content:
-        result = RequestRunner(
+    result = RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        run_once=True,
+    ).run_and_render()
+    if not result.is_api_error and watch:
+        action_id = result.data.get("action_id")
+        method = functools.partial(ac.status, action_id)
+        RequestRunner(
             method,
             format=output_format,
             verbose=verbose,
             watch=watch,
-            run_once=True,
+            run_once=False,
         ).run_and_render()
-        if not result.is_api_error and watch:
-            action_id = result.data.get("action_id")
-            method = functools.partial(ac.status, action_id)
-            RequestRunner(
-                method,
-                format=output_format,
-                verbose=verbose,
-                watch=watch,
-                run_once=False,
-            ).run_and_render()
 
 
 @app.command("status")
@@ -159,10 +157,9 @@ def action_status(
     """
     ac = create_action_client(action_url, action_scope)
     method = functools.partial(ac.status, action_id)
-    with live_content:
-        RequestRunner(
-            method, format=output_format, verbose=verbose, watch=watch, run_once=False
-        ).run_and_render()
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=watch, run_once=False
+    ).run_and_render()
 
 
 @app.command("resume")
@@ -227,13 +224,12 @@ def action_resume(
         run_once=True,
     ).run_and_render()
     if not result.is_api_error and watch:
-        with live_content:
-            RequestRunner(
-                functools.partial(ac.status, action_id),
-                format=output_format,
-                verbose=verbose,
-                watch=watch,
-            ).run_and_render()
+        RequestRunner(
+            functools.partial(ac.status, action_id),
+            format=output_format,
+            verbose=verbose,
+            watch=watch,
+        ).run_and_render()
 
 
 @app.command("cancel")

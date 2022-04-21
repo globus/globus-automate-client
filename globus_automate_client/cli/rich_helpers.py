@@ -19,7 +19,7 @@ from typing_extensions import Literal
 from .auth import get_authorizers_for_scopes
 from .constants import OutputFormat
 from .helpers import get_http_details
-from .rich_rendering import cli_content
+from .rich_rendering import cli_content, live_content
 
 _title_max_width = 25
 _uuid_min_width = 36
@@ -432,10 +432,15 @@ class RequestRunner:
         self.render(Result(globus_resp))
 
     def run_and_render(self) -> Result:
-        while True:
-            result = self.run()
-            self.render(result)
-            if not self.watch or self.run_once or result.completed:
-                break
-            sleep(2)
-        return result
+        with live_content:
+            while True:
+                # The .run() method may need access to STDOUT to display an auth URL.
+                # Pause the live content rendering to prevent STDOUT conflicts.
+                live_content.pause_live()
+                result = self.run()
+                live_content.resume_live()
+                self.render(result)
+                if not self.watch or self.run_once or result.completed:
+                    break
+                sleep(2)
+            return result

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+import threading
 
 from rich.console import RenderGroup
 from rich.live import Live
@@ -23,22 +23,29 @@ class PauseableLive(Live):
     stdout when we're attempting to get input from the user.
     """
 
-    live_refresher: Optional[Callable] = None
+    lock = threading.RLock()
+
+    def __enter__(self):
+        super().__enter__()
+        original_refresh = self._refresh_thread.live.refresh
+
+        def replacement_refresh():
+            with self.lock:
+                return original_refresh()
+
+        self._refresh_thread.live.refresh = replacement_refresh
 
     def pause_live(self):
+        """Pause live rendering.
+
+        This is accomplished by acquiring the lock that the refresh thread depends on.
+        Although it's a re-entrant lock, only the main thread is able to release it.
         """
-        Set the Live thread's refresh method to temporarily do nothing.
-        """
-        if self._refresh_thread is not None:
-            self.live_refresher = self._refresh_thread.live.refresh
-            self._refresh_thread.live.refresh = lambda *args: None
+        self.lock.acquire()
 
     def resume_live(self):
-        """
-        Restore the Live thread's refresh method allowing it to do its thing.
-        """
-        if self.live_refresher is not None:
-            self._refresh_thread.live.refresh = self.live_refresher
+        """Unpause live rendering."""
+        self.lock.release()
 
 
 cli_content = Content()

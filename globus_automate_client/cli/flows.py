@@ -39,7 +39,6 @@ from globus_automate_client.cli.rich_helpers import (
     RunListDisplayFields,
     RunLogDisplayFields,
 )
-from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.client_helpers import create_flows_client
 from globus_automate_client.flows_client import (
     RUN_STATUS_SCOPE,
@@ -471,14 +470,13 @@ def flow_list(
         orderings=parsed_orderings,
         **role_param,
     )
-    with live_content:
-        RequestRunner(
-            method,
-            format=output_format,
-            verbose=verbose,
-            watch=watch,
-            fields=FlowListDisplayFields,
-        ).run_and_render()
+    RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        fields=FlowListDisplayFields,
+    ).run_and_render()
 
 
 @app.command("display")
@@ -677,31 +675,30 @@ def flow_run(
         manage_by=manage_by,
         tags=tags,
     )
-    with live_content:
-        result = RequestRunner(
-            method,
-            format=output_format,
-            verbose=verbose,
-            watch=watch,
-            fields=RunLogDisplayFields,
-            run_once=True,
-        ).run_and_render()
+    result = RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        fields=RunLogDisplayFields,
+        run_once=True,
+    ).run_and_render()
 
-        if not result.is_api_error and watch:
-            action_id = result.data.get("action_id")
-            return flow_action_log(
-                action_id=action_id,
-                flow_id=flow_id,
-                flow_scope=flow_scope,
-                reverse=False,
-                limit=100,
-                marker=None,
-                per_page=50,
-                output_format=output_format,
-                watch=watch,
-                flows_endpoint=flows_endpoint,
-                verbose=verbose,
-            )
+    if not result.is_api_error and watch:
+        action_id = result.data.get("action_id")
+        return flow_action_log(
+            action_id=action_id,
+            flow_id=flow_id,
+            flow_scope=flow_scope,
+            reverse=False,
+            limit=100,
+            marker=None,
+            per_page=50,
+            output_format=output_format,
+            watch=watch,
+            flows_endpoint=flows_endpoint,
+            verbose=verbose,
+        )
 
 
 @app.command("action-list")
@@ -805,14 +802,13 @@ def flow_actions_list(
         orderings=parsed_orderings,
         **role_param,
     )
-    with live_content:
-        RequestRunner(
-            callable,
-            format=output_format,
-            verbose=verbose,
-            watch=watch,
-            fields=RunListDisplayFields,
-        ).run_and_render()
+    RequestRunner(
+        callable,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        fields=RunListDisplayFields,
+    ).run_and_render()
 
 
 @app.command("action-status")
@@ -844,10 +840,9 @@ def flow_action_status(
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     method = functools.partial(fc.flow_action_status, flow_id, flow_scope, action_id)
-    with live_content:
-        RequestRunner(
-            method, format=output_format, verbose=verbose, watch=watch
-        ).run_and_render()
+    RequestRunner(
+        method, format=output_format, verbose=verbose, watch=watch
+    ).run_and_render()
 
 
 @app.command("action-resume")
@@ -904,23 +899,20 @@ def flow_action_resume(
             if status == "INACTIVE" and code == "ConsentRequired":
                 flow_scope = details.get("required_scope")
 
-    with live_content:
-        result = RequestRunner(
-            functools.partial(fc.flow_action_resume, flow_id, flow_scope, action_id),
+    result = RequestRunner(
+        functools.partial(fc.flow_action_resume, flow_id, flow_scope, action_id),
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        run_once=True,
+    ).run_and_render()
+    if not result.is_api_error and watch:
+        RequestRunner(
+            functools.partial(fc.flow_action_status, flow_id, flow_scope, action_id),
             format=output_format,
             verbose=verbose,
             watch=watch,
-            run_once=True,
         ).run_and_render()
-        if not result.is_api_error and watch:
-            RequestRunner(
-                functools.partial(
-                    fc.flow_action_status, flow_id, flow_scope, action_id
-                ),
-                format=output_format,
-                verbose=verbose,
-                watch=watch,
-            ).run_and_render()
 
 
 @app.command("action-release")
@@ -1063,21 +1055,20 @@ def flow_action_log(
         fields=RunLogDisplayFields,
         detector=LogCompletionDetector,
     )
-    with live_content:
-        if output_format in {
-            RunLogOutputFormat.json,
-            RunLogOutputFormat.yaml,
-            RunLogOutputFormat.table,
-        }:
-            rr.run_and_render()
+    if output_format in {
+        RunLogOutputFormat.json,
+        RunLogOutputFormat.yaml,
+        RunLogOutputFormat.table,
+    }:
+        rr.run_and_render()
+    else:
+        result = rr.run()
+        if not result.is_api_error:
+            flow_def = fc.get_flow(flow_id)
+            output_format.visualize(result.result, flow_def)
         else:
-            result = rr.run()
-            if not result.is_api_error:
-                flow_def = fc.get_flow(flow_id)
-                output_format.visualize(result.result, flow_def)
-            else:
-                rr.format = RunLogOutputFormat.json
-                rr.render(result)
+            rr.format = RunLogOutputFormat.json
+            rr.render(result)
 
 
 @app.command("action-enumerate")
@@ -1167,14 +1158,13 @@ def flow_action_enumerate(
         orderings=parsed_orderings,
         **role_param,
     )
-    with live_content:
-        RequestRunner(
-            method,
-            format=output_format,
-            verbose=verbose,
-            watch=watch,
-            fields=RunListDisplayFields,
-        ).run_and_render()
+    RequestRunner(
+        method,
+        format=output_format,
+        verbose=verbose,
+        watch=watch,
+        fields=RunListDisplayFields,
+    ).run_and_render()
 
 
 @app.command("action-update")
