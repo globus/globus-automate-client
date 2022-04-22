@@ -35,7 +35,7 @@ python = "^3.6.2"
 globus-sdk = "^3.1"
 graphviz = "^0.12"
 importlib-metadata = {version = "^4.8.1", python = "<3.8"}
-typer = {extras = ["all"], version = "^0.3.0"}
+typer = {extras = ["all"], version = "^0.4.1"}
 jsonschema = "^3.2.0"
 PyYAML = "^5.3.1"
 rich = "^9.12.2"
@@ -49,7 +49,12 @@ sphinx = "^3.2.1"
 rstcheck = "^3.3.1"
 furo = "^2021.4.11-beta.34"
 sphinx-copybutton = "^0.3.1"
-typer-cli = "^0.0.12"
+# ----
+# typer-cli is temporarily disabled due to its dependencies.
+# When it is compatible with our typer dependency, update the dev dependency here
+# and modify the Makefile's "docs" target to remove the pip install/uninstall calls.
+# typer-cli = "^0.0.12"
+# ----
 pypandoc = "^1.5"
 importmagic = "^0.1.7"
 epc = "^0.0.5"
@@ -58,7 +63,7 @@ black = {extras = ["jupyter"], version = "^21.12b0"}
 mypy = "^0.910"
 types-PyYAML = "^5.4.6"
 types-requests = "^2.25.6"
-scriv = {extras = ["toml"], version = "^0.12.0"}
+scriv = {extras = ["toml"], version = "^0.14.0"}
 tox = "^3.24.4"
 pre-commit = "^2.15.0"
 responses = "^0.14.0"
@@ -82,6 +87,7 @@ ignore_missing_imports = true
 
 [tool.scriv]
 categories = ["Features", "Bugfixes", "Documentation"]
+version = "literal: pyproject.toml: tool.poetry.version"
 
 [tool.coverage.run]
 branch = true

@@ -4,7 +4,7 @@ VIRTUAL_ENV = .venv
 PYTHON_VERSION ?= python3.6
 POETRY ?= poetry
 
-.PHONY: all lock test build clean help lint develop format typecheck lint_all api-docs docs
+.PHONY: all test build clean help lint develop format typecheck lint_all api-docs docs
 
 # settings from .pytest.cfg file
 PYTEST_OPTS?=-c .pytest.cfg
@@ -28,7 +28,7 @@ help:
 install:
 	$(POETRY) install --no-dev --remove-untracked
 
-develop: poetry.lock
+develop:
 	$(POETRY) install --remove-untracked
 
 lint: develop
@@ -42,7 +42,7 @@ autoformat: develop
 typecheck: develop
 	$(POETRY) run tox -e mypy
 
-lint_all: develop autoformat lint
+lint_all: develop lint
 
 test: develop
 	$(POETRY) run tox
@@ -77,7 +77,17 @@ clean:
 
 
 docs: develop
+	# ----
+	# TEMPORARY HACK: typer-cli depends on an old version of typer.
+	# We install it temporarily to support generating the CLI docs.
+	# Remove the pip call when typer-cli can be reinstated as a dev dependency.
+	poetry run pip install --no-deps typer-cli
+	# ----
 	poetry run typer globus_automate_client/cli/main.py utils docs --name "globus-automate" --output cli_docs.md;
 	pandoc --from markdown --to rst -o docs/source/cli_docs.rst cli_docs.md;
 	rm cli_docs.md;
 	poetry run make --directory=docs html
+	# ----
+	# Remove the pip call when typer-cli can be reinstated as a dev dependency.
+	poetry run pip uninstall --yes typer-cli
+	# ----

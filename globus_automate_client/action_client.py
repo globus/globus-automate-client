@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote, urlparse
@@ -10,11 +11,34 @@ from .helpers import merge_keywords
 _ActionClient = TypeVar("_ActionClient", bound="ActionClient")
 
 
+PRODUCTION_ACTIONS_BASE_URL = "https://actions.globus.org"
+
+_ENVIRONMENT_ACTIONS_BASE_URLS = {
+    None: PRODUCTION_ACTIONS_BASE_URL,
+    "prod": PRODUCTION_ACTIONS_BASE_URL,
+    "production": PRODUCTION_ACTIONS_BASE_URL,
+    "sandbox": "https://sandbox.actions.automate.globus.org",
+    "integration": "https://integration.actions.automate.globus.org",
+    "test": "https://test.actions.automate.globus.org",
+    "preview": "https://preview.actions.automate.globus.org",
+    "staging": "https://staging.actions.automate.globus.org",
+}
+
+
+def _get_actions_base_url_for_environment():
+    environ = os.environ.get("GLOBUS_SDK_ENVIRONMENT")
+    if environ not in _ENVIRONMENT_ACTIONS_BASE_URLS:
+        raise ValueError(f"Unknown value for GLOBUS_SDK_ENVIRONMENT: {environ}")
+    return _ENVIRONMENT_ACTIONS_BASE_URLS[environ]
+
+
 class ActionClient(BaseClient):
     base_path: str = ""
     service_name: str = "actions"
 
     def __init__(self, *args, **kwargs):
+        if "base_url" not in kwargs:
+            kwargs["base_url"] = _get_actions_base_url_for_environment()
         super().__init__(*args, **kwargs)
         self._action_scope: Optional[str] = None
 

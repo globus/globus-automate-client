@@ -26,7 +26,7 @@ def test_action_scope(ac, mocked_responses, data, expected):
 
     mocked_responses.add(
         method=responses.GET,
-        url="https://actions.api.globus.org/",
+        url=action_client.PRODUCTION_ACTIONS_BASE_URL,
         json=data,
     )
     assert ac._action_scope is None
@@ -48,7 +48,7 @@ def test_trivial_methods(ac, mocked_responses, name, method):
     """Validate the URL used with trivial requests."""
 
     action_id = "bogus"
-    url = f"https://actions.api.globus.org/{action_id}/{name}"
+    url = f"{action_client.PRODUCTION_ACTIONS_BASE_URL}/{action_id}/{name}"
     mocked_responses.add(method=method, url=url)
     getattr(ac, name)(action_id)  # Dynamically get and call the method by name
     assert mocked_responses.calls[0].request.url == url
@@ -58,7 +58,7 @@ def test_trivial_methods(ac, mocked_responses, name, method):
 def test_run_with_request_id(ac, mocked_responses, monkeypatch, request_id):
     """Validate that run() uses a specified request ID or generates a new one."""
 
-    url = "https://actions.api.globus.org/run"
+    url = f"{action_client.PRODUCTION_ACTIONS_BASE_URL}/run"
     mocked_responses.add(method="POST", url=url)
     monkeypatch.setattr(uuid, "uuid4", lambda: "system")
     ac.run(body={}, request_id=request_id)
@@ -72,7 +72,7 @@ def test_run_with_request_id(ac, mocked_responses, monkeypatch, request_id):
 def test_run_with_force_path(ac, mocked_responses, force_path):
     """Validate that run() uses *force_path*, if specified."""
 
-    url = f"https://actions.api.globus.org{force_path or '/run'}"
+    url = f"{action_client.PRODUCTION_ACTIONS_BASE_URL}{force_path or '/run'}"
     mocked_responses.add(method="POST", url=url)
     ac.run(body={}, force_path=force_path)
     assert mocked_responses.calls[0].request.url == url
@@ -94,7 +94,9 @@ def test_run_with_force_path(ac, mocked_responses, force_path):
 def test_run_with_managers_and_monitors(ac, mocked_responses, kwargs, expected):
     """Validate that run() uses managers and monitors, including aliases."""
 
-    mocked_responses.add(method="POST", url="https://actions.api.globus.org/run")
+    mocked_responses.add(
+        method="POST", url=f"{action_client.PRODUCTION_ACTIONS_BASE_URL}/run"
+    )
     ac.run(body={}, **kwargs)
     data = json.loads(mocked_responses.calls[0].request.body.decode("utf8"))
     for key in ("monitor_by", "manage_by"):
@@ -109,7 +111,7 @@ def test_log_reverse_order(ac, mocked_responses, reverse_order, expected):
     """Validate the *reverse_order* parameter is managed correctly."""
 
     action_id = "bogus"
-    url = f"https://actions.api.globus.org/{action_id}/log"
+    url = f"{action_client.PRODUCTION_ACTIONS_BASE_URL}/{action_id}/log"
     mocked_responses.add(method="GET", url=url, json={})
     ac.log(action_id, reverse_order=reverse_order)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
@@ -130,7 +132,7 @@ def test_log_pagination(ac, mocked_responses, marker, per_page, expected):
     """Validate the *marker* and *per_page* parameters interact correctly."""
 
     action_id = "bogus"
-    url = f"https://actions.api.globus.org/{action_id}/log"
+    url = f"{action_client.PRODUCTION_ACTIONS_BASE_URL}/{action_id}/log"
     mocked_responses.add(method="GET", url=url, json={})
     ac.log(action_id, marker=marker, per_page=per_page)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query

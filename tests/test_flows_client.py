@@ -148,8 +148,8 @@ def test_validate_input_schema_multiple_failures():
 @pytest.mark.parametrize(
     "value, expected",
     (
-        (None, "https://flows.globus.org"),
-        ("prod", "https://flows.globus.org"),
+        (None, flows_client.PROD_FLOWS_BASE_URL),
+        ("prod", flows_client.PROD_FLOWS_BASE_URL),
         ("bogus", ValueError),
     ),
 )
@@ -167,7 +167,7 @@ def test_get_flows_base_url_for_environment_known(monkeypatch, value, expected):
 def test_deploy_flow_data_construction(fc, mocked_responses):
     """Verify the flow JSON data is constructed correctly."""
 
-    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     expected: Dict[str, Union[str, Dict[str, Any]]] = {
         "definition": VALID_FLOW_DEFINITION,
         "input_schema": {"Comment": "flow-input-schema"},
@@ -207,7 +207,7 @@ def test_deploy_flow_only_exclude_input_schema_if_none(
 ):
     """Verify the *input_schema* is not excluded even if it's false-y."""
 
-    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.deploy_flow(
         # Included arguments
         flow_definition=VALID_FLOW_DEFINITION,
@@ -231,7 +231,7 @@ def test_deploy_flow_only_exclude_input_schema_if_none(
 def test_deploy_flow_dry_run(fc, mocked_responses, dry_run, path):
     """Verify the *dry_run* parameter affects the URL path."""
 
-    url = f"https://flows.api.globus.org/{path}"
+    url = f"{flows_client.PROD_FLOWS_BASE_URL}/{path}"
     mocked_responses.add("POST", url)
     fc.deploy_flow(
         flow_definition=VALID_FLOW_DEFINITION,
@@ -245,7 +245,7 @@ def test_deploy_flow_dry_run(fc, mocked_responses, dry_run, path):
 def test_deploy_flow_aliases(fc, mocked_responses):
     """Verify that viewer/starter/admin aliases are still supported."""
 
-    mocked_responses.add("POST", "https://flows.api.globus.org/flows")
+    mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.deploy_flow(
         # Flow viewers and aliases
         flow_viewers=["v1", "v2"],
@@ -302,7 +302,7 @@ def test_invalid_input_schema_failure(fc, method):
 def test_update_flow_data_construction(fc, mocked_responses):
     """Verify the flow JSON data is constructed correctly."""
 
-    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
     expected: Dict[str, Union[str, Dict[str, Any]]] = {
         "definition": VALID_FLOW_DEFINITION,
         "input_schema": {"Comment": "flow-input-schema"},
@@ -342,7 +342,7 @@ def test_update_flow_exclude_most_false_values(
 ):
     """Verify the *input_schema* is not excluded even if it's false-y."""
 
-    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
     fc.update_flow(
         # *input_schema* is being tested for inclusion/exclusion.
         input_schema=input_schema,
@@ -365,7 +365,7 @@ def test_update_flow_exclude_most_false_values(
 def test_update_flow_aliases(fc, mocked_responses):
     """Verify that viewer/starter/admin aliases are still supported."""
 
-    mocked_responses.add("PUT", "https://flows.api.globus.org/flows/bogus")
+    mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
     fc.update_flow(
         # Flow viewers and aliases
         flow_viewers=["v1", "v2"],
@@ -395,7 +395,7 @@ def test_update_flow_aliases(fc, mocked_responses):
 def test_get_flow(fc, mocked_responses):
     """Verify the URL that is used to get a flow definition."""
 
-    url = "https://flows.api.globus.org/flows/bogus"
+    url = f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus"
     mocked_responses.add("GET", url)
     fc.get_flow("bogus")
     assert mocked_responses.calls[0].request.url == url
@@ -420,7 +420,7 @@ def test_list_flows_role_precedence(
 ):
     """Verify the *role* and *roles* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.list_flows(role=role, roles=roles)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -451,7 +451,7 @@ def test_list_flows_pagination_parameters(
 ):
     """Verify *marker* and *per_page* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.list_flows(marker=marker, per_page=per_page)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -466,7 +466,7 @@ def test_list_flows_pagination_parameters(
 def test_list_flows_filters(fc, mocked_responses):
     """Verify that filters are applied to the query parameters."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.list_flows(role="role", filters={"1": "2", "filter_role": "bogus"})
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -477,7 +477,7 @@ def test_list_flows_filters(fc, mocked_responses):
 def test_list_flows_orderings(fc, mocked_responses):
     """Verify that orderings are serialized as expected."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
     fc.list_flows(orderings={"shape": "asc", "color": "DESC", "bogus": "undefined"})
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -491,7 +491,7 @@ def test_list_flows_orderings(fc, mocked_responses):
 def test_delete_flow(fc, mocked_responses):
     """Verify the URL used when deleting a flow."""
 
-    url = "https://flows.api.globus.org/flows/bogus"
+    url = f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus"
     mocked_responses.add("DELETE", url)
     fc.delete_flow("bogus")
     assert mocked_responses.calls[0].request.url == url
@@ -505,7 +505,7 @@ def test_scope_for_flow(fc, mocked_responses):
 
     mocked_responses.add(
         method="GET",
-        url="https://flows.api.globus.org/flows/bogus-id",
+        url=f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus-id",
         json={"globus_auth_scope": "bogus-scope"},
     )
     assert fc.scope_for_flow("bogus-id") == "bogus-scope"
@@ -539,7 +539,7 @@ def test_get_authorizer_for_flow_scope_lookup(fc, monkeypatch, flow_scope, expec
 def test_run_flow_dry_run(fc, mocked_responses, dry_run, expected):
     """Verify the *dry_run* parameter affects the URL path."""
 
-    url = f"https://flows.api.globus.org/flows/bogus-id/{expected}"
+    url = f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus-id/{expected}"
     mocked_responses.add("POST", url)
     fc.run_flow(
         # *dry_run* is being tested.
@@ -627,7 +627,7 @@ def test_run_flow_aliases(
 
     mocked_responses.add(
         method="POST",
-        url="https://flows.api.globus.org/flows/bogus-id/run",
+        url=f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus-id/run",
         json={},
     )
     fc.run_flow(
@@ -671,7 +671,7 @@ def test_enumerate_runs_role_precedence(
     """Verify the *role* and *roles* precedence rules."""
 
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: fc.authorizer)
-    mocked_responses.add("GET", "https://flows.api.globus.org/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/runs")
     fc.enumerate_runs(role=role, roles=roles)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -703,7 +703,7 @@ def test_enumerate_runs_pagination_parameters(
     """Verify *marker* and *per_page* precedence rules."""
 
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: fc.authorizer)
-    mocked_responses.add("GET", "https://flows.api.globus.org/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/runs")
     fc.enumerate_runs(marker=marker, per_page=per_page)
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -719,7 +719,7 @@ def test_enumerate_runs_filters(fc, mocked_responses, monkeypatch):
     """Verify that filters are applied to the query parameters."""
 
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: fc.authorizer)
-    mocked_responses.add("GET", "https://flows.api.globus.org/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/runs")
     fc.enumerate_runs(role="role", filters={"1": "2", "filter_role": "bogus"})
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -731,7 +731,7 @@ def test_enumerate_runs_orderings(fc, mocked_responses, monkeypatch):
     """Verify that orderings are serialized as expected."""
 
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: fc.authorizer)
-    mocked_responses.add("GET", "https://flows.api.globus.org/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/runs")
     fc.enumerate_runs(orderings={"shape": "asc", "color": "DESC", "bogus": "bad"})
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -746,7 +746,7 @@ def test_enumerate_runs_statuses(fc, mocked_responses, monkeypatch):
     """Verify that orderings are serialized as expected."""
 
     monkeypatch.setattr(fc, "get_authorizer_callback", lambda **x: fc.authorizer)
-    mocked_responses.add("GET", "https://flows.api.globus.org/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/runs")
     fc.enumerate_runs(statuses=("SUCCEEDED", "FAILED"))
     query: str = urllib.parse.urlparse(mocked_responses.calls[0].request.url).query
     data = dict(urllib.parse.parse_qsl(query, keep_blank_values=True))
@@ -772,7 +772,7 @@ def test_list_flow_runs_role_precedence(
 ):
     """Verify the *role* and *roles* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/-/runs")
     fc.list_flow_runs(
         "-",
         role=role,
@@ -808,7 +808,7 @@ def test_list_flow_runs_pagination_parameters(
 ):
     """Verify *marker* and *per_page* precedence rules."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/-/runs")
     fc.list_flow_runs(
         "-",
         marker=marker,
@@ -828,7 +828,7 @@ def test_list_flow_runs_pagination_parameters(
 def test_list_flow_runs_filters(fc, mocked_responses):
     """Verify that filters are applied to the query parameters."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/-/runs")
     fc.list_flow_runs(
         "-",
         role="role",
@@ -844,7 +844,7 @@ def test_list_flow_runs_filters(fc, mocked_responses):
 def test_list_flow_runs_orderings(fc, mocked_responses):
     """Verify that orderings are serialized as expected."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/-/runs")
     fc.list_flow_runs(
         "-",
         orderings={"shape": "asc", "color": "DESC", "bogus": "bad"},
@@ -862,7 +862,7 @@ def test_list_flow_runs_orderings(fc, mocked_responses):
 def test_list_flow_runs_statuses(fc, mocked_responses):
     """Verify that orderings are serialized as expected."""
 
-    mocked_responses.add("GET", "https://flows.api.globus.org/flows/-/runs")
+    mocked_responses.add("GET", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/-/runs")
     fc.list_flow_runs(
         "-",
         statuses=("SUCCEEDED", "FAILED"),
@@ -916,7 +916,7 @@ def test_flow_action_update_managers_and_monitors(
 ):
     """Verify that managers and monitors are unconditionally included."""
 
-    mocked_responses.add("PUT", "https://flows.api.globus.org/runs/bogus-id")
+    mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/runs/bogus-id")
     fc.flow_action_update(
         # These arguments are being tested.
         run_managers=run_managers,
