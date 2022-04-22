@@ -221,6 +221,8 @@ class FlowsClient(BaseClient):
         get_authorizer_callback: AuthorizerCallbackType,
         **kwargs,
     ) -> None:
+        if "base_url" not in kwargs:
+            kwargs["base_url"] = _get_flows_base_url_for_environment()
         super().__init__(**kwargs)
         self.client_id = client_id
         self.get_authorizer_callback = get_authorizer_callback
