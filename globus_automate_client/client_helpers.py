@@ -4,7 +4,6 @@ from globus_sdk.authorizers import GlobusAuthorizer
 
 from globus_automate_client.action_client import ActionClient
 from globus_automate_client.cli.auth import CLIENT_ID, get_cli_authorizer
-from globus_automate_client.cli.rich_rendering import live_content
 from globus_automate_client.flows_client import (
     MANAGE_FLOWS_SCOPE,
     PROD_FLOWS_BASE_URL,
@@ -57,11 +56,9 @@ def create_action_client(
         >>> resp = ac.run({"echo_string": "Hello from SDK"})
         >>> assert resp.data["status"] == "SUCCEEDED"
     """
-    live_content.pause_live()
     authorizer = get_cli_authorizer(
         action_url=action_url, action_scope=action_scope, client_id=client_id
     )
-    live_content.resume_live()
     return ActionClient.new_client(action_url=action_url, authorizer=authorizer)
 
 
@@ -70,9 +67,7 @@ def cli_authorizer_callback(**kwargs):
     flow_scope = kwargs["flow_scope"]
     client_id = kwargs["client_id"]
 
-    live_content.pause_live()
     authorizer = get_cli_authorizer(flow_url, flow_scope, client_id)
-    live_content.resume_live()
     return authorizer
 
 

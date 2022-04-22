@@ -432,15 +432,14 @@ class RequestRunner:
         self.render(Result(globus_resp))
 
     def run_and_render(self) -> Result:
+        result = self.run()
+
+        # It's assumed that no additional auth URL's will need to be written to STDOUT
+        # because of the successful call to `self.run()`, above.
         with live_content:
             while True:
-                # The .run() method may need access to STDOUT to display an auth URL.
-                # Pause the live content rendering to prevent STDOUT conflicts.
-                live_content.pause_live()
-                result = self.run()
-                live_content.resume_live()
                 self.render(result)
                 if not self.watch or self.run_once or result.completed:
-                    break
+                    return result
                 sleep(2)
-            return result
+                result = self.run()
