@@ -1216,18 +1216,17 @@ tests = ["coverage (>=3.7.1,<6.0.0)", "pytest-cov", "pytest-localserver", "flake
 
 [[package]]
 name = "rich"
-version = "9.13.0"
+version = "12.3.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.6.3,<4.0.0"
 
 [package.dependencies]
-colorama = ">=0.4.0,<0.5.0"
 commonmark = ">=0.9.0,<0.10.0"
-dataclasses = {version = ">=0.7,<0.9", markers = "python_version >= \"3.6\" and python_version < \"3.7\""}
+dataclasses = {version = ">=0.7,<0.9", markers = "python_version < \"3.7\""}
 pygments = ">=2.6.0,<3.0.0"
-typing-extensions = ">=3.7.4,<4.0.0"
+typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.9\""}
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
@@ -1573,11 +1572,11 @@ python-versions = "*"
 
 [[package]]
 name = "typing-extensions"
-version = "3.10.0.2"
-description = "Backported and Experimental Type Hints for Python 3.5+"
+version = "4.1.1"
+description = "Backported and Experimental Type Hints for Python 3.6+"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [[package]]
 name = "urllib3"
@@ -1654,8 +1653,8 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.6.2"
-content-hash = "0220fb725e199dc292901732667fddbfe1ea931402abaf45079eeea641509f85"
+python-versions = "^3.6.3"
+content-hash = "6c18074d1d2ed4693b8dcde8e142b3c4137f3bdef876e6788b2df139bc05568a"
 
 [metadata.files]
 alabaster = [
@@ -2316,8 +2315,8 @@ responses = [
     {file = "responses-0.14.0.tar.gz", hash = "sha256:93f774a762ee0e27c0d9d7e06227aeda9ff9f5f69392f72bb6c6b73f8763563e"},
 ]
 rich = [
-    {file = "rich-9.13.0-py3-none-any.whl", hash = "sha256:9004f6449c89abadf689dad6f92393e760b8c3a8a8c4ea6d8d474066307c0e66"},
-    {file = "rich-9.13.0.tar.gz", hash = "sha256:d59e94a0e3e686f0d268fe5c7060baa1bd6744abca71b45351f5850a3aaa6764"},
+    {file = "rich-12.3.0-py3-none-any.whl", hash = "sha256:0eb63013630c6ee1237e0e395d51cb23513de6b5531235e33889e8842bdf3a6f"},
+    {file = "rich-12.3.0.tar.gz", hash = "sha256:7e8700cda776337036a712ff0495b04052fb5f957c7dfb8df997f88350044b64"},
 ]
 rstcheck = [
     {file = "rstcheck-3.3.1.tar.gz", hash = "sha256:92c4f79256a54270e0402ba16a2f92d0b3c15c8f4410cb9c57127067c215741f"},
@@ -2497,9 +2496,8 @@ types-requests = [
     {file = "types_requests-2.26.0-py3-none-any.whl", hash = "sha256:809b5dcd3c408ac39d11d593835b6aff32420b3e7ddb79c7f3e823330f040466"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},
-    {file = "typing_extensions-3.10.0.2-py3-none-any.whl", hash = "sha256:f1d25edafde516b146ecd0613dabcc61409817af4766fbbcfb8d1ad4ec441a34"},
-    {file = "typing_extensions-3.10.0.2.tar.gz", hash = "sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e"},
+    {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
+    {file = "typing_extensions-4.1.1.tar.gz", hash = "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.7-py2.py3-none-any.whl", hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"},
