@@ -10,7 +10,7 @@ import typer
 import yaml
 from globus_sdk import AuthClient, BaseClient, GlobusAPIError, GlobusHTTPResponse
 from requests import Response
-from rich.console import RenderableType, RenderGroup
+from rich.console import Group, RenderableType
 from rich.spinner import Spinner
 from rich.table import Table
 from rich.text import Text
@@ -366,7 +366,7 @@ class Renderer:
                 s = self.spinner
                 renderables.append(s)
 
-            cli_content.rg = RenderGroup(*renderables)
+            cli_content.rg = Group(*renderables)
         else:
             if self.verbose:
                 typer.secho(self.details_as_str, fg=self.detail_style, err=True)
