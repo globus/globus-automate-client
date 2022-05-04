@@ -609,7 +609,7 @@ class FlowsClient(BaseClient):
         run_managers = merge_keywords(run_managers, kwargs, "manage_by") or None
 
         if dry_run:
-            path = flow_url + "/dry-run"
+            path = flow_url + "/run/dry-run"
             return ac.run(
                 flow_input,
                 manage_by=run_managers,
