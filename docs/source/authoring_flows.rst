@@ -144,7 +144,7 @@ For ``Parameters``, a list with special property name ``__Private_Parameters``
 may be placed in the ``Parameters`` object indicating which other Parameters
 should be protected. These values will be protected in two ways:
 
-* Users that lookup the Flow in the service will not see the ``Parameters`` which are specified in the ``__Private_Parameters`` list unless the have the ``flow_administrator`` or ``flow_owner`` role on the Flow.
+* Users that lookup the Flow in the service will not see the ``Parameters`` which are specified in the ``__Private_Parameters`` list unless they have the ``flow_administrator`` or ``flow_owner`` role on the Flow.
 
 * When the state of a run of the Flow is returned, values for these ``Parameters`` will not be returned in the status or log of the Flow's execution.
 
