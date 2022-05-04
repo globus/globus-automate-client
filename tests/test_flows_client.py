@@ -535,7 +535,7 @@ def test_get_authorizer_for_flow_scope_lookup(fc, monkeypatch, flow_scope, expec
     assert result["flow_scope"] == expected
 
 
-@pytest.mark.parametrize("dry_run, expected", ((False, "run"), (True, "dry-run")))
+@pytest.mark.parametrize("dry_run, expected", ((False, "run"), (True, "run/dry-run")))
 def test_run_flow_dry_run(fc, mocked_responses, dry_run, expected):
     """Verify the *dry_run* parameter affects the URL path."""
 
