@@ -10,6 +10,47 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.15.0.post1:
+
+0.15.0.post1 — 2022-05-09
+=========================
+
+    **NOTE:**
+
+    This release contains no changes from 0.15.0.
+    It adds text to the changelog regarding an update to the rich package dependency.
+
+Documentation
+-------------
+
+-   `[sc-13642] <https://app.shortcut.com/globus/story/13642>`_
+    Provide two examples of looping in flow definitions:
+
+    *   How to loop a set number of times
+    *   How to perform batch processing over an unknown quantity of items
+
+Development
+-----------
+
+-   Update click to version 8.0.4.
+    This resolves a security issue.
+-   Update typer to version 0.4.1.
+-   Update scriv to version 0.14.0.
+    scriv is a development dependency.
+-   Update rich to 0.12.3.
+
+    This resolves a dependency conflict between the Globus CLI and the Globus Automate CLI.
+    Both command line clients can now be installed in the same environment.
+
+-   Temporarily remove typer-cli as a listed development dependency.
+    It is still needed when generating the CLI documentation.
+-   Add safety as a test environment for local and CI testing.
+-   Test against Python 3.10 in CI.
+-   `[sc-14485] <https://app.shortcut.com/globus/story/14485>`_
+    Disable SSL verification when interacting with a local development server.
+
+.. _changelog-0.15.0:
+
 0.15.0 — 2022-04-29
 ===================
 
