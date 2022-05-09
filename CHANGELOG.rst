@@ -10,6 +10,34 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+0.15.0 — 2022-04-29
+===================
+
+Documentation
+-------------
+
+-   `[sc-13642] <https://app.shortcut.com/globus/story/13642>`_
+    Provide two examples of looping in flow definitions:
+
+    *   How to loop a set number of times
+    *   How to perform batch processing over an unknown quantity of items
+
+Development
+-----------
+
+-   Update click to version 8.0.4.
+    This resolves a security issue.
+-   Update typer to version 0.4.1.
+-   Update scriv to version 0.14.0.
+    scriv is a development dependency.
+-   Temporarily remove typer-cli as a listed development dependency.
+    It is still needed when generating the CLI documentation.
+-   Add safety as a test environment for local and CI testing.
+-   Test against Python 3.10 in CI.
+
+-   `[sc-14485] <https://app.shortcut.com/globus/story/14485>`_
+    Disable SSL verification when interacting with a local development server.
+
 0.14.1 — 2022-04-13
 ===================
 

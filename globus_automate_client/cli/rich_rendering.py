@@ -1,4 +1,4 @@
-from rich.console import RenderGroup
+from rich.console import Group
 from rich.live import Live
 
 
@@ -9,9 +9,9 @@ class Content:
     value of the instance's RenderGroup
     """
 
-    rg: RenderGroup = RenderGroup()
+    rg: Group = Group()
 
-    def __rich__(self) -> RenderGroup:
+    def __rich__(self) -> Group:
         return self.rg
 
 
