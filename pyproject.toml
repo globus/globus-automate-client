@@ -40,6 +40,7 @@ jsonschema = "^3.2.0"
 PyYAML = "^5.3.1"
 rich = "^12.3.0"
 arrow = "^1.1.1"
+typing-extensions = "^4.1.1"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.9"
