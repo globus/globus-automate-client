@@ -7,7 +7,13 @@ Automate suite of services.
 Basic Usage
 -----------
 
-Install with ``pip install globus-automate-client``
+Install with these commands:
+
+..  code-block:: shell
+
+    python -m pip install --upgrade pip setuptools wheel
+    python -m pip install globus-automate-client
+
 
 You can then import Globus Automate client classes and other helpers from
 ``globus_automate_client``. For example:
