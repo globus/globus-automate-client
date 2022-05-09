@@ -10,6 +10,19 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.15.1:
+
+0.15.1 — 2022-05-09
+===================
+
+Bugfixes
+--------
+
+-   Fix a missing dependency when running on Python 3.10.
+
+    This was fixed by adding typing-extensions as an explicit dependency.
+    Note that pip may need to be upgraded due to changes in its dependency resolver.
+
 .. _changelog-0.15.0.post1:
 
 0.15.0.post1 — 2022-05-09
