@@ -10,6 +10,14 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.15.2:
+
+0.15.2 — 2022-06-06
+===================
+
+-   `[sc-16137] <https://app.shortcut.com/globus/story/16137>`_
+    Fix flows run dry-run URL path
+
 .. _changelog-0.15.1:
 
 0.15.1 — 2022-05-09
