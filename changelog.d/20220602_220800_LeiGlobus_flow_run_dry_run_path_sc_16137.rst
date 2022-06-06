@@ -2,5 +2,5 @@
 ..
 .. Bugfixes
 .. --------
--   `[sc-] <https://app.shortcut.com/globus/story/16137>`_
+-   `[sc-16137] <https://app.shortcut.com/globus/story/16137>`_
     Fix flows run dry-run URL path
