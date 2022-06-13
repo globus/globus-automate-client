@@ -349,12 +349,6 @@ def flow_update(
     administered_by: List[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
-    assume_ownership: bool = typer.Option(
-        False,
-        "--assume-ownership",
-        help="Assume the ownership of the Flow. This can only be performed by user's "
-        "in the flow_administrators role.",
-    ),
     subscription_id: Optional[str] = typer.Option(
         None,
         help="The Globus Subscription which will be used to make this flow managed.",
