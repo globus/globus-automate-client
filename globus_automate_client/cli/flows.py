@@ -93,8 +93,9 @@ def flow_deploy(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
-            "or a raw string representing a JSON object or YAML definition."
+            "JSON or YAML representation of the Flow to deploy. "
+            "May be provided as a filename or a raw string "
+            "representing a JSON object or YAML definition."
         ),
         prompt=True,
         callback=input_validator,
@@ -150,8 +151,8 @@ def flow_deploy(
             "A principal which may run an instance of the deployed Flow. "
             + _principal_description
             + "The special value of "
-            "'all_authenticated_users' may be used to indicate that any authenticated user "
-            "can invoke this flow. [repeatable]"
+            "'all_authenticated_users' may be used to indicate that "
+            "any authenticated user can invoke this flow. [repeatable]"
         ),
         callback=custom_principal_validator({"all_authenticated_users"}),
     ),
@@ -186,7 +187,7 @@ def flow_deploy(
     ),
     subscription_id: Optional[str] = typer.Option(
         None,
-        help="The Id of the Globus Subscription which will be used to make this flow managed.",
+        help="The ID of the Globus Subscription which will manage the Flow.",
     ),
     validate: bool = typer.Option(
         True,
@@ -275,8 +276,8 @@ def flow_update(
     definition: str = typer.Option(
         None,
         help=(
-            "JSON or YAML representation of the Flow to update. May be provided as a filename "
-            "or a raw string."
+            "JSON or YAML representation of the Flow to update. "
+            "May be provided as a filename or a raw string."
         ),
         callback=input_validator,
     ),
@@ -360,7 +361,7 @@ def flow_update(
     ),
     validate: bool = typer.Option(
         True,
-        help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
+        help="(EXPERIMENTAL) Perform rudimentary validation of the flow definition.",
         case_sensitive=False,
         show_default=True,
     ),
@@ -420,8 +421,8 @@ def flow_lint(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
-            "or a raw string."
+            "JSON or YAML representation of the Flow to deploy. "
+            "May be provided as a filename or a raw string."
         ),
         prompt=True,
         callback=input_validator,
@@ -469,7 +470,9 @@ def flow_list(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -541,8 +544,9 @@ def flow_display(
     flow_definition: str = typer.Option(
         "",
         help=(
-            "JSON or YAML representation of the Flow to display. May be provided as a filename "
-            "or a raw string representing a JSON object or YAML definition."
+            "JSON or YAML representation of the Flow to display. "
+            "May be provided as a filename or a raw string "
+            "representing a JSON object or YAML definition."
         ),
         callback=input_validator,
         show_default=False,
@@ -797,7 +801,9 @@ def flow_actions_list(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -847,7 +853,7 @@ def flow_actions_list(
     role_param = make_role_param(roles)
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    callable = functools.partial(
+    method = functools.partial(
         fc.list_flow_actions,
         flow_id=flow_id,
         flow_scope=flow_scope,
@@ -859,7 +865,7 @@ def flow_actions_list(
         **role_param,
     )
     RequestRunner(
-        callable,
+        method,
         format=output_format,
         verbose=verbose,
         watch=watch,
@@ -933,10 +939,10 @@ def flow_action_resume(
     ),
     verbose: bool = verbosity_option,
 ):
-    """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set, and the
-    Flow Action is in an INACTIVE state due to requiring additional Consent, the required
-    Consent will be determined and you may be prompted to allow Consent using the Globus
-    Auth web interface.
+    """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set,
+    and the Flow Action is in an INACTIVE state due to requiring additional Consent,
+    the required Consent will be determined, and you may be prompted to allow Consent
+    using the Globus Auth web interface.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     if query_for_inactive_reason:
@@ -1045,12 +1051,12 @@ def flow_action_log(
     reverse: bool = typer.Option(
         False,
         "--reverse",
-        help="Display logs starting from most recent and proceeding in reverse chronological order",
+        help="Display logs reverse chronological order (most recent first).",
         show_default=True,
     ),
     limit: int = typer.Option(
         None,
-        help="Set a maximum number of events from the log to return",
+        help="Set a maximum number of events from the log to return.",
         min=1,
         max=100,
     ),
@@ -1064,7 +1070,9 @@ def flow_action_log(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -1156,7 +1164,9 @@ def flow_action_enumerate(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
