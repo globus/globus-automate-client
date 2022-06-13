@@ -1,7 +1,8 @@
 import functools
 import textwrap
 import uuid
-from typing import List, Optional
+import warnings
+from typing import Any, List, Optional, Tuple
 
 import typer
 
@@ -45,6 +46,7 @@ from globus_automate_client.flows_client import (
     FlowValidationError,
     validate_flow_definition,
 )
+from globus_automate_client.helpers import validate_aliases
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
@@ -60,6 +62,19 @@ def dedent(text: str) -> str:
     """Dedent help text, so it wraps neatly on the command line."""
 
     return textwrap.dedent(text).strip()
+
+
+def handle_aliases(canonical_item: Tuple[str, Any], *aliases: Tuple[str, Any]) -> Any:
+    """Validate aliases, and handle exceptions in a CLI context."""
+
+    try:
+        return validate_aliases(canonical_item, *aliases)
+    except ValueError as error:
+        typer.secho(error.args[0], err=True)
+        raise typer.Abort()
+    except DeprecationWarning as warning:
+        typer.secho(warning.args[0], err=True)
+        return warning.args[2]
 
 
 @app.callback()
@@ -117,7 +132,8 @@ def flow_deploy(
         callback=custom_principal_validator({"public"}),
         hidden=False,
     ),
-    # viewer and visible_to are aliases for the full flow_viewer
+    # viewer and visible_to are aliases for flow_viewer.
+    # Both are deprecated.
     viewer: List[str] = typer.Option(
         None,
         callback=custom_principal_validator({"public"}),
@@ -139,7 +155,8 @@ def flow_deploy(
         ),
         callback=custom_principal_validator({"all_authenticated_users"}),
     ),
-    # starter and runnable_by are aliases for the full flow_starter
+    # starter and runnable_by are aliases for flow_starter.
+    # Both are deprecated.
     starter: List[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users"}),
@@ -159,7 +176,8 @@ def flow_deploy(
         ),
         callback=principal_validator,
     ),
-    # administrator and administered_by are aliases for the full flow_administrator
+    # administrator and administered_by are aliases for flow_administrator.
+    # Both are deprecated.
     administrator: List[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
@@ -191,6 +209,23 @@ def flow_deploy(
     """
     Deploy a new Flow.
     """
+
+    flow_viewer = handle_aliases(
+        ("--flow-viewer", flow_viewer),
+        ("--viewer", viewer or None),
+        ("--visible-to", visible_to or None),
+    )
+    flow_starter = handle_aliases(
+        ("--flow-starter", flow_starter),
+        ("--starter", starter or None),
+        ("--runnable-by", runnable_by or None),
+    )
+    flow_administrator = handle_aliases(
+        ("--flow-administrator", flow_administrator),
+        ("--administrator", administrator or None),
+        ("--administered-by", administered_by or None),
+    )
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
@@ -205,15 +240,17 @@ def flow_deploy(
         subtitle,
         description,
         keywords,
-        visible_to,
-        runnable_by,
-        administered_by,
+        flow_viewer,
+        flow_starter,
+        flow_administrator,
         subscription_id,
         input_schema_dict,
         validate_definition=validate,
         dry_run=dry_run,
     )
-    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("get")
@@ -334,6 +371,23 @@ def flow_update(
     """
     Update a Flow.
     """
+
+    flow_viewer = handle_aliases(
+        ("--flow-viewer", flow_viewer),
+        ("--viewer", viewer or None),
+        ("--visible-to", visible_to or None),
+    )
+    flow_starter = handle_aliases(
+        ("--flow-starter", flow_starter),
+        ("--starter", starter or None),
+        ("--runnable-by", runnable_by or None),
+    )
+    flow_administrator = handle_aliases(
+        ("--flow-administrator", flow_administrator),
+        ("--administrator", administrator or None),
+        ("--administered-by", administered_by or None),
+    )
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
@@ -356,7 +410,9 @@ def flow_update(
         runnable_by=runnable_by,
         administered_by=administered_by,
     )
-    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("lint")

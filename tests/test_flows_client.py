@@ -242,33 +242,46 @@ def test_deploy_flow_dry_run(fc, mocked_responses, dry_run, path):
     assert mocked_responses.calls[0].request.url == url
 
 
-def test_deploy_flow_aliases(fc, mocked_responses):
+def test_deploy_flow_aliases_batch_1(fc, mocked_responses):
     """Verify that viewer/starter/admin aliases are still supported."""
 
     mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
-    fc.deploy_flow(
-        # Flow viewers and aliases
-        flow_viewers=["v1", "v2"],
-        visible_to=["v3"],
-        viewers=["v4"],
-        # Flow starters and aliases
-        flow_starters=["s1", "s2"],
-        runnable_by=["s3"],
-        starters=["s4"],
-        # Flow admins and aliases
-        flow_administrators=["a1", "a2"],
-        administered_by=["a3"],
-        administrators=["a4"],
-        # Everything below is mandatory but irrelevant to this test.
-        flow_definition=VALID_FLOW_DEFINITION,
-        title="",
-        validate_definition=False,
-        validate_schema=False,
-    )
+    with pytest.warns(DeprecationWarning):
+        fc.deploy_flow(
+            visible_to=["v1"],
+            runnable_by=["s1"],
+            administered_by=["a1"],
+            # Everything below is mandatory but irrelevant to this test.
+            flow_definition=VALID_FLOW_DEFINITION,
+            title="",
+            validate_definition=False,
+            validate_schema=False,
+        )
     data = json.loads(mocked_responses.calls[0].request.body)
-    assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
-    assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
-    assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
+    assert set(data["flow_viewers"]) == {"v1"}
+    assert set(data["flow_starters"]) == {"s1"}
+    assert set(data["flow_administrators"]) == {"a1"}
+
+
+def test_deploy_flow_aliases_batch_2(fc, mocked_responses):
+    """Verify that viewer/starter/admin aliases are still supported."""
+
+    mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
+    with pytest.warns(DeprecationWarning):
+        fc.deploy_flow(
+            viewers=["v2"],
+            starters=["s2"],
+            administrators=["a2"],
+            # Everything below is mandatory but irrelevant to this test.
+            flow_definition=VALID_FLOW_DEFINITION,
+            title="",
+            validate_definition=False,
+            validate_schema=False,
+        )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert set(data["flow_viewers"]) == {"v2"}
+    assert set(data["flow_starters"]) == {"s2"}
+    assert set(data["flow_administrators"]) == {"a2"}
 
 
 @pytest.mark.parametrize("method", ("deploy_flow", "update_flow"))
@@ -362,34 +375,48 @@ def test_update_flow_exclude_most_false_values(
     assert ("input_schema" in data) is expected
 
 
-def test_update_flow_aliases(fc, mocked_responses):
+def test_update_flow_aliases_batch_1(fc, mocked_responses):
     """Verify that viewer/starter/admin aliases are still supported."""
 
     mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
-    fc.update_flow(
-        # Flow viewers and aliases
-        flow_viewers=["v1", "v2"],
-        visible_to=["v3"],
-        viewers=["v4"],
-        # Flow starters and aliases
-        flow_starters=["s1", "s2"],
-        runnable_by=["s3"],
-        starters=["s4"],
-        # Flow admins and aliases
-        flow_administrators=["a1", "a2"],
-        administered_by=["a3"],
-        administrators=["a4"],
-        # Everything below is mandatory but irrelevant to this test.
-        flow_id="bogus",
-        flow_definition=VALID_FLOW_DEFINITION,
-        title="",
-        validate_definition=False,
-        validate_schema=False,
-    )
+    with pytest.warns(DeprecationWarning):
+        fc.update_flow(
+            visible_to=["v1"],
+            runnable_by=["s1"],
+            administered_by=["a1"],
+            # Everything below is mandatory but irrelevant to this test.
+            flow_id="bogus",
+            flow_definition=VALID_FLOW_DEFINITION,
+            title="",
+            validate_definition=False,
+            validate_schema=False,
+        )
     data = json.loads(mocked_responses.calls[0].request.body)
-    assert set(data["flow_viewers"]) == {"v1", "v2", "v3", "v4"}
-    assert set(data["flow_starters"]) == {"s1", "s2", "s3", "s4"}
-    assert set(data["flow_administrators"]) == {"a1", "a2", "a3", "a4"}
+    assert set(data["flow_viewers"]) == {"v1"}
+    assert set(data["flow_starters"]) == {"s1"}
+    assert set(data["flow_administrators"]) == {"a1"}
+
+
+def test_update_flow_aliases_batch_2(fc, mocked_responses):
+    """Verify that viewer/starter/admin aliases are still supported."""
+
+    mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
+    with pytest.warns(DeprecationWarning):
+        fc.update_flow(
+            viewers=["v2"],
+            starters=["s2"],
+            administrators=["a2"],
+            # Everything below is mandatory but irrelevant to this test.
+            flow_id="bogus",
+            flow_definition=VALID_FLOW_DEFINITION,
+            title="",
+            validate_definition=False,
+            validate_schema=False,
+        )
+    data = json.loads(mocked_responses.calls[0].request.body)
+    assert set(data["flow_viewers"]) == {"v2"}
+    assert set(data["flow_starters"]) == {"s2"}
+    assert set(data["flow_administrators"]) == {"a2"}
 
 
 def test_get_flow(fc, mocked_responses):
