@@ -69,3 +69,58 @@ def test_merge_keywords(args, expected, message):
         assert result is not None, "*result* must not be None"
         assert set(result) == expected, message
         assert final_key_count == expected_key_count, "dicts not modified correctly"
+
+
+@pytest.mark.parametrize("canonical_value", (None, False, [], 0, "", {}))
+def test_validate_aliases_canonical(canonical_value):
+    """Verify the canonical value is chosen, even if it's False-y."""
+
+    value = helpers.validate_aliases(("a", canonical_value), ("b", None))
+    assert value is canonical_value
+
+
+@pytest.mark.parametrize("alias_value", (False, [], 0, "", {}))
+def test_validate_aliases_alias(alias_value):
+    """Verify an alias value can be chosen, if it's not None."""
+
+    with pytest.raises(DeprecationWarning) as warning:
+        helpers.validate_aliases(("a", None), ("b", alias_value))
+    assert "b is deprecated" in warning.value.args[0]
+    assert warning.value.args[1] == "b"
+    assert warning.value.args[2] is alias_value
+
+
+def test_validate_aliases_mixed_arguments():
+    """Verify that aliases are mutually exclusive with the canonical value."""
+
+    with pytest.raises(ValueError) as error:
+        helpers.validate_aliases(
+            ("a", 1),
+            ("*b*", 2),
+        )
+    assert "cannot be combined with an alias" in error.value.args[0]
+
+
+def test_validate_aliases_mutex_aliases_1():
+    """Verify aliases are mutually exclusive."""
+
+    with pytest.raises(ValueError) as error:
+        helpers.validate_aliases(
+            ("a", None),
+            ("*b*", 0),
+            ("*c*", False),
+        )
+    assert "*b* and *c*" in error.value.args[0]
+
+
+def test_validate_aliases_mutex_aliases_2():
+    """Verify aliases are mutually exclusive."""
+
+    with pytest.raises(ValueError) as error:
+        helpers.validate_aliases(
+            ("a", None),
+            ("*b*", 0),
+            ("*c*", False),
+            ("*d*", ""),
+        )
+    assert "*b*, *c*, and *d*" in error.value.args[0]
