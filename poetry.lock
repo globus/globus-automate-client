@@ -1030,7 +1030,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "pyjwt"
-version = "2.3.0"
+version = "2.4.0"
 description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
@@ -1244,7 +1244,7 @@ docutils = ">=0.7"
 
 [[package]]
 name = "scriv"
-version = "0.14.0"
+version = "0.15.0"
 description = "Scriv changelog management tool"
 category = "dev"
 optional = false
@@ -1255,6 +1255,7 @@ attrs = "*"
 click = "*"
 click-log = "*"
 jinja2 = "*"
+requests = "*"
 tomli = {version = "*", optional = true, markers = "extra == \"toml\""}
 
 [package.extras]
@@ -1654,7 +1655,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.3"
-content-hash = "e9c433bbd445e3665bb947e72a5e97abc022c7fc2a2ff0e94c7675b72691ce1f"
+content-hash = "3186beb8b5daceb1849a24a1f3e865a8f32c4d3b47029ef18f74259b3db3531a"
 
 [metadata.files]
 alabaster = [
@@ -2152,8 +2153,8 @@ pygments = [
     {file = "Pygments-2.10.0.tar.gz", hash = "sha256:f398865f7eb6874156579fdf36bc840a03cab64d1cde9e93d68f46a425ec52c6"},
 ]
 pyjwt = [
-    {file = "PyJWT-2.3.0-py3-none-any.whl", hash = "sha256:e0c4bb8d9f0af0c7f5b1ec4c5036309617d03d56932877f2f7a0beeb5318322f"},
-    {file = "PyJWT-2.3.0.tar.gz", hash = "sha256:b888b4d56f06f6dcd777210c334e69c737be74755d3e5e9ee3fe67dc18a0ee41"},
+    {file = "PyJWT-2.4.0-py3-none-any.whl", hash = "sha256:72d1d253f32dbd4f5c88eaf1fdc62f3a19f676ccbadb9dbc5d07e951b2b26daf"},
+    {file = "PyJWT-2.4.0.tar.gz", hash = "sha256:d42908208c699b3b973cbeb01a969ba6a96c821eefb1c5bfe4c390c01d67abba"},
 ]
 pypandoc = [
     {file = "pypandoc-1.6.4-py3-none-win_amd64.whl", hash = "sha256:080903342d8cca6d953835c103b0f280a6cb66a6a20102692143a138b046c44f"},
@@ -2322,8 +2323,8 @@ rstcheck = [
     {file = "rstcheck-3.3.1.tar.gz", hash = "sha256:92c4f79256a54270e0402ba16a2f92d0b3c15c8f4410cb9c57127067c215741f"},
 ]
 scriv = [
-    {file = "scriv-0.14.0-py2.py3-none-any.whl", hash = "sha256:8236f8019f6b3ca407d1ce0992751e5b2498545135e32fa3e038eb12fcc2ab71"},
-    {file = "scriv-0.14.0.tar.gz", hash = "sha256:8c2523762a69a08c9cc44a99e747d4a0921b493f7c84c4b0d7c370a7b2044a61"},
+    {file = "scriv-0.15.0-py2.py3-none-any.whl", hash = "sha256:61e9fab4945539cba328fda9b4fa98755c7c9ff9c48c415a8066070c0ca799af"},
+    {file = "scriv-0.15.0.tar.gz", hash = "sha256:37aa7b37c90502d37497ef6e623275d1df8f4bddb19826a14d6c6b7b7ff7825f"},
 ]
 send2trash = [
     {file = "Send2Trash-1.8.0-py3-none-any.whl", hash = "sha256:f20eaadfdb517eaca5ce077640cb261c7d2698385a6a0f072a4a5447fd49fa08"},

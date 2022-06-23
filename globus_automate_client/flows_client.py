@@ -1,6 +1,7 @@
 import contextlib
 import json
 import os
+import warnings
 from pathlib import Path
 from typing import (
     Any,
@@ -12,6 +13,7 @@ from typing import (
     Optional,
     Sequence,
     Set,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -30,7 +32,7 @@ from jsonschema import Draft7Validator
 
 from globus_automate_client import ActionClient
 
-from .helpers import merge_keywords
+from .helpers import merge_keywords, validate_aliases
 
 PROD_FLOWS_BASE_URL = "https://flows.globus.org"
 
@@ -199,6 +201,19 @@ def _get_flows_base_url_for_environment():
     return _ENVIRONMENT_FLOWS_BASE_URLS[environ]
 
 
+def handle_aliases(
+    canonical_item: Tuple[str, Any],
+    *aliases: Tuple[str, Any],
+) -> Any:
+    """Validate aliases, and handle warnings in an API context."""
+
+    try:
+        return validate_aliases(canonical_item, *aliases)
+    except DeprecationWarning as warning:
+        warnings.warn(warning.args[0], category=DeprecationWarning)
+        return warning.args[2]
+
+
 class FlowsClient(BaseClient):
     """
     This is a specialized type of the Globus Auth service's ``BaseClient`` used
@@ -306,25 +321,38 @@ class FlowsClient(BaseClient):
             deployed successfully.
 
         """
+
         if validate_definition:
             validate_flow_definition(flow_definition)
         if validate_schema:
             validate_input_schema(input_schema)
+
+        # Handle aliases.
+        flow_viewers = handle_aliases(
+            ("`flow_viewers`", flow_viewers),
+            ("`viewers`", kwargs.pop("viewers", None)),
+            ("`visible_to`", kwargs.pop("visible_to", None)),
+        )
+        flow_starters = handle_aliases(
+            ("`flow_starters`", flow_starters),
+            ("`starters`", kwargs.pop("starters", None)),
+            ("`runnable_by`", kwargs.pop("runnable_by", None)),
+        )
+        flow_administrators = handle_aliases(
+            ("`flow_administrators`", flow_administrators),
+            ("`administrators`", kwargs.pop("administrators", None)),
+            ("`administered_by`", kwargs.pop("administered_by", None)),
+        )
+
         temp_body: Dict[str, Any] = {
             "definition": flow_definition,
             "title": title,
             "subtitle": subtitle,
             "description": description,
             "keywords": keywords,
-            "flow_viewers": merge_keywords(
-                flow_viewers, kwargs, "visible_to", "viewers"
-            ),
-            "flow_starters": merge_keywords(
-                flow_starters, kwargs, "runnable_by", "starters"
-            ),
-            "flow_administrators": merge_keywords(
-                flow_administrators, kwargs, "administered_by", "administrators"
-            ),
+            "flow_viewers": flow_viewers,
+            "flow_starters": flow_starters,
+            "flow_administrators": flow_administrators,
             "subscription_id": subscription_id,
         }
         # Remove None / empty list items from the temp_body.
@@ -402,21 +430,32 @@ class FlowsClient(BaseClient):
         if validate_schema and input_schema is not None:
             validate_input_schema(input_schema)
 
+        # Handle aliases.
+        flow_viewers = handle_aliases(
+            ("`flow_viewers`", flow_viewers),
+            ("`viewers`", kwargs.pop("viewers", None)),
+            ("`visible_to`", kwargs.pop("visible_to", None)),
+        )
+        flow_starters = handle_aliases(
+            ("`flow_starters`", flow_starters),
+            ("`starters`", kwargs.pop("starters", None)),
+            ("`runnable_by`", kwargs.pop("runnable_by", None)),
+        )
+        flow_administrators = handle_aliases(
+            ("`flow_administrators`", flow_administrators),
+            ("`administrators`", kwargs.pop("administrators", None)),
+            ("`administered_by`", kwargs.pop("administered_by", None)),
+        )
+
         temp_body: Dict[str, Any] = {
             "definition": flow_definition,
             "title": title,
             "subtitle": subtitle,
             "description": description,
             "keywords": keywords,
-            "flow_viewers": merge_keywords(
-                flow_viewers, kwargs, "visible_to", "viewers"
-            ),
-            "flow_starters": merge_keywords(
-                flow_starters, kwargs, "runnable_by", "starters"
-            ),
-            "flow_administrators": merge_keywords(
-                flow_administrators, kwargs, "administered_by", "administrators"
-            ),
+            "flow_viewers": flow_viewers,
+            "flow_starters": flow_starters,
+            "flow_administrators": flow_administrators,
             "subscription_id": subscription_id,
             "input_schema": input_schema,
         }

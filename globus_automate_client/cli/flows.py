@@ -1,7 +1,8 @@
 import functools
 import textwrap
 import uuid
-from typing import List, Optional
+import warnings
+from typing import Any, List, Optional, Tuple
 
 import typer
 
@@ -45,6 +46,7 @@ from globus_automate_client.flows_client import (
     FlowValidationError,
     validate_flow_definition,
 )
+from globus_automate_client.helpers import validate_aliases
 
 app = typer.Typer(short_help="Manage Globus Automate Flows")
 
@@ -60,6 +62,19 @@ def dedent(text: str) -> str:
     """Dedent help text, so it wraps neatly on the command line."""
 
     return textwrap.dedent(text).strip()
+
+
+def handle_aliases(canonical_item: Tuple[str, Any], *aliases: Tuple[str, Any]) -> Any:
+    """Validate aliases, and handle exceptions in a CLI context."""
+
+    try:
+        return validate_aliases(canonical_item, *aliases)
+    except ValueError as error:
+        typer.secho(error.args[0], err=True)
+        raise typer.Abort()
+    except DeprecationWarning as warning:
+        typer.secho(warning.args[0], err=True)
+        return warning.args[2]
 
 
 @app.callback()
@@ -78,8 +93,9 @@ def flow_deploy(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
-            "or a raw string representing a JSON object or YAML definition."
+            "JSON or YAML representation of the Flow to deploy. "
+            "May be provided as a filename or a raw string "
+            "representing a JSON object or YAML definition."
         ),
         prompt=True,
         callback=input_validator,
@@ -117,7 +133,8 @@ def flow_deploy(
         callback=custom_principal_validator({"public"}),
         hidden=False,
     ),
-    # viewer and visible_to are aliases for the full flow_viewer
+    # viewer and visible_to are aliases for flow_viewer.
+    # Both are deprecated.
     viewer: List[str] = typer.Option(
         None,
         callback=custom_principal_validator({"public"}),
@@ -134,12 +151,13 @@ def flow_deploy(
             "A principal which may run an instance of the deployed Flow. "
             + _principal_description
             + "The special value of "
-            "'all_authenticated_users' may be used to indicate that any authenticated user "
-            "can invoke this flow. [repeatable]"
+            "'all_authenticated_users' may be used to indicate that "
+            "any authenticated user can invoke this flow. [repeatable]"
         ),
         callback=custom_principal_validator({"all_authenticated_users"}),
     ),
-    # starter and runnable_by are aliases for the full flow_starter
+    # starter and runnable_by are aliases for flow_starter.
+    # Both are deprecated.
     starter: List[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users"}),
@@ -159,7 +177,8 @@ def flow_deploy(
         ),
         callback=principal_validator,
     ),
-    # administrator and administered_by are aliases for the full flow_administrator
+    # administrator and administered_by are aliases for flow_administrator.
+    # Both are deprecated.
     administrator: List[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
@@ -168,7 +187,7 @@ def flow_deploy(
     ),
     subscription_id: Optional[str] = typer.Option(
         None,
-        help="The Id of the Globus Subscription which will be used to make this flow managed.",
+        help="The ID of the Globus Subscription which will manage the Flow.",
     ),
     validate: bool = typer.Option(
         True,
@@ -191,6 +210,23 @@ def flow_deploy(
     """
     Deploy a new Flow.
     """
+
+    flow_viewer = handle_aliases(
+        ("--flow-viewer", flow_viewer),
+        ("--viewer", viewer or None),
+        ("--visible-to", visible_to or None),
+    )
+    flow_starter = handle_aliases(
+        ("--flow-starter", flow_starter),
+        ("--starter", starter or None),
+        ("--runnable-by", runnable_by or None),
+    )
+    flow_administrator = handle_aliases(
+        ("--flow-administrator", flow_administrator),
+        ("--administrator", administrator or None),
+        ("--administered-by", administered_by or None),
+    )
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
@@ -205,15 +241,17 @@ def flow_deploy(
         subtitle,
         description,
         keywords,
-        visible_to,
-        runnable_by,
-        administered_by,
+        flow_viewer,
+        flow_starter,
+        flow_administrator,
         subscription_id,
         input_schema_dict,
         validate_definition=validate,
         dry_run=dry_run,
     )
-    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("get")
@@ -238,8 +276,8 @@ def flow_update(
     definition: str = typer.Option(
         None,
         help=(
-            "JSON or YAML representation of the Flow to update. May be provided as a filename "
-            "or a raw string."
+            "JSON or YAML representation of the Flow to update. "
+            "May be provided as a filename or a raw string."
         ),
         callback=input_validator,
     ),
@@ -311,19 +349,13 @@ def flow_update(
     administered_by: List[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
-    assume_ownership: bool = typer.Option(
-        False,
-        "--assume-ownership",
-        help="Assume the ownership of the Flow. This can only be performed by user's "
-        "in the flow_administrators role.",
-    ),
     subscription_id: Optional[str] = typer.Option(
         None,
         help="The Globus Subscription which will be used to make this flow managed.",
     ),
     validate: bool = typer.Option(
         True,
-        help=("(EXPERIMENTAL) Perform rudimentary validation of the flow definition."),
+        help="(EXPERIMENTAL) Perform rudimentary validation of the flow definition.",
         case_sensitive=False,
         show_default=True,
     ),
@@ -334,6 +366,23 @@ def flow_update(
     """
     Update a Flow.
     """
+
+    flow_viewer = handle_aliases(
+        ("--flow-viewer", flow_viewer),
+        ("--viewer", viewer or None),
+        ("--visible-to", visible_to or None),
+    )
+    flow_starter = handle_aliases(
+        ("--flow-starter", flow_starter),
+        ("--starter", starter or None),
+        ("--runnable-by", runnable_by or None),
+    )
+    flow_administrator = handle_aliases(
+        ("--flow-administrator", flow_administrator),
+        ("--administrator", administrator or None),
+        ("--administered-by", administered_by or None),
+    )
+
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     flow_dict = process_input(definition)
     input_schema_dict = process_input(input_schema)
@@ -356,7 +405,9 @@ def flow_update(
         runnable_by=runnable_by,
         administered_by=administered_by,
     )
-    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("lint")
@@ -364,8 +415,8 @@ def flow_lint(
     definition: str = typer.Option(
         ...,
         help=(
-            "JSON or YAML representation of the Flow to deploy. May be provided as a filename "
-            "or a raw string."
+            "JSON or YAML representation of the Flow to deploy. "
+            "May be provided as a filename or a raw string."
         ),
         prompt=True,
         callback=input_validator,
@@ -413,7 +464,9 @@ def flow_list(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -485,8 +538,9 @@ def flow_display(
     flow_definition: str = typer.Option(
         "",
         help=(
-            "JSON or YAML representation of the Flow to display. May be provided as a filename "
-            "or a raw string representing a JSON object or YAML definition."
+            "JSON or YAML representation of the Flow to display. "
+            "May be provided as a filename or a raw string "
+            "representing a JSON object or YAML definition."
         ),
         callback=input_validator,
         show_default=False,
@@ -741,7 +795,9 @@ def flow_actions_list(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -791,7 +847,7 @@ def flow_actions_list(
     role_param = make_role_param(roles)
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
-    callable = functools.partial(
+    method = functools.partial(
         fc.list_flow_actions,
         flow_id=flow_id,
         flow_scope=flow_scope,
@@ -803,7 +859,7 @@ def flow_actions_list(
         **role_param,
     )
     RequestRunner(
-        callable,
+        method,
         format=output_format,
         verbose=verbose,
         watch=watch,
@@ -877,10 +933,10 @@ def flow_action_resume(
     ),
     verbose: bool = verbosity_option,
 ):
-    """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set, and the
-    Flow Action is in an INACTIVE state due to requiring additional Consent, the required
-    Consent will be determined and you may be prompted to allow Consent using the Globus
-    Auth web interface.
+    """Resume a Flow in the INACTIVE state. If query-for-inactive-reason is set,
+    and the Flow Action is in an INACTIVE state due to requiring additional Consent,
+    the required Consent will be determined, and you may be prompted to allow Consent
+    using the Globus Auth web interface.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     if query_for_inactive_reason:
@@ -989,12 +1045,12 @@ def flow_action_log(
     reverse: bool = typer.Option(
         False,
         "--reverse",
-        help="Display logs starting from most recent and proceeding in reverse chronological order",
+        help="Display logs reverse chronological order (most recent first).",
         show_default=True,
     ),
     limit: int = typer.Option(
         None,
-        help="Set a maximum number of events from the log to return",
+        help="Set a maximum number of events from the log to return.",
         min=1,
         max=100,
     ),
@@ -1008,7 +1064,9 @@ def flow_action_log(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
@@ -1100,7 +1158,9 @@ def flow_action_enumerate(
         None,
         "--per-page",
         "-p",
-        help="The page size to return. Only valid when used without providing a marker.",
+        help=(
+            "The page size to return. Only valid when used without providing a marker."
+        ),
         min=1,
         max=50,
     ),
