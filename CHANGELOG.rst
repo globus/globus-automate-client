@@ -10,6 +10,17 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.16.1:
+
+0.16.1 — 2022-06-23
+===================
+
+Bugfixes
+--------
+
+-   Fix a bug in the flow administrator/starter/runner CLI alias validation
+    which prevents successfully running the ``flow update`` subcommand.
+
 .. _changelog-0.16.0:
 
 0.16.0 — 2022-06-23
