@@ -10,6 +10,17 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.16.1.post1:
+
+0.16.1.post1 — 2022-07-15
+=========================
+
+Documentation
+-------------
+
+-   `[sc-16711] <https://app.shortcut.com/globus/story/16711>`_
+    Document how to automatically run a flow based on filesystem change events.
+
 .. _changelog-0.16.1:
 
 0.16.1 — 2022-06-23

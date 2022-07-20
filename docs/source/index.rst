@@ -22,6 +22,13 @@ implementing the Globus Action Provider Interface, and Globus Queues.
 
     authoring_flows
 
+..  toctree::
+    :maxdepth: 1
+    :titlesonly:
+    :caption: How-to guides
+
+    automating-flow-runs
+
 .. toctree::
    :maxdepth: 1
    :titlesonly:
