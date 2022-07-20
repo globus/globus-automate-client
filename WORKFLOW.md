@@ -162,7 +162,7 @@ the branch to `production` and `main`:
 
 6. Create a new pull request to merge to `main`.
    1. Select `main` as the "base" merge branch.
-   2. Select the release or hotfix branch as the "compare" merge branch.
+   2. Select the production branch as the "compare" merge branch.
    3. Wait for CI test results (and approvals, if needed).
 
       > NOTE: **Merge conflicts**
@@ -171,4 +171,4 @@ the branch to `production` and `main`:
       > However, approval is required after resolving the conflict.
    4. Merge the branch to `main`.
 
-6. Delete the release branch.
+7. Delete the release branch.
