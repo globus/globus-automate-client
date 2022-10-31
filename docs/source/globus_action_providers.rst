@@ -1,18 +1,15 @@
 Globus Action Providers
 =======================
 
-Globus provides and operates a number of ``Action Providers`` which may be
-invoked directly or used within Flows. Below is a brief summary of the ``Action
-Providers`` being operated including specific information on their URLs, scopes,
-and a summary of their functionality. Specific input specifications are not
-provided as they may be retrieved from the ``Action Provider`` directly via
-introspection:
+Globus provides and operates a number of ``Action Providers`` which may be invoked directly or used within Flows.
+Below is a brief summary of the ``Action Providers`` being operated including specific information on their URLs, scopes, and a summary of their functionality.
+Specific input specifications are generally not provided as they may be authoritatively retrieved from the ``Action Provider`` directly via introspection:
 
-.. code-block:: BASH
+.. code-block:: bash
 
     globus-automate action introspect --action-url <action_url>
 
-Or simply click on the URL to view the introspection results in a browser.
+You can also click on the Action URL in the documentation to view the introspection results in a browser.
 
 .. note::
     When running Globus operated Action Providers the ``action`` subcommands
@@ -27,7 +24,7 @@ List of Globus Operated Action Providers
 HelloWorld
 ----------
 
-URL: `<https://actions.globus.org/hello_world>`_
+Action URL: `<https://actions.globus.org/hello_world>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/hello_world``
 
@@ -55,7 +52,7 @@ status will become ``SUCCEEDED``.
 Globus Transfer - Transfer Data
 -------------------------------
 
-URL: `<https://actions.globus.org/transfer/transfer>`_
+Action URL: `<https://actions.globus.org/transfer/transfer>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
@@ -80,7 +77,7 @@ Globus Transfer API.
 Globus Transfer - Delete Data
 -----------------------------
 
-URL: `<https://actions.globus.org/transfer/delete>`_
+Action URL: `<https://actions.globus.org/transfer/delete>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/delete``
 
@@ -96,7 +93,7 @@ directly from the Task status in the Globus Transfer API.
 Globus Transfer - Set/Manage Permissions
 ----------------------------------------
 
-URL: `<https://actions.globus.org/transfer/set_permission>`_
+Action URL: `<https://actions.globus.org/transfer/set_permission>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permission``
 
@@ -127,7 +124,7 @@ returning the Transfer API result.
 Globus Transfer - List Directory Contents
 -----------------------------------------
 
-URL: `<https://actions.globus.org/transfer/ls>`_
+Action URL: `<https://actions.globus.org/transfer/ls>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_ls``
 
@@ -149,7 +146,7 @@ Additionally, it adds two features not found in the base Globus Transfer List Di
 Globus Transfer - Make Directory
 --------------------------------
 
-URL: `<https://actions.globus.org/transfer/mkdir>`_
+Action URL: `<https://actions.globus.org/transfer/mkdir>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_mkdir``
 
@@ -166,7 +163,7 @@ to create a new directory on an endpoint. The input is simply the id for endpoin
 Globus Transfer - Get Collection Information
 --------------------------------------------
 
-URL: `<https://actions.globus.org/transfer/collection_info>`_
+Action URL: `<https://actions.globus.org/transfer/collection_info>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/transfer_collection_info``
 
@@ -178,7 +175,7 @@ to get information about a Globus Collection. The information returned is the sa
 Globus Search - Ingest
 ----------------------
 
-URL: `<https://actions.globus.org/search/ingest>`_
+Action URL: `<https://actions.globus.org/search/ingest>`_
 
 Scope: ``https://auth.globus.org/scopes/actions.globus.org/search/ingest``
 
@@ -204,7 +201,7 @@ not support cancellation of its Actions.
 Globus Search - Delete
 ----------------------
 
-URL: `<https://actions.globus.org/search/delete>`_
+Action URL: `<https://actions.globus.org/search/delete>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/search_delete``
 
@@ -238,7 +235,7 @@ of its Actions.
 Send Notification - Email
 -------------------------
 
-URL: `<https://actions.globus.org/notification/notify>`_
+Action URL: `<https://actions.globus.org/notification/notify>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/notification_notify``
 
@@ -277,7 +274,7 @@ improper recipient address.
 Wait for User Option Selection
 ------------------------------
 
-URL: `<https://actions.globus.org/weboption/wait_for_option>`_
+Action URL: `<https://actions.globus.org/weboption/wait_for_option>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/weboption_wait_for_option``
 
@@ -347,7 +344,7 @@ Simple Expression Evaluation
     Simple Expression Evaluation Action Provider described here is not needed
     and expressions defined on Action definitions within a Flow are preferred.
 
-URL: `<https://actions.globus.org/expression_eval>`_
+Action URL: `<https://actions.globus.org/expression_eval>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/expression``
 
@@ -386,7 +383,7 @@ result in previous results being over-written.
 Datacite DOI Minting
 --------------------
 
-URL: `<https://actions.globus.org/datacite/mint/basic_auth>`_
+Action URL: `<https://actions.globus.org/datacite/mint/basic_auth>`_
 
 Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/datacite_mint_basic_auth_action_all``
 
@@ -408,3 +405,367 @@ should be used in the Datacite test service or the production service.
 .. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
 .. _Globus Transfer Make Directory API: https://docs.globus.org/api/transfer/file_operations/#make_directory
 .. _Globus Transfer Get Collection API: https://docs.globus.org/api/transfer/endpoint/#get_endpoint_by_id
+
+
+HTTP requests
+-------------
+
+Action URL: `<https://actions.globus.org/http>`_
+
+Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/http``
+
+Synchronous / Asynchronous: Synchronous
+
+The HTTP action provider supports making HTTP requests to arbitrary URL's of your choosing.
+This allows you to gather information from, or submit information to, external services.
+
+At minimum, you must specify the HTTP method and the target URL.
+Here is an example of the simplest functional input document:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://httpbin.org/get"
+    }
+
+A single HTTP request can be customized in four key ways:
+
+*   HTTP method
+*   HTTP URL
+*   Content submission
+*   URL customization
+
+
+HTTP method
+...........
+
+..  csv-table::
+
+    "Key name", "``method``"
+    "Value type", "string"
+    "Required", "True"
+    "Accepted values", "``DELETE``, ``GET``, ``POST``, ``PUT``"
+    "Default", "*None*"
+
+The HTTP method determines how a URL is accessed.
+
+Generally speaking, GET requests can only gather existing information.
+POST requests create new information,
+PUT requests update existing information,
+and DELETE requests erase existing information.
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://httpbin.org/get"
+    }
+
+
+HTTP URL
+........
+
+..  csv-table::
+
+    "Key name", "``url``"
+    "Value type", "string"
+    "Required", "True"
+    "Default", "*None*"
+
+The ``url`` key indicates the target URL that will be accessed by the HTTP request.
+
+It can be manipulated and augmented dynamically using query parameters and URL substitution identifiers, which are documented below.
+
+
+
+Content submission
+..................
+
+..  csv-table::
+
+    "Key name", "``content``"
+    "Value type", "a JSON object"
+    "Required", "False"
+    "Default", "*None*"
+
+If you need to submit data to a URL, use the ``content`` key.
+This can be used for all HTTP methods except GET requests.
+
+..  code-block:: json
+
+    {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "content": {
+            "example-id": "123",
+            "values": [3, 5, 7]
+        }
+    }
+
+Content will be submitted directly as JSON, but you can customize this using the ``content-type`` key.
+
+
+Content type
+............
+
+..  csv-table::
+
+    "Key name", "``content-type``"
+    "Value type", "string"
+    "Required", "False"
+    "Accepted values", "``application/json``, ``application/x-www-form-urlencoded``"
+    "Default", "``application/json``"
+
+While content will be submitted as JSON data by default, some servers may expect data to be URL-encoded.
+Here is an example of how these two content types appear when submitted to a server:
+
+..  code-block:: http
+
+    POST /example HTTP/1.1
+    Content-Type: application/json
+
+    {"dataset": "123", "status": "running"}
+
+..  code-block:: http
+
+    POST /example HTTP/1.1
+    Content-Type: application/x-www-form-urlencoded
+
+    dataset=123&status=running
+
+Set the ``content-type`` if required by the service you are submitting content to.
+
+..  code-block:: json
+
+    {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "content": {"dataset": "123", "status": "running"},
+        "content-type": "application/x-www-form-urlencoded"
+    }
+
+
+Query parameters
+................
+
+..  csv-table::
+
+    "Key name", "``query-parameters``"
+    "Value type", "JSON keys and values"
+    "Required", "False"
+    "Default", "*None*"
+
+Some HTTP endpoints require query parameters at the end of the URL.
+If the query parameters never change you can specify them directly in the URL:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/datasets?geo=AMER&date=2021-01-17"
+    }
+
+However, the query parameters can also be specified in the input document.
+This allows you to dynamically construct the query parameters using information generated or retrieved in the context of a larger Globus Flow.
+For example:
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/datasets",
+        "query-parameters": {
+            "geo": "AMER",
+            "date": "2021-01-17"
+        }
+    }
+
+
+URL substitutions
+.................
+
+..  csv-table::
+
+    "Key name", "``url-substitutions``"
+    "Value type", "JSON keys and values"
+    "Required", "False"
+    "Default", "*None*"
+
+Some HTTP endpoints require a customized URL hierarchy.
+For example, the URL may require an ID to be embedded in the path:
+
+..  code-block:: text
+
+    https://domain.example/dataset/37/status/42/info
+
+When this is required you can specify substitution identifiers in the ``url``
+and dynamically provide the correct values in the input document.
+
+Substitution identifiers in the URL are wrapped in curly braces like "``{id}``".
+You can specify multiple substitution identifiers, and identifiers can be repeated.
+Each identifier MUST be referenced as a key in the ``url-substitutions`` object.
+
+If identifiers are specified in the URL but are not provided in the ``url-substitutions`` object an error will be returned.
+Similarly, if identifier values are provided in ``url-substitutions`` but are not required then this will also be treated as an error.
+
+The input document below will result in the same URL as the example above,
+but the dataset ID and the status ID can now be dynamically specified during Flow execution.
+
+..  code-block:: json
+
+    {
+        "method": "GET",
+        "url": "https://domain.example/dataset/{dataset-id}/status/{status-id}/info",
+        "url-substitutions": {
+            "dataset-id": "37",
+            "status-id": "42"
+        }
+    }
+
+This feature can be combined with dynamic query parameters, too.
+
+..  note::
+
+    To support this feature, bare curly braces cannot appear in a URL.
+    If you need to have bare curly braces in the URL you can escape them using URL substitution:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{open-brace}success{close-brace}/",
+            "url-substitutions": {
+                "open-brace": "{",
+                "close-brace": "}"
+            }
+        }
+
+    This will result in the following URL with curly braces embedded:
+
+    ..  code-block:: text
+
+        https://domain.example/{success}/
+
+
+Errors: JSON schema validation
+..............................
+
+Input documents will be validated against the HTTP action provider JSON schema.
+The schema can be authoritatively retrieved using the introspection instructions at the top of this document.
+
+If the JSON schema validation fails the HTTP provider will return a JSON document with a list of errors.
+For example, if the ``method`` is not one of the supported values you will see an error like this:
+
+..  code-block:: json
+
+    {
+        "code": "BadActionRequest",
+        "description": [
+            "'method' invalid due to 'GATHER' is not one of ['DELETE', 'GET', 'POST', 'PUT']"
+        ]
+    }
+
+If you encounter a ``BadActionRequest`` it is possible that the input document contains a typo or a missing key.
+
+
+Errors: Additional input documentation validation
+.................................................
+
+Additional validation of the input document will be performed before submitting the HTTP request.
+These errors may be returned in the result document:
+
+``HTTP_URL_SUBSTITUTION_EMPTY_ID``
+    All URL substitution identifiers must have at least one character.
+
+    If this error is encountered it means that an empty identifier was encountered in the ``url`` key.
+    An empty identifier is two curly braces next to each other: "``{}``".
+
+    If literal curly braces must appear in the URL,
+    please see the section above titled "URL substitutions" for a workaround.
+
+    If a value is required at that location in the URL, give the identifier a name using at least one character.
+    Otherwise, remove the curly braces from the URL.
+
+``HTTP_URL_SUBSTITUTION_ID_UNFILLED``
+    All substitution identifiers in ``url`` must have values specified in ``url-substitutions``.
+
+    If this error is encountered it means that one or more identifiers do not have values.
+    For example, the following URL contains two identifiers (``dataset-id`` and ``status-id``)
+    but only one value (``dataset-id``) is provided in ``url-substitutions``:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{dataset-id}/{status-id}",
+            "url-substitutions": {
+                "dataset-id": "123"
+            }
+        }
+
+    To fix this error, provide a value for each substitution identifier that appears in ``url``.
+
+``HTTP_URL_SUBSTITUTION_ID_UNKNOWN``
+    All substitution values in ``url-substitutions`` must be required in ``url``.
+
+    If you see this error it means that one or more values would be unused in the ``url``.
+    For example, the following URL contains one identifier (``dataset-id``)
+    but two values (``dataset-id`` and ``status-id``) are provided in ``url-substitutions``:
+
+    ..  code-block:: json
+
+        {
+            "method": "GET",
+            "url": "https://domain.example/{dataset-id}",
+            "url-substitutions": {
+                "dataset-id": "123",
+                "status-id": "unused"
+            }
+        }
+
+    To fix this error, only provide values for each substitution identifier that appears in ``url``.
+
+``HTTP_METHOD_DOES_NOT_SUPPORT_CONTENT``
+    The HTTP specification does not allow content to be submitted with GET requests.
+
+    If you see this error it means that the input document specifies "``GET``" as the HTTP method but also specifies a ``content`` key.
+    This is an incompatible combination.
+
+    If you are attempting to submit data to the specified URL you must use a different HTTP method, like "``POST``" or "``PUT``".
+
+    If you are only attempting to retrieve data from the specified URL, remove the ``content`` key from the input document.
+
+
+Errors: HTTP request or response failures
+.........................................
+
+``HTTP_REQUEST_FAILED``
+    The HTTP request was submitted but failed for some reason.
+
+    This error can happen for many reasons.
+    For example, you may see this error if the ``url`` contains a typo,
+    or if the ``url`` refers to an internal server that cannot be reached from the outside internet,
+    or if the server doesn't respond within 5 (five) seconds.
+
+    The text of the failure is included in the error message and can help troubleshoot why the request failed.
+
+``HTTP_RESPONSE_TOO_LARGE``
+    The HTTP response was larger than 128KB.
+
+    If you encounter this error when submitting a request for a large number of results
+    then you may be able to overcome this error by filtering results in some way
+    or restricting the amount of information returned per result.
+
+``HTTP_RESPONSE_TIMEOUT``
+    The HTTP response stayed open for longer than 10 (ten) total seconds.
+
+    This error differs from ``HTTP_REQUEST_FAILED`` in that the target URL's server responded.
+    However, the server failed to transfer its results with 10 (ten) seconds.
+    It may be that the target URL is triggering a computationally-expensive operation.
+    In this situation you will need to find a way to reduce the delay in the target URL's response.
+
+``HTTP_RESPONSE_NOT_JSON``
+    At this time, all HTTP requests must return valid JSON.
+
+    If you see this error it means that the server responded with something other than valid JSON.
