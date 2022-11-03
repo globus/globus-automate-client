@@ -535,14 +535,10 @@ View the `Move flow definition`_ in the Globus web app.
     :caption: Example Input
 
     {
-        "source": {
-          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-          "path": "/~/source-directory"
-        },
-        "destination": {
-          "id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-          "path": "/~/destination-directory"
-        }
+        "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/source-directory",
+        "destination_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "destination_path": "/~/destination-directory",
         "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2",
         "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2"
     }
@@ -566,21 +562,13 @@ View the `2 Stage Transfer flow definition`_ in the Globus web app.
 .. code-block:: json
     :caption: Example Input
 
-    {
-        "source": {
-          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-          "path": "/~/ep1-example-directory/"
-        },
-        "intermediate": {
-          "id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-          "path": "/~/ep2-intermediate-directory/"
-        },
-        "destination__": {
-          "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-          "path": "/~/ep1-duplicate-example-directory/"
-        }
-        "transfer1_label": "This value will be used as a label for the Globus Transfer Task to copy data from the source collection to the intermediate collection",
-        "transfer2_label": "This value will be used as a label for the Globus Transfer Task to copy data from the intermediate collection to the destination collection"
+{
+        "source_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "source_path": "/~/ep1-example-directory/",
+        "intermediate_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
+        "intermediate_path": "/~/ep2-intermediate-directory/",
+        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
+        "destination_path": "/~/ep1-duplicate-example-directory/"
     }
 
 .. _example-flow-transfer-set-permissions:
