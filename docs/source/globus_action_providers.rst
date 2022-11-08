@@ -173,7 +173,8 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 Synchronous / Asynchronous: Synchronous
 
 The Globus Transfer ls Action Provider uses the `Globus Transfer Get Collection API`_
-to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed`` will be set to ``true`` if there is a ``subscription_id`` associated with the collection, and ``false`` if not. This allows, for example, branching within a Flow (using a ``Choice`` state type) based on whether a collection/endpoint is managed under a Globus subscription.
+to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed``. When ``true``, the ``is_managed`` property indicates that a collection (or its host) is managed under a Globus subscription.
+
 
 Globus Search - Ingest
 ----------------------
@@ -402,6 +403,21 @@ should be used in the Datacite test service or the production service.
 .. literalinclude:: ../../examples/action_bodies/datacite.json
    :language: json
    :caption: Example Input
+
+
+funcX
+-----
+
+URL: `<https://automate.funcx.org>`_
+
+Scope: ``https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all``
+
+Synchronous / Asynchronous: Asynchronous
+
+FuncX supports an asynchronous action provider to provide access via the Globus
+Automate ecosystem. More details can be found `in the funcX documentation
+<https://funcx.readthedocs.io/en/latest/actionprovider.html>`_.
+
 
 .. _Globus Transfer ACL API: https://docs.globus.org/api/transfer/acl/
 .. _Globus Transfer Task API: https://docs.globus.org/api/transfer/task_submit/
