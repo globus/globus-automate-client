@@ -216,7 +216,7 @@ parameters are not sufficient. Thus, we introduce expression type parameters
 which may evaluate multiple parts of the state to compute a single, required
 value.
 
-The syntax of an expression paramter takes the following form:
+The syntax of an expression parameter takes the following form:
 
 .. code-block:: JSON
 
@@ -271,7 +271,7 @@ In addition to basic arithmetic operations, a few *functions* may be used. Funct
 
   * ``getattr('x', 10)``: returns the value of property ``x`` if it is present, and the constant 10 if not (equivalent to the ``is_present`` example above.
 
-  * ``getattr('missing_property')``: Would return a ``null` value if the ``missing_property`` value is not present in the state.
+  * ``getattr('missing_property')``: Would return a ``null`` value if the ``missing_property`` value is not present in the state.
 
 Identities and Roles, Scopes and Tokens
 ---------------------------------------
