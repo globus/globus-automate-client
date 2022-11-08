@@ -403,6 +403,21 @@ should be used in the Datacite test service or the production service.
    :language: json
    :caption: Example Input
 
+
+funcX
+-----
+
+URL: `<https://automate.funcx.org>`_
+
+Scope: ``https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all``
+
+Synchronous / Asynchronous: Asynchronous
+
+FuncX supports an asynchronous action provider to provide access via the Globus
+Automate ecosystem. More details can be found `in the funcX documentation
+<https://funcx.readthedocs.io/en/latest/actionprovider.html>`_.
+
+
 .. _Globus Transfer ACL API: https://docs.globus.org/api/transfer/acl/
 .. _Globus Transfer Task API: https://docs.globus.org/api/transfer/task_submit/
 .. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
