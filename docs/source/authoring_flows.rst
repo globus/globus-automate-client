@@ -188,7 +188,7 @@ would not be visible:
     {
       "_private": {
           "user_name": "FlowUser",
-          "password": "my_password",
+          "password": "my_password"
       }
     }
 
@@ -516,19 +516,19 @@ Example Flows
 
 .. _example-flow-move:
 
-"Move (Globus Example)"
-^^^^^^^^^^^^^^^^^^^^^^^
+"Move (copy and delete) files using Globus"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Flow ID: ``9123c20b-61e0-46e8-9469-92c999b6b8f2``.
+Flow ID: ``f37e5766-7b3c-4c02-92ee-e6aacd8f4cb8``.
 
-A Flow which performs a 'move' operation on a directory by first transferring
+Perform a 'move' operation on a directory by first transferring
 from a source to a destination and then deleting the directory from the source.
 The entire directory's contents, including files and subdirectories, will be
-moved to the destination and then removed from the source.
+copied to the destination and then deleted from the source.
 
 Note that this flow requires at least one of the collections to be managed under a Globus subscription.
 
-View the `Move flow definition`_ in the Globus web app.
+View the `Move (copy and delete) files using Globus`_ in the Globus web app.
 (You may need to log in first.)
 
 .. code-block:: json
@@ -542,7 +542,7 @@ View the `Move flow definition`_ in the Globus web app.
         "destination": {
           "id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
           "path": "/~/destination-directory"
-        }
+        },
         "transfer_label": "Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2",
         "delete_label": "Delete after Transfer for Generic Move from Globus Tutorial Endpoint 1 to Globus Tutorial Endpoint 2"
     }
@@ -551,17 +551,17 @@ View the `Move flow definition`_ in the Globus web app.
 
 .. _example-flow-2-stage-transfer:
 
-"2 Stage Transfer (Globus Example)"
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"Two Stage Globus Transfer"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Flow ID: ``79a4653f-f8da-43b6-a581-5d3b345ad575``.
+Flow ID: ``99791f7d-6c2c-4675-af4b-b927db68bad0``.
 
 Transfer from source to destination with an intermediate endpoint in-between.
 Remove from intermediate after completion.
 
 Note that this flow requires at least one of the collections to be managed under a Globus subscription.
 
-View the `2 Stage Transfer flow definition`_ in the Globus web app.
+View the `Two Stage Globus Transfer`_ in the Globus web app.
 
 .. code-block:: json
     :caption: Example Input
@@ -578,42 +578,12 @@ View the `2 Stage Transfer flow definition`_ in the Globus web app.
         "destination__": {
           "id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
           "path": "/~/ep1-duplicate-example-directory/"
-        }
+        },
         "transfer1_label": "This value will be used as a label for the Globus Transfer Task to copy data from the source collection to the intermediate collection",
         "transfer2_label": "This value will be used as a label for the Globus Transfer Task to copy data from the intermediate collection to the destination collection"
     }
 
-.. _example-flow-transfer-set-permissions:
 
-"Transfer Set Permissions (Globus Example)"
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Flow ID: ``cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c``.
-
-A Flow which performs a Transfer on a directory, gives a user READ permissions
-on the destination directory and notifies the user of their new data via email.
-The user running the Flow must have administration privileges over the
-destination endpoint.
-
-View the `Transfer Set Permissions flow definition`_ in the Globus web app.
-
-.. code-block:: json
-    :caption: Example Input
-
-    {
-        "source_endpoint_id": "ddb59af0-6d04-11e5-ba46-22000b92c6ec",
-        "source_path": "/share/godata",
-        "destination_endpoint_id": "ddb59aef-6d04-11e5-ba46-22000b92c6ec",
-        "destination_path": "/~/my-godata",
-        "transfer_label": "Transfer for Transfer Set Permissions Flow",
-        "user_id": "06a24bef-940e-418a-97bc-48229c64cc99",
-        "user_email": "uriel@globus.org"
-    }
-
-(Of course, adjust ``user_email`` as necessary if you want to test this flow.)
-
-
-..  _Move flow definition: https://app.globus.org/flows/9123c20b-61e0-46e8-9469-92c999b6b8f2/definition
-..  _2 Stage Transfer flow definition: https://app.globus.org/flows/79a4653f-f8da-43b6-a581-5d3b345ad575/definition
-..  _Transfer Set Permissions flow definition: https://app.globus.org/flows/cdcd6d1a-b1c3-4e0b-8d4c-f205c16bf80c/definition
+..  _Move (copy and delete) files using Globus: https://app.globus.org/flows/f37e5766-7b3c-4c02-92ee-e6aacd8f4cb8/definition
+..  _Two Stage Globus Transfer: https://app.globus.org/flows/99791f7d-6c2c-4675-af4b-b927db68bad0/definition
 ..  _Globus web app: https://app.globus.org/
