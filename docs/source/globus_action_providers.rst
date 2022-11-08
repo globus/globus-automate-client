@@ -173,7 +173,8 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 Synchronous / Asynchronous: Synchronous
 
 The Globus Transfer ls Action Provider uses the `Globus Transfer Get Collection API`_
-to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed`` will be set to ``true`` if there is a ``subscription_id`` associated with the collection, and ``false`` if not. This allows, for example, branching within a Flow (using a ``Choice`` state type) based on whether a collection/endpoint is managed under a Globus subscription.
+to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed``. When ``true``, the ``is_managed`` property indicates that a collection (or its host) is managed under a Globus subscription.
+
 
 Globus Search - Ingest
 ----------------------
