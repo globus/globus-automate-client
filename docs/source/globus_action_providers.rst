@@ -1,11 +1,11 @@
 Globus Action Providers
 =======================
 
-Globus provides and operates a number of ``Action Providers`` which may be
-invoked directly or used within Flows. Below is a brief summary of the ``Action
-Providers`` being operated including specific information on their URLs, scopes,
+Globus provides and operates a number of action providers which may be
+invoked directly or used within flows. Below is a brief summary of the action
+providers being operated including specific information on their URLs, scopes,
 and a summary of their functionality. Specific input specifications are not
-provided as they may be retrieved from the ``Action Provider`` directly via
+provided as they may be retrieved from the action provider directly via
 introspection:
 
 .. code-block:: BASH
@@ -15,11 +15,11 @@ introspection:
 Or simply click on the URL to view the introspection results in a browser.
 
 .. note::
-    When running Globus operated Action Providers the ``action`` subcommands
+    When running Globus operated action providers the ``action`` subcommands
     do not require the use of the ``--action-scope`` option as these Action
     Providers are publicly visible. If interacting with a non-publicly visible
     Provider, all ``action`` subcommands will require the ``--action-scope``
-    option followed with the Action Provider's corresponding scope value.
+    option followed with the action provider's corresponding scope value.
 
 List of Globus Operated Action Providers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,7 +33,7 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/hello_world``
 
 Synchronous / Asynchronous: Either
 
-The HelloWorld Action Provider is very simple and is primarily intended for
+The *HelloWorld* action provider is very simple and is primarily intended for
 testing and bootstrapping purposes. It can operate in either synchronous or
 asynchronous modes. In the synchronous mode, only a single string is sent in the
 body and the response will return containing a constant value (``"Hello":
@@ -61,7 +61,7 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/transfer``
 
 Synchronous / Asynchronous: Either
 
-The Action Provider "transfer/transfer" uses the `Globus Transfer Task API`_ to
+The *Globus Transfer - Transfer Data* action provider uses the `Globus Transfer Task API`_ to
 perform a transfer of data from one Globus Collection to another. The input
 includes both the source and destination collection ids and file paths
 within the collection where the source file or folder is located and
@@ -102,14 +102,14 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/transfer/set_permissi
 
 Synchronous / Asynchronous: Synchronous
 
-The set permission Action Provider uses the `Globus Transfer ACL API`_ to set or
+The *Globus Transfer - Set Permission* action provider uses the `Globus Transfer ACL API`_ to set or
 manage permissions on a folder or file. The body of the request indicates
 whether the permission rule is to be created, updated or deleted using the
 ``operation`` property. For update or delete, the ``rule_id`` of a previously
 created permission rule must also be provided.
 
 As the Globus Transfer API returns a status directly (rather than a
-task identifier), the Action Provider behaves in a synchronous manner,
+task identifier), the action provider behaves in a synchronous manner,
 returning the Transfer API result.
 
 .. literalinclude:: ../../examples/action_bodies/set_permission.json
@@ -133,7 +133,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 
 Synchronous / Asynchronous: Synchronous
 
-The Globus Transfer ls Action Provider uses the `Globus Transfer Directory API`_
+The *Globus Transfer - List Directory* action provider uses the `Globus Transfer Directory API`_
 to retrieve a listing of contents from an (endpoint, path) pair.
 Although providing a path is optional, the default path used depends
 on endpoint type and it is best to explicitly set a path. This Action
@@ -155,7 +155,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 
 Synchronous / Asynchronous: Synchronous
 
-The Globus Transfer mkdir Action Provider uses the `Globus Transfer Make Directory API`_
+The *Globus Transfer - Make Directory* action provider uses the `Globus Transfer Make Directory API`_
 to create a new directory on an endpoint. The input is simply the id for endpoint where the directory will be created and the path on the endpoint to the directory to be created.
 
 .. literalinclude:: ../../examples/action_bodies/mkdir.json
@@ -172,7 +172,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/tra
 
 Synchronous / Asynchronous: Synchronous
 
-The Globus Transfer ls Action Provider uses the `Globus Transfer Get Collection API`_
+The *Globus Transfer - Get Collection* action provider uses the `Globus Transfer Get Collection API`_
 to get information about a Globus Collection. The information returned is the same as defined by the Globus Transfer API with one addition: a property ``is_managed``. When ``true``, the ``is_managed`` property indicates that a collection (or its host) is managed under a Globus subscription.
 
 
@@ -186,16 +186,16 @@ Scope: ``https://auth.globus.org/scopes/actions.globus.org/search/ingest``
 Synchronous / Asynchronous: Asynchronous
 
 Records may be added to an existing `Globus Search
-<https://docs.globus.org/api/search/>`_ index using the Search /
-ingest Action Provider. The input to the Action Provider includes the
+<https://docs.globus.org/api/search/>`_ index using the *Globus Search -
+Ingest* action provider. The input to the action provider includes the
 id of the Search index to be added to and the data, in the
 Search-defined ``GMetaEntry`` format. The user calling the Action
 Provider must have permission to write to the index referenced. Globus
 Search will process the ingest operation asynchronously, so this
-Action Provider also behaves in an asynchronous fashion: requests to
+action provider also behaves in an asynchronous fashion: requests to
 update the state of an Action will reflect the result from updating
 the state of the ingest task in Globus Search. Since Globus Search
-does not support cancellation of tasks, this Action Provider also does
+does not support cancellation of tasks, this action provider also does
 not support cancellation of its Actions.
 
 .. literalinclude:: ../../examples/action_bodies/search_ingest.json
@@ -212,20 +212,20 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/sea
 Synchronous / Asynchronous: Asynchronous
 
 Subjects or entries may be removed from an existing `Globus Search
-<https://docs.globus.org/api/search/>`_ index using the Search
-Delete Action Provider. The input to the Action Provider includes the
+<https://docs.globus.org/api/search/>`_ index using the *Globus Search -
+Delete* action provider. The input to the action provider includes the
 Search index id to delete the data from. The body also specifies the type of
 delete operation to execute via the ``delete_by`` parameter. It's value may be
 ``entry`` to delete a single entry, ``subject`` to delete a subject, or
 ``query`` to remove data matching a `Search query
 <https://docs.globus.org/api/search/entry_and_subject_ops/#delete_by_query>`_.
 
-The user calling the Action Provider must have permission to write to the index
+The user calling the action provider must have permission to write to the index
 referenced. Globus Search will process the delete operation asynchronously, so
-this Action Provider also behaves in an asynchronous fashion. Requests for the
+this action provider also behaves in an asynchronous fashion. Requests for the
 state of an Action will lookup the state of the ``task_id`` in Globus Search,
 ensuring the status remains up-to-date. Since Globus Search does not support
-cancellation of tasks, this Action Provider also does not support cancellation
+cancellation of tasks, this action provider also does not support cancellation
 of its Actions.
 
 .. literalinclude:: ../../examples/action_bodies/search_delete_by_subject.json
@@ -245,7 +245,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/not
 
 Synchronous / Asynchronous: Synchronous
 
-The Send notification / email Action Provider presently supports sending of
+The *Send Notification / Email* action provider presently supports sending of
 email messages to a set of email addresses. The request to send the email
 contains the standard components of an email: sender, receiver(s), subject and
 body. The mimetype of the body may be specified so that either HTML or text
@@ -262,7 +262,7 @@ sending email are supported: SMTP and AWS SES. When SMTP is provided, the
 username, password and server hostname are required. When AWS SES is provided,
 the AWS access key, AWS access key secret and the AWS region must be provided.
 As this service is synchronous and stateless, the requester can be assured that
-these credentials will not be stored. The Action Provider will return success as
+these credentials will not be stored. The action provider will return success as
 long as the email service accepts the message. It cannot guarantee successful
 delivery of the message including an inability to deliver the message due to an
 improper recipient address.
@@ -285,8 +285,8 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/web
 Synchronous / Asynchronous: Asynchronous
 
 Flows or other clients which desire to provide users a method of selecting an
-option from a fixed set may use the Wait for User Option Selection Action
-Provider. The Action Provider can operate in one of two modes.
+option from a fixed set may use the *Wait for User Option Selection Action
+Provider*. The action provider can operate in one of two modes.
 
 In the first mode, a list of options are created which are automatically
 selected by any access to a corresponding URLs. For each option, a name, a URL
@@ -299,7 +299,7 @@ by the input to the Action and the Action will transition to a ``SUCCEEDED``
 status. Each of the options may be protected for access only via specific Globus
 identities by setting values on the ``selectable_by`` list. A direct HTTP access
 may present a Bearer token for authorization using the same scope as used for
-accessing the other operations on the Action Provider. If no access token is
+accessing the other operations on the action provider. If no access token is
 presented, the user will be re-directed to start an OAuth Flow using Globus Auth
 to authenticate access to the option URL.
 
@@ -321,7 +321,7 @@ but not on any of the individual options, the options inherit the same
 
 In either mode, once an option has been selected, none of the url suffixes, nor
 the landing page if configured, in the initial request, will be responded to by
-the Action Provider: they will return the HTTP not found (error) status 404.
+the action provider: they will return the HTTP not found (error) status 404.
 Upon completion, the body of the status will include the name and the url suffix
 for the selected option. The body may also include input on the HTTP data passed
 when the option's URL was accessed including the query parameters and the body.
@@ -343,9 +343,9 @@ Simple Expression Evaluation
 ----------------------------
 
 .. note::
-    Expression Evaluation has been integrated with Action definitions directly
+    Expression evaluation has been integrated with action definitions directly
     (see section :ref:`flow_action_expressions`). Thus, for most use cases, the
-    Simple Expression Evaluation Action Provider described here is not needed
+    *Simple Expression Evaluation* action provider described here is not needed
     and expressions defined on Action definitions within a Flow are preferred.
 
 URL: `<https://actions.globus.org/expression_eval>`_
@@ -356,7 +356,7 @@ Synchronous / Asynchronous: Synchronous
 
 Evaluation of simple expressions is supported using the `simpleeval
 <https://github.com/danthedeckie/simpleeval>`_ library and therefore syntax. A
-single invocation of the Action Provider may evaluate a single expression or
+single invocation of the action provider may evaluate a single expression or
 multiple expressions. An Expression request consists of up to three parts:
 
 * | An ``expression`` (required) which is a basic "arithmetic" type expression.
@@ -393,7 +393,7 @@ Scope: ``https://auth.globus.org/scopes/5fac2e64-c734-4e6b-90ea-ff12ddbf9653/dat
 
 Synchronous / Asynchronous: Synchronous
 
-The Datacite DOI Minting action provider uses the `Datacite JSON API
+The *Datacite DOI Minting* action provider uses the `Datacite JSON API
 <https://support.datacite.org/docs/api-create-dois>`_ to mint DOIs. The main
 part of the body input is as specified in that API. The additional fields
 provide the username and password (the "Basic Auth" credentials which is part of
@@ -415,7 +415,7 @@ Scope: ``https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/act
 Synchronous / Asynchronous: Asynchronous
 
 FuncX supports an asynchronous action provider to provide access via the Globus
-Automate ecosystem. More details can be found `in the funcX documentation
+automation platform. More details can be found `in the funcX documentation
 <https://funcx.readthedocs.io/en/latest/actionprovider.html>`_.
 
 
