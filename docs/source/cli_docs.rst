@@ -1,7 +1,7 @@
 ``globus-automate``
 ===================
 
-A command-line client for the Globus Flows Service
+A command-line client for the Globus Flows service
 
 By default, this CLI keeps all its config and cached tokens in
 .globus_automate_tokens.json in the user’s home directory.

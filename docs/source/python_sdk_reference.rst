@@ -6,7 +6,7 @@ Python SDK Reference
 The Globus Automate Client package provides a Python SDK for interfacing with
 and invoking Globus actions and flows. Below, we provide information on helper
 functions available for creating authenticated action and
-Flow clients as well as documentation on the methods available to those clients.
+flow clients as well as documentation on the methods available to those clients.
 
 Actions Client
 ^^^^^^^^^^^^^^

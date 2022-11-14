@@ -73,7 +73,7 @@ identities are allowed to read or modify the action's state. *Globus Flows*
 allows orchestrating these individual actions into robust
 processes that can tolerate their distinct execution states, including success
 and failure. Users will not often need to operate on actions directly,
-rather, the User will create a run of a flow and the run will invoke
+rather, the User will start a run of a flow and the run will invoke
 action providers, creating actions as necessary to accomplish the
 automation.
 
@@ -100,7 +100,7 @@ by other flows by its flow URL. This allows for modularity in defining
 flows and in a separation of concerns where "sub-flows" can be trusted to
 provide some process or behavior.
 
-When users execute flow, we call that a *run*. A
+When users start a flow, we call that a *run*. A
 run shares the action interface, supporting operations such as viewing
 its status, cancelling its execution, and removing its execution state. This
 allows for common tooling and terminology for working with runs and

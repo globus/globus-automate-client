@@ -5,8 +5,8 @@ Authoring Flows for the Globus Flows Service
 
 *Globus Flows* provides users with the ability to easily define
 compositions of actions (henceforth referred to as *flows*) to perform a single,
-logical operation. Definition of such flows requires an easy to read, author,
-and potentially visualize method of defining the flows. For this purpose, the
+logical operation. The method for defining such flows must be easy to read, author,
+and potentially visualize. For this purpose, the
 Flows service starts from the core of the `Amazon States Language
 <https://states-language.net/spec.html>`_. In particular, the general structure
 of a flow matches that of a States Language state machine in particular matching
