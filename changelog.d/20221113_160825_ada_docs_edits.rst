@@ -1,0 +1,5 @@
+Documentation
+-------------
+
+- Improve documentation by normalizing capitalization and emphasis, as well as
+  clarifying usage of "Globus Automate" wherever it occurred.
