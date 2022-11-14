@@ -58,7 +58,7 @@ SDK that makes it easy to provide custom services that can be tied
 into the Globus automation ecosystem.
 
 These action providers form the foundation of the Globus automation ecosystem
-and are primarily used by referencing their URLs in `Flows`_.
+and are primarily used by referencing their URLs in `flows`_.
 *Globus Flows* allows users to flexibly piece together these individual
 services to create reliable high level workflows.
 
