@@ -519,17 +519,190 @@ Example Flows
 "Move (copy and delete) files using Globus"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Flow ID: ``f37e5766-7b3c-4c02-92ee-e6aacd8f4cb8``.
-
 Perform a 'move' operation on a directory by first transferring
 from a source to a destination and then deleting the directory from the source.
 The entire directory's contents, including files and subdirectories, will be
 copied to the destination and then deleted from the source.
 
-Note that this flow requires at least one of the collections to be managed under a Globus subscription.
+.. tip::
+   To see a complete example that includes error handling, view the `Move (copy and delete) files using Globus`_ in the Globus web app (Flow ID: ``f37e5766-7b3c-4c02-92ee-e6aacd8f4cb8``).
 
-View the `Move (copy and delete) files using Globus`_ in the Globus web app.
-(You may need to log in first.)
+   Note: This flow requires at least one of the collections to be managed under a Globus subscription.
+
+.. code-block:: json
+    :caption: Example Definition
+
+    {
+        "States": {
+            "LookupSourcePath": {
+                "Next": "SetSourceInfo",
+                "Type": "Action",
+                "Comment": "Lookup the source path to determine its type (file/dir) to decide if transfer should be recursive",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/ls",
+                "Parameters": {
+                    "path.$": "$.source.path",
+                    "path_only": true,
+                    "endpoint_id.$": "$.source.id"
+                },
+                "ResultPath": "$.SourcePathInfo"
+            },
+            "SetSourceInfo": {
+                "Next": "LookupDestinationPath",
+                "Type": "ExpressionEval",
+                "Comment": "Set the recursive flag",
+                "Parameters": {
+                    "source_file.=": "SourcePathInfo.details.DATA[0].name",
+                    "is_recursive.=": "SourcePathInfo.details.DATA[0].is_folder",
+                    "source_folder.=": "SourcePathInfo.details.path"
+                },
+                "ResultPath": "$.SourceInfo"
+            },
+            "LookupDestinationPath": {
+                "Next": "SetDestinationInfo",
+                "Type": "Action",
+                "Comment": "Lookup the destination path to determine its type (file/dir)",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/ls",
+                "Parameters": {
+                    "path.$": "$.destination.path",
+                    "path_only": true,
+                    "endpoint_id.$": "$.destination.id"
+                },
+                "ResultPath": "$.DestinationPathInfo"
+            },
+            "SetDestinationInfo": {
+                "Next": "Transfer",
+                "Type": "ExpressionEval",
+                "Comment": "Set information about the destination path",
+                "Parameters": {
+                    "exists.=": "is_present('DestinationPathInfo.details.DATA[0]')",
+                    "is_folder.=": "getattr('DestinationPathInfo.details.DATA[0].is_folder', False)",
+                    "destination_file.=": "getattr('DestinationPathInfo.details.DATA[0].name', '/')",
+                    "destination_folder.=": "DestinationPathInfo.details.path"
+                },
+                "ResultPath": "$.DestinationInfo"
+            },
+            "Transfer": {
+                "Next": "Delete",
+                "Type": "Action",
+                "Comment": "Run the initial transfer operation from the source ep/source path to the destination ep/destination path",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/transfer",
+                "Parameters": {
+                    "label.=": "getattr('transfer_label', 'Transfer for Move Flow Run with id ' + _context.run_id)",
+                    "transfer_items": [
+                        {
+                            "recursive.$": "$.SourceInfo.is_recursive",
+                            "source_path.$": "$.source.path",
+                            "destination_path.=": "(destination.path + '/' + SourceInfo.source_file) if (DestinationInfo.is_folder or ((not DestinationInfo.exists) and SourceInfo.is_recursive)) else destination.path"
+                        }
+                    ],
+                    "source_endpoint_id.$": "$.source.id",
+                    "destination_endpoint_id.$": "$.destination.id"
+                },
+                "ResultPath": "$.TransferResult",
+            },
+            "Delete": {
+                "End": true,
+                "Type": "Action",
+                "Comment": "Use Transfer to delete the initial source ep/source path. It uses the same value for recursive as the transfer",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/delete",
+                "Parameters": {
+                    "items.=": "[source.path]",
+                    "label.=": "getattr('delete_label', 'Delete from Source for Move Flow Run with id ' + _context.run_id)",
+                    "recursive.$": "$.SourceInfo.is_recursive",
+                    "endpoint_id.$": "$.source.id"
+                },
+                "ResultPath": "$.DeleteResult",
+            }
+        },
+        "Comment": "A Flow for performing a logical 'move' operation by first transferring from a source to a destination and then deleting from the source",
+        "StartAt": "LookupSourcePath"
+    }
+
+.. code-block:: json
+    :caption: Example Input Schema
+
+    {
+        "type": "object",
+        "required": [
+            "source",
+            "destination"
+        ],
+        "properties": {
+            "source": {
+                "type": "object",
+                "title": "Source",
+                "format": "globus-collection",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Source Collection ID",
+                        "format": "uuid",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "The UUID for the collection which serves as the source of the Move"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Source Collection Path",
+                        "description": "The path on the source collection for the data"
+                    }
+                },
+                "description": "Globus-provided flows require that at least one collection is managed under a subscription.",
+                "additionalProperties": false
+            },
+            "destination": {
+                "type": "object",
+                "title": "Destination",
+                "format": "globus-collection",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Destination Collection ID",
+                        "format": "uuid",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "The UUID for the collection which serves as the destination for the Move"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Destination Collection Path",
+                        "description": "The path on the destination collection where the data will be stored"
+                    }
+                },
+                "description": "Globus-provided flows require that at least one collection is managed under a subscription.",
+                "additionalProperties": false
+            },
+            "delete_label": {
+                "type": "string",
+                "title": "Label for Delete Task from Source",
+                "pattern": "^[a-zA-Z0-9-_, ]+$",
+                "maxLength": 128,
+                "description": "A label placed on the Delete operation"
+            },
+            "transfer_label": {
+                "type": "string",
+                "title": "Label for Transfer Task",
+                "pattern": "^[a-zA-Z0-9-_, ]+$",
+                "maxLength": 128,
+                "description": "A label placed on the Transfer operation"
+            }
+        },
+        "additionalProperties": false
+    }
 
 .. code-block:: json
     :caption: Example Input
@@ -549,19 +722,291 @@ View the `Move (copy and delete) files using Globus`_ in the Globus web app.
 
 (Choose different ``source.path`` and ``destination.path`` as needed to run this example flow.)
 
+
+
 .. _example-flow-2-stage-transfer:
 
 "Two Stage Globus Transfer"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Flow ID: ``99791f7d-6c2c-4675-af4b-b927db68bad0``.
-
 Transfer from source to destination with an intermediate endpoint in-between.
 Remove from intermediate after completion.
 
-Note that this flow requires at least one of the collections to be managed under a Globus subscription.
+.. tip::
+   To see a complete example that includes error handling, view the `Two Stage Globus Transfer`_ in the Globus web app (Flow ID: ``99791f7d-6c2c-4675-af4b-b927db68bad0``).
 
-View the `Two Stage Globus Transfer`_ in the Globus web app.
+   Note: This flow requires at least one of the collections to be managed under a Globus subscription.
+
+.. code-block:: json
+    :caption: Example Definition
+
+    {
+        "States": {
+            "LookupSourcePath": {
+                "Next": "SetSourceInfo",
+                "Type": "Action",
+                "Comment": "Lookup the source path to determine its type (file/dir) to decide if transfer should be recursive",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/ls",
+                "Parameters": {
+                    "path.$": "$.source.path",
+                    "path_only": true,
+                    "endpoint_id.$": "$.source.id"
+                },
+                "ResultPath": "$.SourcePathInfo"
+            },
+            "SetSourceInfo": {
+                "Next": "LookupDestinationPath",
+                "Type": "ExpressionEval",
+                "Comment": "Set details of the source data",
+                "Parameters": {
+                    "source_file.=": "SourcePathInfo.details.DATA[0].name",
+                    "is_recursive.=": "SourcePathInfo.details.DATA[0].is_folder",
+                    "source_folder.=": "SourcePathInfo.details.path"
+                },
+                "ResultPath": "$.SourceInfo"
+            },
+            "LookupDestinationPath": {
+                "Next": "SetDestinationInfo",
+                "Type": "Action",
+                "Comment": "Lookup the destination path to determine its type (file/dir)",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/ls",
+                "Parameters": {
+                    "path.$": "$.destination.path",
+                    "path_only": true,
+                    "endpoint_id.$": "$.destination.id"
+                },
+                "ResultPath": "$.DestinationPathInfo"
+            },
+            "SetDestinationInfo": {
+                "Next": "CreateActionInputs",
+                "Type": "ExpressionEval",
+                "Comment": "Set information about the destination path",
+                "Parameters": {
+                    "exists.=": "is_present('DestinationPathInfo.details.DATA[0]')",
+                    "is_folder.=": "getattr('DestinationPathInfo.details.DATA[0].is_folder', False)",
+                    "destination_file.=": "getattr('DestinationPathInfo.details.DATA[0].name', '/')",
+                    "destination_folder.=": "DestinationPathInfo.details.path"
+                },
+                "ResultPath": "$.DestinationInfo"
+            },
+            "CreateActionInputs": {
+                "Next": "MakeIntermediateDir",
+                "Type": "ExpressionEval",
+                "Comment": "Setup the inputs for all the Actions to perform the two stage transfer",
+                "Parameters": {
+                    "MakeDirInput": {
+                        "path.=": "intermediate.path + '/' + _context.run_id",
+                        "endpoint_id.$": "$.intermediate.id"
+                    },
+                    "Transfer1Input": {
+                        "label.=": "getattr('transfer1_label', 'Stage One Transfer for Flow Run with id ' + _context.run_id)",
+                        "transfer_items": [
+                            {
+                                "recursive.$": "$.SourceInfo.is_recursive",
+                                "source_path.$": "$.source.path",
+                                "destination_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file"
+                            }
+                        ],
+                        "source_endpoint_id.$": "$.source.id",
+                        "destination_endpoint_id.$": "$.intermediate.id"
+                    },
+                    "Transfer2Input": {
+                        "label.=": "getattr('transfer2_label', 'Stage Two Transfer for Flow Run with id ' + _context.run_id)",
+                        "transfer_items": [
+                            {
+                                "recursive.=": "SourceInfo.is_recursive",
+                                "source_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file",
+                                "destination_path.=": "(destination.path + '/' + SourceInfo.source_file) if (DestinationInfo.is_folder or ((not DestinationInfo.exists) and SourceInfo.is_recursive)) else destination.path"
+                            }
+                        ],
+                        "source_endpoint_id.$": "$.intermediate.id",
+                        "destination_endpoint_id.$": "$.destination.id"
+                    },
+                    "DeleteFromIntermediateInput": {
+                        "items.=": "[(intermediate.path + '/' + _context.run_id)]",
+                        "label.=": "getattr('delete_intermediate_label', 'Delete from Intermediate for Flow Run with id ' + _context.run_id)",
+                        "recursive": true,
+                        "endpoint_id.$": "$.intermediate.id"
+                    }
+                },
+                "ResultPath": "$.ActionInputs"
+            },
+            "MakeIntermediateDir": {
+                "Next": "Transfer1",
+                "Type": "Action",
+                "Comment": "Create a temp directory on the intermediate to hold the data",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/mkdir",
+                "InputPath": "$.ActionInputs.MakeDirInput",
+                "ResultPath": "$.MkdirResult"
+            },
+            "Transfer1": {
+                "Next": "Transfer2",
+                "Type": "Action",
+                "Comment": "Run the initial transfer operation from the source collection to the intermediate collection",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/transfer",
+                "InputPath": "$.ActionInputs.Transfer1Input",
+                "ResultPath": "$.Transfer1Result",
+                "ExceptionOnActionFailure": true
+            },
+            "Transfer2": {
+                "Next": "Delete",
+                "Type": "Action",
+                "Comment": "Run the second transfer operation from the intermediate collection to the destination collection",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/transfer",
+                "InputPath": "$.ActionInputs.Transfer2Input",
+                "ResultPath": "$.Transfer2Result",
+                "ExceptionOnActionFailure": true
+            },
+            "Delete": {
+                "End": true,
+                "Type": "Action",
+                "Comment": "Use Transfer to delete the data from the intermediate collection",
+                "WaitTime": 172800,
+                "ActionUrl": "https://actions.globus.org/transfer/delete",
+                "InputPath": "$.ActionInputs.DeleteFromIntermediateInput",
+                "ResultPath": "$.DeleteResult",
+                "ExceptionOnActionFailure": false
+            }
+        },
+        "Comment": "Transfer from a source collection to a destination collection using an intermediary collection",
+        "StartAt": "LookupSourcePath"
+    }
+
+.. code-block:: json
+    :caption: Example Input Schema
+
+    {
+        "type": "object",
+        "required": [
+            "source",
+            "intermediate",
+            "destination"
+        ],
+        "properties": {
+            "source": {
+                "type": "object",
+                "title": "Source",
+                "format": "globus-collection",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Source Collection ID",
+                        "format": "uuid",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "The UUID for the collection which serves as the source of the data for the two-stage Transfer"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Source Collection Path",
+                        "description": "The path on the source collection for the data"
+                    }
+                },
+                "description": "Globus-provided flows require that at least one collection is managed under a subscription.",
+                "propertyOrder": [
+                    "id",
+                    "path"
+                ],
+                "additionalProperties": false
+            },
+            "intermediate": {
+                "type": "object",
+                "title": "Intermediate",
+                "format": "globus-collection",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Intermediate Collection ID",
+                        "format": "uuid",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "The UUID for the collection which serves as the intermediate, temporary storage for the Transfer"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Intermediate Collection Path",
+                        "description": "The path on the intermediate collection where the data will reside until the end-to-end Transfer is complete."
+                    }
+                },
+                "description": "Globus-provided flows require that at least one collection is managed under a subscription.",
+                "propertyOrder": [
+                    "id",
+                    "path"
+                ],
+                "additionalProperties": false
+            },
+            "destination": {
+                "type": "object",
+                "title": "Destination",
+                "format": "globus-collection",
+                "required": [
+                    "id",
+                    "path"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Destination Collection ID",
+                        "format": "uuid",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "The UUID for the collection which serves as the destination for the two-stage Transfer"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Destination Collection Path",
+                        "description": "The path on the destination collection where the data will be stored"
+                    }
+                },
+                "description": "Globus-provided flows require that at least one collection is managed under a subscription.",
+                "propertyOrder": [
+                    "id",
+                    "path"
+                ],
+                "additionalProperties": false
+            },
+            "transfer1_label": {
+                "type": "string",
+                "title": "Label for the first Transfer Operation",
+                "description": "This value will be used as a label for the Globus Transfer Task to copy data from the source collection to the intermediate collection"
+            },
+            "transfer2_label": {
+                "type": "string",
+                "title": "Label for the second Transfer Operation",
+                "description": "This value will be used as a label for the Globus Transfer Task to copy data from the intermediate collection to the destination collection"
+            },
+            "delete_intermediate_label": {
+                "type": "string",
+                "title": "Label for the intermediate deletion after Transfer",
+                "description": "This value will be used as a label for the Globus Transfer Task to delete data from the intermediate collection after copy"
+            }
+        },
+        "propertyOrder": [
+            "source",
+            "intermediate",
+            "destination",
+            "transfer1_label",
+            "transfer2_label",
+            "delete_intermediate_label"
+        ],
+        "additionalProperties": false
+    }
 
 .. code-block:: json
     :caption: Example Input
