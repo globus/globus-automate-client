@@ -533,9 +533,10 @@ copied to the destination and then deleted from the source.
     :caption: Example Definition
 
     {
+        "Comment": "A Flow for performing a logical 'move' operation by first transferring from a source to a destination and then deleting from the source",
+        "StartAt": "LookupSourcePath",
         "States": {
             "LookupSourcePath": {
-                "Next": "SetSourceInfo",
                 "Type": "Action",
                 "Comment": "Lookup the source path to determine its type (file/dir) to decide if transfer should be recursive",
                 "WaitTime": 172800,
@@ -545,10 +546,10 @@ copied to the destination and then deleted from the source.
                     "path_only": true,
                     "endpoint_id.$": "$.source.id"
                 },
-                "ResultPath": "$.SourcePathInfo"
+                "ResultPath": "$.SourcePathInfo",
+                "Next": "SetSourceInfo"
             },
             "SetSourceInfo": {
-                "Next": "LookupDestinationPath",
                 "Type": "ExpressionEval",
                 "Comment": "Set the recursive flag",
                 "Parameters": {
@@ -556,10 +557,10 @@ copied to the destination and then deleted from the source.
                     "is_recursive.=": "SourcePathInfo.details.DATA[0].is_folder",
                     "source_folder.=": "SourcePathInfo.details.path"
                 },
-                "ResultPath": "$.SourceInfo"
+                "ResultPath": "$.SourceInfo",
+                "Next": "LookupDestinationPath"
             },
             "LookupDestinationPath": {
-                "Next": "SetDestinationInfo",
                 "Type": "Action",
                 "Comment": "Lookup the destination path to determine its type (file/dir)",
                 "WaitTime": 172800,
@@ -569,10 +570,10 @@ copied to the destination and then deleted from the source.
                     "path_only": true,
                     "endpoint_id.$": "$.destination.id"
                 },
-                "ResultPath": "$.DestinationPathInfo"
+                "ResultPath": "$.DestinationPathInfo",
+                "Next": "SetDestinationInfo"
             },
             "SetDestinationInfo": {
-                "Next": "Transfer",
                 "Type": "ExpressionEval",
                 "Comment": "Set information about the destination path",
                 "Parameters": {
@@ -581,10 +582,10 @@ copied to the destination and then deleted from the source.
                     "destination_file.=": "getattr('DestinationPathInfo.details.DATA[0].name', '/')",
                     "destination_folder.=": "DestinationPathInfo.details.path"
                 },
-                "ResultPath": "$.DestinationInfo"
+                "ResultPath": "$.DestinationInfo",
+                "Next": "Transfer"
             },
             "Transfer": {
-                "Next": "Delete",
                 "Type": "Action",
                 "Comment": "Run the initial transfer operation from the source ep/source path to the destination ep/destination path",
                 "WaitTime": 172800,
@@ -602,9 +603,9 @@ copied to the destination and then deleted from the source.
                     "destination_endpoint_id.$": "$.destination.id"
                 },
                 "ResultPath": "$.TransferResult",
+                "Next": "Delete"
             },
             "Delete": {
-                "End": true,
                 "Type": "Action",
                 "Comment": "Use Transfer to delete the initial source ep/source path. It uses the same value for recursive as the transfer",
                 "WaitTime": 172800,
@@ -616,10 +617,9 @@ copied to the destination and then deleted from the source.
                     "endpoint_id.$": "$.source.id"
                 },
                 "ResultPath": "$.DeleteResult",
+                "End": true,
             }
-        },
-        "Comment": "A Flow for performing a logical 'move' operation by first transferring from a source to a destination and then deleting from the source",
-        "StartAt": "LookupSourcePath"
+        }
     }
 
 .. code-block:: json
@@ -741,9 +741,10 @@ Remove from intermediate after completion.
     :caption: Example Definition
 
     {
+        "Comment": "Transfer from a source collection to a destination collection using an intermediary collection",
+        "StartAt": "LookupSourcePath",
         "States": {
             "LookupSourcePath": {
-                "Next": "SetSourceInfo",
                 "Type": "Action",
                 "Comment": "Lookup the source path to determine its type (file/dir) to decide if transfer should be recursive",
                 "WaitTime": 172800,
@@ -753,10 +754,10 @@ Remove from intermediate after completion.
                     "path_only": true,
                     "endpoint_id.$": "$.source.id"
                 },
-                "ResultPath": "$.SourcePathInfo"
+                "ResultPath": "$.SourcePathInfo",
+                "Next": "SetSourceInfo"
             },
             "SetSourceInfo": {
-                "Next": "LookupDestinationPath",
                 "Type": "ExpressionEval",
                 "Comment": "Set details of the source data",
                 "Parameters": {
@@ -764,10 +765,10 @@ Remove from intermediate after completion.
                     "is_recursive.=": "SourcePathInfo.details.DATA[0].is_folder",
                     "source_folder.=": "SourcePathInfo.details.path"
                 },
-                "ResultPath": "$.SourceInfo"
+                "ResultPath": "$.SourceInfo",
+                "Next": "LookupDestinationPath"
             },
             "LookupDestinationPath": {
-                "Next": "SetDestinationInfo",
                 "Type": "Action",
                 "Comment": "Lookup the destination path to determine its type (file/dir)",
                 "WaitTime": 172800,
@@ -777,10 +778,10 @@ Remove from intermediate after completion.
                     "path_only": true,
                     "endpoint_id.$": "$.destination.id"
                 },
-                "ResultPath": "$.DestinationPathInfo"
+                "ResultPath": "$.DestinationPathInfo",
+                "Next": "SetDestinationInfo"
             },
             "SetDestinationInfo": {
-                "Next": "CreateActionInputs",
                 "Type": "ExpressionEval",
                 "Comment": "Set information about the destination path",
                 "Parameters": {
@@ -789,92 +790,76 @@ Remove from intermediate after completion.
                     "destination_file.=": "getattr('DestinationPathInfo.details.DATA[0].name', '/')",
                     "destination_folder.=": "DestinationPathInfo.details.path"
                 },
-                "ResultPath": "$.DestinationInfo"
-            },
-            "CreateActionInputs": {
-                "Next": "MakeIntermediateDir",
-                "Type": "ExpressionEval",
-                "Comment": "Setup the inputs for all the Actions to perform the two stage transfer",
-                "Parameters": {
-                    "MakeDirInput": {
-                        "path.=": "intermediate.path + '/' + _context.run_id",
-                        "endpoint_id.$": "$.intermediate.id"
-                    },
-                    "Transfer1Input": {
-                        "label.=": "getattr('transfer1_label', 'Stage One Transfer for Flow Run with id ' + _context.run_id)",
-                        "transfer_items": [
-                            {
-                                "recursive.$": "$.SourceInfo.is_recursive",
-                                "source_path.$": "$.source.path",
-                                "destination_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file"
-                            }
-                        ],
-                        "source_endpoint_id.$": "$.source.id",
-                        "destination_endpoint_id.$": "$.intermediate.id"
-                    },
-                    "Transfer2Input": {
-                        "label.=": "getattr('transfer2_label', 'Stage Two Transfer for Flow Run with id ' + _context.run_id)",
-                        "transfer_items": [
-                            {
-                                "recursive.=": "SourceInfo.is_recursive",
-                                "source_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file",
-                                "destination_path.=": "(destination.path + '/' + SourceInfo.source_file) if (DestinationInfo.is_folder or ((not DestinationInfo.exists) and SourceInfo.is_recursive)) else destination.path"
-                            }
-                        ],
-                        "source_endpoint_id.$": "$.intermediate.id",
-                        "destination_endpoint_id.$": "$.destination.id"
-                    },
-                    "DeleteFromIntermediateInput": {
-                        "items.=": "[(intermediate.path + '/' + _context.run_id)]",
-                        "label.=": "getattr('delete_intermediate_label', 'Delete from Intermediate for Flow Run with id ' + _context.run_id)",
-                        "recursive": true,
-                        "endpoint_id.$": "$.intermediate.id"
-                    }
-                },
-                "ResultPath": "$.ActionInputs"
+                "ResultPath": "$.DestinationInfo",
+                "Next": "MakeIntermediateDir"
             },
             "MakeIntermediateDir": {
-                "Next": "Transfer1",
                 "Type": "Action",
                 "Comment": "Create a temp directory on the intermediate to hold the data",
                 "WaitTime": 172800,
                 "ActionUrl": "https://actions.globus.org/transfer/mkdir",
-                "InputPath": "$.ActionInputs.MakeDirInput",
-                "ResultPath": "$.MkdirResult"
+                "Parameters": {
+                    "path.=": "intermediate.path + '/' + _context.run_id",
+                    "endpoint_id.$": "$.intermediate.id"
+                },
+                "ResultPath": "$.MkdirResult",
+                "Next": "Transfer1"
             },
             "Transfer1": {
-                "Next": "Transfer2",
                 "Type": "Action",
                 "Comment": "Run the initial transfer operation from the source collection to the intermediate collection",
                 "WaitTime": 172800,
                 "ActionUrl": "https://actions.globus.org/transfer/transfer",
-                "InputPath": "$.ActionInputs.Transfer1Input",
+                "Parameters": {
+                    "label.=": "getattr('transfer1_label', 'Stage One Transfer for Flow Run with id ' + _context.run_id)",
+                    "transfer_items": [
+                        {
+                            "recursive.$": "$.SourceInfo.is_recursive",
+                            "source_path.$": "$.source.path",
+                            "destination_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file"
+                        }
+                    ],
+                    "source_endpoint_id.$": "$.source.id",
+                    "destination_endpoint_id.$": "$.intermediate.id"
+                },
                 "ResultPath": "$.Transfer1Result",
-                "ExceptionOnActionFailure": true
+                "Next": "Transfer2"
             },
             "Transfer2": {
-                "Next": "Delete",
                 "Type": "Action",
                 "Comment": "Run the second transfer operation from the intermediate collection to the destination collection",
                 "WaitTime": 172800,
                 "ActionUrl": "https://actions.globus.org/transfer/transfer",
-                "InputPath": "$.ActionInputs.Transfer2Input",
+                "Parameters": {
+                    "label.=": "getattr('transfer2_label', 'Stage Two Transfer for Flow Run with id ' + _context.run_id)",
+                    "transfer_items": [
+                        {
+                            "recursive.=": "SourceInfo.is_recursive",
+                            "source_path.=": "intermediate.path + '/' + _context.run_id + '/' + SourceInfo.source_file",
+                            "destination_path.=": "(destination.path + '/' + SourceInfo.source_file) if (DestinationInfo.is_folder or ((not DestinationInfo.exists) and SourceInfo.is_recursive)) else destination.path"
+                        }
+                    ],
+                    "source_endpoint_id.$": "$.intermediate.id",
+                    "destination_endpoint_id.$": "$.destination.id"
+                },
                 "ResultPath": "$.Transfer2Result",
-                "ExceptionOnActionFailure": true
+                "Next": "Delete"
             },
             "Delete": {
-                "End": true,
                 "Type": "Action",
                 "Comment": "Use Transfer to delete the data from the intermediate collection",
                 "WaitTime": 172800,
                 "ActionUrl": "https://actions.globus.org/transfer/delete",
-                "InputPath": "$.ActionInputs.DeleteFromIntermediateInput",
+                "Parameters": {
+                    "items.=": "[(intermediate.path + '/' + _context.run_id)]",
+                    "label.=": "getattr('delete_intermediate_label', 'Delete from Intermediate for Flow Run with id ' + _context.run_id)",
+                    "recursive": true,
+                    "endpoint_id.$": "$.intermediate.id"
+                },
                 "ResultPath": "$.DeleteResult",
-                "ExceptionOnActionFailure": false
+                "End": true
             }
-        },
-        "Comment": "Transfer from a source collection to a destination collection using an intermediary collection",
-        "StartAt": "LookupSourcePath"
+        }
     }
 
 .. code-block:: json
