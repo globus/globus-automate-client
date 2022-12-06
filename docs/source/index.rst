@@ -13,13 +13,6 @@ Flows service and services that implement the Globus Action Provider interface.
    using_the_cli
    license
 
-.. toctree::
-    :maxdepth: 1
-    :titlesonly:
-    :caption: Authoring Flows
-
-    authoring_flows
-
 ..  toctree::
     :maxdepth: 1
     :titlesonly:

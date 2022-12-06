@@ -344,7 +344,7 @@ Simple Expression Evaluation
 
 .. note::
     Expression evaluation has been integrated with action definitions directly
-    (see section :ref:`flow_action_expressions`). Thus, for most use cases, the
+    (see the documentation for `expressions in parameters`_). Thus, for most use cases, the
     *Simple Expression Evaluation* action provider described here is not needed
     and expressions defined on Action definitions within a Flow are preferred.
 
@@ -424,3 +424,4 @@ automation platform. More details can be found `in the funcX documentation
 .. _Globus Transfer Directory API: https://docs.globus.org/api/transfer/file_operations/#list_directory_contents
 .. _Globus Transfer Make Directory API: https://docs.globus.org/api/transfer/file_operations/#make_directory
 .. _Globus Transfer Get Collection API: https://docs.globus.org/api/transfer/endpoint/#get_endpoint_by_id
+.. _expressions in parameters: https://docs.globus.org/api/flows/authoring-flows.html#parameter-expressions

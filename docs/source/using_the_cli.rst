@@ -382,7 +382,7 @@ and commands for running, monitoring, and managing flow runs (also known as
 
 .. note::
    This section does not provide details on writing flows. That is covered
-   in greater detail in the section on :ref:`flows_authoring`.
+   in greater detail in the `Authoring Flows`_ documentation.
 
 Finding and Displaying Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -565,6 +565,7 @@ definition or its execution history (i.e. the ``flow action-*`` commands) is
 maintained.
 
 The bulk of the effort in creating flows is in authoring their definition which
-is covered in the section :ref:`flows_authoring`.
+is covered in the `Authoring Flows`_ documentation.
 
 ..  _Flows overview: https://docs.globus.org/api/flows/overview.html#flows
+..  _Authoring Flows: https://docs.globus.org/api/flows/authoring-flows.html
