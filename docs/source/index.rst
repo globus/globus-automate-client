@@ -10,7 +10,6 @@ Flows service and services that implement the Globus Action Provider interface.
    :caption: Getting Started
 
    quick_start
-   overview
    using_the_cli
    license
 
