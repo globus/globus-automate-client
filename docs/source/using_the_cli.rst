@@ -177,7 +177,7 @@ Globus Auth credentials may use this action provider to create actions.
 The most important information for our next step is the ``input_schema`` element
 as it provides a description of the input we need to form for running an action
 on this action provider. The ``input_schema`` element is in `JSON Schema
-<https://https://json-schema.org/>`_ format. This schema defines three properties:
+<https://json-schema.org/>`_ format. This schema defines three properties:
 ``echo_string``, ``sleep_time``, and ``required_dependent_scope``. We will use
 this information in the next section on running an action.
 
@@ -369,7 +369,7 @@ Status document.
 Using the CLI with Flows
 ------------------------
 
-As described in the section on :ref:`Flows`, a *flow* combines actions and
+As described in the `Flows overview`_, a *flow* combines actions and
 other operations into a more complex operation. When a flow is invoked, it
 creates a *run* and the run's interface is very much like an action's; it
 has ``run``, ``status``, ``cancel`` and ``release`` operations defined. Because
@@ -566,3 +566,5 @@ maintained.
 
 The bulk of the effort in creating flows is in authoring their definition which
 is covered in the section :ref:`flows_authoring`.
+
+..  _Flows overview: https://docs.globus.org/api/flows/overview.html#flows
