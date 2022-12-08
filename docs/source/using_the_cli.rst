@@ -567,6 +567,6 @@ maintained.
 The bulk of the effort in creating flows is in authoring their definition which
 is covered in the `Authoring Flows`_ documentation.
 
-..  _Flows overview: https://docs.globus.org/api/flows/overview.html#flows
-..  _Authoring Flows: https://docs.globus.org/api/flows/authoring-flows.html
-..  _hosted action providers: https://docs.globus.org/api/flows/hosted-action-providers.html
+..  _Flows overview: https://docs.globus.org/api/flows/overview/#flows
+..  _Authoring Flows: https://docs.globus.org/api/flows/authoring-flows/
+..  _hosted action providers: https://docs.globus.org/api/flows/hosted-action-providers/
