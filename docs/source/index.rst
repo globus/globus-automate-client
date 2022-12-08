@@ -25,7 +25,6 @@ Flows service and services that implement the Globus Action Provider interface.
    :titlesonly:
    :caption: Reference
 
-   globus_action_providers
    cli_reference
    python_sdk_reference
    example_flows

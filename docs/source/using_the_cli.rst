@@ -90,7 +90,7 @@ the action provider is not possible  without providing the
 ``--action-scope`` option.
 
 All of the action providers operated by the Globus team are described in the
-section :doc:`globus_action_providers`, which includes their URL and
+`hosted action providers`_ documentation, which includes their URL and
 tips on using the CLI for interactions with these action providers directly.
 As these action providers are publicly viewable, there is no need to provide
 the  ``--action-scope`` option when working with them from the CLI -- the CLI
@@ -569,3 +569,4 @@ is covered in the `Authoring Flows`_ documentation.
 
 ..  _Flows overview: https://docs.globus.org/api/flows/overview.html#flows
 ..  _Authoring Flows: https://docs.globus.org/api/flows/authoring-flows.html
+..  _hosted action providers: https://docs.globus.org/api/flows/hosted-action-providers.html
