@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.x"
       - run: python -m pip install -U pip setuptools tox
-      - run: python -m tox -e flake8,isort
+      - run: python -m tox -e flake8,isort,black
 
   test-doc-build:
     runs-on: ubuntu-latest
