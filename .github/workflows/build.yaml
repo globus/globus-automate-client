@@ -7,17 +7,21 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+        os-name: [Ubuntu]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         # we do not want a large number of windows and macos builds, so
         # enumerate them explicitly
         include:
           - os: windows-latest
+            os-name: Windows
             python-version: 3.9
           - os: macos-latest
+            os-name: MacOS
             python-version: 3.9
           - os: ubuntu-20.04
+            os-name: Ubuntu 20.04
             python-version: 3.6
-    name: "test py${{ matrix.python-version }} on ${{ matrix.os }} "
+    name: "Test py${{ matrix.python-version }} on ${{ matrix.os-name }}"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
