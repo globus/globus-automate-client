@@ -1,22 +1,47 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.1.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: check-added-large-files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+      exclude: >
+        (?x)^(
+          examples/flows/hello\-world\-yaml/invalid\-input\-schema\.yaml
+        )$
+    - id: check-added-large-files
 
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-  - id: black-jupyter
-    language_version: python3
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.19.2
+    hooks:
+      - id: check-github-workflows
+      - id: check-dependabot
 
-- repo: https://github.com/pycqa/isort
-  rev: 5.10.1
-  hooks:
-    - id: isort
-      name: isort (python)
+  - repo: https://github.com/psf/black
+    rev: 22.12.0
+    hooks:
+    - id: black-jupyter
+    - id: black
+
+    # Allow tox to run black strictly as a linter.
+    - id: black
+      alias: black-check
+      stages: [manual]
+      args: [--check]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.11.2
+    hooks:
+      - id: isort
+
+      # Allow tox to run isort strictly as a linter.
+      - id: isort
+        alias: isort-check
+        stages: [manual]
+        args: [--check]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: ["flake8-bugbear==22.12.6"]

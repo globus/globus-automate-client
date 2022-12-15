@@ -260,6 +260,14 @@ def _do_login_for_scopes(
     return native_client.oauth2_exchange_code_for_tokens(auth_code)
 
 
+# define this closure with a wrapping function so that 'scope' is properly bound to it
+def _new_refresh_handler(token_cache: TokenCache, scope: str):
+    def refresh_handler(response: OAuthTokenResponse, *args, **kwargs):
+        token_cache.update_from_oauth_token_response(response, {scope})
+
+    return refresh_handler
+
+
 def get_authorizers_for_scopes(
     scopes: List[str],
     token_store: Optional[Union[pathlib.Path, str]] = None,
@@ -293,20 +301,12 @@ def get_authorizers_for_scopes(
         if token_set is not None:
             authorizer: Union[RefreshTokenAuthorizer, AccessTokenAuthorizer]
             if token_set.refresh_token is not None:
-
-                def refresh_handler(
-                    grant_response: OAuthTokenResponse, *args, **kwargs
-                ):
-                    token_cache.update_from_oauth_token_response(
-                        grant_response, {scope}
-                    )
-
                 authorizer = RefreshTokenAuthorizer(
                     token_set.refresh_token,
                     native_client,
                     access_token=token_set.access_token,
                     expires_at=token_set.expiration_time,
-                    on_refresh=refresh_handler,
+                    on_refresh=_new_refresh_handler(token_cache, scope),
                 )
             else:
                 authorizer = AccessTokenAuthorizer(token_set.access_token)

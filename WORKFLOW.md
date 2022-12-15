@@ -22,7 +22,7 @@ There are several git branches that have assigned significance.
 
 ### `main`
 
-`main` tracks all repository changes. Every branch must eventually merge to 
+`main` tracks all repository changes. Every branch must eventually merge to
 `main`.
 
 ### `production`
@@ -33,9 +33,9 @@ the released version.
 
 ## Everyday development
 
-"Everyday" development refers to repository changes that are not intended for  
-out-of-cycle release to the production environment. This may include 
-non-critical bug fixes, documentation updates, CI/CD changes, dependency 
+"Everyday" development refers to repository changes that are not intended for
+out-of-cycle release to the production environment. This may include
+non-critical bug fixes, documentation updates, CI/CD changes, dependency
 updates, or other tooling changes.
 
 Feature development begins by creating a new branch off of `main`.
@@ -113,9 +113,9 @@ the branch to `production` and `main`:
    release.
    1. Bump the version.
         - If the release is a hotfix, use ``poetry version patch``
-        - If the release is a backwards-compatible change use 
+        - If the release is a backwards-compatible change use
           ``poetry version patch``
-        - If the release is non-backwards compatible, use 
+        - If the release is non-backwards compatible, use
           ``poetry version minor``
    2. Bump copyright years as appropriate.
    3. Collect changelog fragments as appropriate.
@@ -129,7 +129,7 @@ the branch to `production` and `main`:
    2. Select the release or hotfix branch as the "compare" merge branch.
    3. Wait for CI test results (and approvals, when possible).
       1. It is the release engineer's discretion to ask for and require PR
-      approvals. A release branch will usually contain code that has already 
+      approvals. A release branch will usually contain code that has already
       been reviewed, unless it is a hotfix. If the release is a hotfix, it is
       recommended to get approvals.
 
@@ -153,7 +153,7 @@ the branch to `production` and `main`:
       to publishing.
    2. Code updates need to be published to PyPI. To do so, the following steps
       will need to be performed on a Terminal window:
-      
+
       ```shell
       git checkout production
       git pull --tags

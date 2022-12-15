@@ -13,7 +13,6 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Then, run `jupyter-notebook flow-deploy-and-monitor.ipynb`. 
+Then, run `jupyter-notebook flow-deploy-and-monitor.ipynb`.
 
 Follow the instructions in the notebook carefully, particularly when configuring your data environment for the example execution of the Flow defined and executed within this notebook.
-
