@@ -90,7 +90,7 @@ the action provider is not possible  without providing the
 ``--action-scope`` option.
 
 All of the action providers operated by the Globus team are described in the
-section :doc:`globus_action_providers`, which includes their URL and
+`hosted action providers`_ documentation, which includes their URL and
 tips on using the CLI for interactions with these action providers directly.
 As these action providers are publicly viewable, there is no need to provide
 the  ``--action-scope`` option when working with them from the CLI -- the CLI
@@ -177,7 +177,7 @@ Globus Auth credentials may use this action provider to create actions.
 The most important information for our next step is the ``input_schema`` element
 as it provides a description of the input we need to form for running an action
 on this action provider. The ``input_schema`` element is in `JSON Schema
-<https://https://json-schema.org/>`_ format. This schema defines three properties:
+<https://json-schema.org/>`_ format. This schema defines three properties:
 ``echo_string``, ``sleep_time``, and ``required_dependent_scope``. We will use
 this information in the next section on running an action.
 
@@ -369,7 +369,7 @@ Status document.
 Using the CLI with Flows
 ------------------------
 
-As described in the section on :ref:`Flows`, a *flow* combines actions and
+As described in the `Flows overview`_, a *flow* combines actions and
 other operations into a more complex operation. When a flow is invoked, it
 creates a *run* and the run's interface is very much like an action's; it
 has ``run``, ``status``, ``cancel`` and ``release`` operations defined. Because
@@ -382,7 +382,7 @@ and commands for running, monitoring, and managing flow runs (also known as
 
 .. note::
    This section does not provide details on writing flows. That is covered
-   in greater detail in the section on :ref:`flows_authoring`.
+   in greater detail in the `Authoring Flows`_ documentation.
 
 Finding and Displaying Flows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -565,4 +565,8 @@ definition or its execution history (i.e. the ``flow action-*`` commands) is
 maintained.
 
 The bulk of the effort in creating flows is in authoring their definition which
-is covered in the section :ref:`flows_authoring`.
+is covered in the `Authoring Flows`_ documentation.
+
+..  _Flows overview: https://docs.globus.org/api/flows/overview/#flows
+..  _Authoring Flows: https://docs.globus.org/api/flows/authoring-flows/
+..  _hosted action providers: https://docs.globus.org/api/flows/hosted-action-providers/

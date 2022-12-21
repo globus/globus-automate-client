@@ -10,16 +10,8 @@ Flows service and services that implement the Globus Action Provider interface.
    :caption: Getting Started
 
    quick_start
-   overview
    using_the_cli
    license
-
-.. toctree::
-    :maxdepth: 1
-    :titlesonly:
-    :caption: Authoring Flows
-
-    authoring_flows
 
 ..  toctree::
     :maxdepth: 1
@@ -33,7 +25,6 @@ Flows service and services that implement the Globus Action Provider interface.
    :titlesonly:
    :caption: Reference
 
-   globus_action_providers
    cli_reference
    python_sdk_reference
    example_flows
