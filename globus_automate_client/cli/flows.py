@@ -898,6 +898,32 @@ def flow_action_status(
     ).run_and_render()
 
 
+@app.command("run-definition")
+def get_flow_definition_for_run(
+    run_id: str = typer.Argument(...),
+    flow_id: uuid.UUID = typer.Option(
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+    ),
+    flow_scope: str = typer.Option(
+        None,
+        help="The scope this Flow uses to authenticate requests.",
+        callback=url_validator_callback,
+    ),
+    flows_endpoint: str = flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    verbose: bool = verbosity_option,
+):
+    """
+    Get the flow definition and input schema used to start a run.
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    method = functools.partial(
+        fc.get_flow_definition_for_run, flow_id, flow_scope, run_id
+    )
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
+
+
 @app.command("action-resume")
 @app.command("run-resume")
 def flow_action_resume(
