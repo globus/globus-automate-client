@@ -133,7 +133,7 @@ class ActionClient(BaseClient):
 
     def get_definition(self, action_id: str) -> GlobusHTTPResponse:
         """
-        Query the Action Provider for the status of executed Action
+        Get the flow definition for a given run ID.
 
         :param action_id: An identifier that uniquely identifies an Action
             executed on this Action Provider.
