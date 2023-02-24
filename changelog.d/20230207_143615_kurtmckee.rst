@@ -1,0 +1,6 @@
+Features
+--------
+
+-   Support retrieval of the flow definition and input schema used to start a run.
+
+    This is supported in the new ``flow run-definition`` subcommand.

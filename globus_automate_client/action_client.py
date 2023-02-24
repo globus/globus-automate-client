@@ -131,6 +131,16 @@ class ActionClient(BaseClient):
 
         return self.get(f"{quote(action_id)}/status")
 
+    def get_definition(self, action_id: str) -> GlobusHTTPResponse:
+        """
+        Get the flow definition for a given run ID.
+
+        :param action_id: An identifier that uniquely identifies an Action
+            executed on this Action Provider.
+        """
+
+        return self.get(f"/runs/{action_id}/definition")
+
     def resume(self, action_id: str) -> GlobusHTTPResponse:
         """
         Resume an INACTIVE action. Corrective action must have been taken prior to invoking
