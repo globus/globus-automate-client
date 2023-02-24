@@ -915,7 +915,7 @@ def get_flow_definition_for_run(
     verbose: bool = verbosity_option,
 ):
     """
-    Get the flow definition and input schema used to start a run.
+    Get the flow definition and input schema used to start this run.
     """
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
     method = functools.partial(
