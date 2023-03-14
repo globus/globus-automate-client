@@ -210,7 +210,7 @@ def handle_aliases(
     try:
         return validate_aliases(canonical_item, *aliases)
     except DeprecationWarning as warning:
-        warnings.warn(warning.args[0], category=DeprecationWarning)
+        warnings.warn(warning.args[0], category=DeprecationWarning, stacklevel=1)
         return warning.args[2]
 
 
