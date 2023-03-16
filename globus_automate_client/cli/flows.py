@@ -303,51 +303,64 @@ def flow_update(
         "--keyword",
         help="A keyword which may categorize or help discover the Flow. [repeatable]",
     ),
-    flow_viewer: List[str] = typer.Option(
+    flow_viewer: Optional[List[str]] = typer.Option(
         None,
-        help="A principal which may view this Flow. "
-        + _principal_description
-        + "The special value of 'public' may be used to "
-        "indicate that any user can view this Flow. [repeatable]",
-        callback=custom_principal_validator({"public"}),
+        help=(
+            "A principal which may view this flow. "
+            f"{_principal_description} "
+            "\n\nThe special value of 'public' may be used to "
+            "indicate that any user can view this flow. "
+            "\n\nThis option can be used multiple times."
+            "\n\nTo erase any existing viewer permissions, "
+            'use the empty string "" once.'
+        ),
+        callback=custom_principal_validator({"public", ""}),
     ),
     viewer: List[str] = typer.Option(
-        None, callback=custom_principal_validator({"public"}), hidden=True
+        None, callback=custom_principal_validator({"public", ""}), hidden=True
     ),
     visible_to: List[str] = typer.Option(
-        None, callback=custom_principal_validator({"public"}), hidden=True
+        None, callback=custom_principal_validator({"public", ""}), hidden=True
     ),
-    flow_starter: List[str] = typer.Option(
+    flow_starter: Optional[List[str]] = typer.Option(
         None,
-        help="A principal which may run an instance of the deployed Flow. "
-        + _principal_description
-        + " The special value of "
-        "'all_authenticated_users' may be used to indicate that any "
-        "authenticated user can invoke this flow. [repeatable]",
-        callback=custom_principal_validator({"all_authenticated_users"}),
+        help=(
+            "A principal which may start an instance of the flow. "
+            f"{_principal_description}"
+            "\n\nThe special value of 'all_authenticated_users' may be used "
+            "to indicate that any authenticated user can invoke this flow. "
+            "\n\nThis option can be used multiple times."
+            "\n\nTo erase any existing starter permissions, "
+            'use the empty string "" once.'
+        ),
+        callback=custom_principal_validator({"all_authenticated_users", ""}),
     ),
     starter: List[str] = typer.Option(
         None,
-        callback=custom_principal_validator({"all_authenticated_users"}),
+        callback=custom_principal_validator({"all_authenticated_users", ""}),
         hidden=True,
     ),
     runnable_by: List[str] = typer.Option(
         None,
-        callback=custom_principal_validator({"all_authenticated_users"}),
+        callback=custom_principal_validator({"all_authenticated_users", ""}),
         hidden=True,
     ),
-    flow_administrator: List[str] = typer.Option(
+    flow_administrator: Optional[List[str]] = typer.Option(
         None,
-        help="A principal which may update the deployed Flow. "
-        + _principal_description
-        + "[repeatable]",
-        callback=principal_validator,
+        help=(
+            "A principal which may update the deployed Flow. "
+            f"{_principal_description} "
+            "\n\nThis option can be used multiple times."
+            "\n\nTo erase any existing administrator permissions, "
+            'use the empty string "" once.'
+        ),
+        callback=custom_principal_validator({""}),
     ),
     administrator: List[str] = typer.Option(
-        None, callback=principal_validator, hidden=True
+        None, callback=custom_principal_validator({""}), hidden=True
     ),
     administered_by: List[str] = typer.Option(
-        None, callback=principal_validator, hidden=True
+        None, callback=custom_principal_validator({""}), hidden=True
     ),
     subscription_id: Optional[str] = typer.Option(
         None,
@@ -381,6 +394,17 @@ def flow_update(
         ("--flow-administrator", flow_administrator),
         ("--administrator", administrator or None),
         ("--administered-by", administered_by or None),
+    )
+
+    # Special cases:
+    # * If the user specifies a single empty string, replace [""] with []
+    #   so all values currently set on the flow will be erased.
+    # * If the user specifies nothing, replace the default empty list with None
+    #   to prevent erasure of the values currently set on the flow.
+    flow_viewer = [] if flow_viewer == [""] else (flow_viewer or None)
+    flow_starter = [] if flow_starter == [""] else (flow_starter or None)
+    flow_administrator = (
+        [] if flow_administrator == [""] else (flow_administrator or None)
     )
 
     fc = create_flows_client(CLIENT_ID, flows_endpoint)
@@ -896,6 +920,32 @@ def flow_action_status(
     RequestRunner(
         method, format=output_format, verbose=verbose, watch=watch
     ).run_and_render()
+
+
+@app.command("run-definition")
+def get_flow_definition_for_run(
+    run_id: str = typer.Argument(...),
+    flow_id: uuid.UUID = typer.Option(
+        ...,
+        help="The ID for the Flow which triggered the Action.",
+    ),
+    flow_scope: str = typer.Option(
+        None,
+        help="The scope this Flow uses to authenticate requests.",
+        callback=url_validator_callback,
+    ),
+    flows_endpoint: str = flows_env_var_option,
+    output_format: OutputFormat = output_format_option,
+    verbose: bool = verbosity_option,
+):
+    """
+    Get the flow definition and input schema used to start this run.
+    """
+    fc = create_flows_client(CLIENT_ID, flows_endpoint)
+    method = functools.partial(
+        fc.get_flow_definition_for_run, flow_id, flow_scope, run_id
+    )
+    RequestRunner(method, format=output_format, verbose=verbose).run_and_render()
 
 
 @app.command("action-resume")

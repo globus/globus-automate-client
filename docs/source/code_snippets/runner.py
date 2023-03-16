@@ -1,3 +1,9 @@
+import logging
+import os
+import pathlib
+import queue
+import sys
+
 # The flow to run.
 FLOW_ID = "your-flow-id-here"
 
@@ -5,12 +11,6 @@ FLOW_ID = "your-flow-id-here"
 # If no filesystem events are ever received, the flow will not be run.
 COOL_OFF_TIME_S = 60
 
-
-import logging
-import os
-import pathlib
-import queue
-import sys
 
 logging.basicConfig(
     level=logging.WARNING,  # Eliminate INFO messages from the Globus SDK.

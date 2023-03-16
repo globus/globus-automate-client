@@ -210,7 +210,7 @@ def handle_aliases(
     try:
         return validate_aliases(canonical_item, *aliases)
     except DeprecationWarning as warning:
-        warnings.warn(warning.args[0], category=DeprecationWarning)
+        warnings.warn(warning.args[0], category=DeprecationWarning, stacklevel=1)
         return warning.args[2]
 
 
@@ -691,6 +691,29 @@ class FlowsClient(BaseClient):
         flow_url = urljoin(self.base_url, f"/flows/{flow_id}")
         ac = ActionClient.new_client(flow_url, authorizer)
         return ac.status(flow_action_id)
+
+    def get_flow_definition_for_run(
+        self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs
+    ) -> GlobusHTTPResponse:
+        """
+        Determine the status for an Action that was launched by a Flow
+
+        :param flow_id: The UUID identifying the Flow which triggered the Action
+
+        :param flow_scope: The scope associated with the Flow ``flow_id``. If
+            not provided, the SDK will attempt to perform an introspection on
+            the Flow to determine its scope automatically
+
+        :param flow_action_id: The ID specifying which Action's status to query
+
+        :param kwargs: Any additional kwargs passed into this method are passed
+            onto the Globus BaseClient. If there exists an "authorizer" keyword
+            argument, that gets used to run the Flow operation. Otherwise, the
+            authorizer_callback defined for the FlowsClient will be used.
+        """
+        authorizer = self._get_authorizer_for_flow(flow_id, flow_scope, kwargs)
+        ac = ActionClient.new_client(self.base_url, authorizer)
+        return ac.get_definition(flow_action_id)
 
     def flow_action_resume(
         self, flow_id: str, flow_scope: Optional[str], flow_action_id: str, **kwargs

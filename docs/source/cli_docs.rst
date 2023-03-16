@@ -1,7 +1,7 @@
 ``globus-automate``
 ===================
 
-CLI for Globus Automate
+A command-line client for the Globus Flows service
 
 By default, this CLI keeps all its config and cached tokens in
 .globus_automate_tokens.json in the user’s home directory.
@@ -22,10 +22,9 @@ By default, this CLI keeps all its config and cached tokens in
 
 **Commands**:
 
--  ``action``: Manage Globus Automate Actions
--  ``flow``: Manage Globus Automate Flows
--  ``queue``: Manage Globus Automate Queues
--  ``session``: Manage your session with the Automate Command Line
+-  ``action``: Manage runs (actions)
+-  ``flow``: Manage flows
+-  ``session``: Manage your session with the Automate command line client
 
 ``globus-automate action``
 --------------------------

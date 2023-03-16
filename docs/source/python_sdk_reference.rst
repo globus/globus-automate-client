@@ -4,9 +4,9 @@ Python SDK Reference
 ====================
 
 The Globus Automate Client package provides a Python SDK for interfacing with
-and invoking Globus Actions and Flows. Below, we provide information on helper
-functions available for creating authenticated Action and
-Flow clients as well as documentation on the methods available to those clients.
+and invoking Globus actions and flows. Below, we provide information on helper
+functions available for creating authenticated action and
+flow clients as well as documentation on the methods available to those clients.
 
 Actions Client
 ^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ create authenticated ``ActionClient`` and ``FlowsClient`` instances. These
 helpers share functionality with the ``globus-automate`` CLI to handle loading
 and storing ``Globus Auth`` tokens on the local filesystem. They will also
 trigger interactive logins when additional consents are required to interact
-with ``Actions`` or ``Flows``.
+with actions or flows.
 
 .. autofunction:: globus_automate_client.create_action_client
 
