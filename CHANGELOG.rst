@@ -10,6 +10,47 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.17.0:
+
+0.17.0 — 2023-03-16
+===================
+
+Features
+--------
+
+-   Add official support for python3.11
+
+-   Support retrieval of the flow definition and input schema used to start a run.
+
+    This is supported in the new ``flow run-definition`` subcommand.
+
+Bugfixes
+--------
+
+-   Fix a bug which could lead to improper handling of token refreshes
+
+-   `[sc-19291] <https://app.shortcut.com/globus/story/19291>`_
+    Prevent passive flow permission updates.
+
+    Previously, permissions were erased during updates if no permissions were specified.
+    Now, permissions will only be erased if an empty string is passed. For example:
+
+    ..  code-block:: text
+
+        # Erase all viewer permissions.
+        globus-automate flow update $UUID --flow-viewer=""
+
+Documentation
+-------------
+
+-   Fix example flow definition web-option-with-parameters
+
+-   Improve documentation by normalizing capitalization and emphasis, as well as
+    clarifying usage of "Globus Automate" wherever it occurred.
+
+-   Add simplified versions of our production flows as inline examples on the
+    "Authoring Flows" page.
+
 .. _changelog-0.16.1.post1:
 
 0.16.1.post1 — 2022-07-15
