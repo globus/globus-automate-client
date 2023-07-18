@@ -36,7 +36,7 @@ graphviz = "^0.12"
 importlib-metadata = {version = "^4.8.1", python = "<3.8"}
 typer = {extras = ["all"], version = "^0.4.1"}
 jsonschema = "^3.2.0"
-PyYAML = "^5.3.1"
+PyYAML = "^6.0.1"
 rich = "^12.3.0"
 arrow = "^1.1.1"
 typing-extensions = "^4.1.1"
@@ -61,7 +61,7 @@ epc = "^0.0.5"
 flake8 = "^3.9.2"
 black = {extras = ["jupyter"], version = "^21.12b0"}
 mypy = "^0.910"
-types-PyYAML = "^5.4.6"
+types-PyYAML = "^6.0.12.10"
 types-requests = "^2.25.6"
 scriv = {extras = ["toml"], version = "^0.15.0"}
 tox = "^3.24.4"
