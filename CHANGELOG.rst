@@ -10,6 +10,16 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.17.1:
+
+0.17.1 — 2023-07-24
+===================
+
+Bugfixes
+--------
+
+- Update pyyaml to 6.0.1 in order to resolve build issues related to Cython 3.
+
 .. _changelog-0.17.0:
 
 0.17.0 — 2023-03-16
