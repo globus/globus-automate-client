@@ -13,7 +13,6 @@ keywords = [
     "automation",
     "workflow",
     "action_provider",
-    "command line",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
