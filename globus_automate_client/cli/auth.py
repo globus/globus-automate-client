@@ -136,7 +136,7 @@ class TokenCache:
         except FileNotFoundError:
             pass
         except JSONDecodeError:
-            raise EnvironmentError(
+            raise OSError(
                 "Token cache is corrupted; please run `session revoke` or remove "
                 f"file {self.token_store} and try again"
             )
@@ -232,7 +232,7 @@ def safeprint(s, err: bool = False):
             sys.stderr.flush()
         else:
             sys.stdout.flush()
-    except IOError:
+    except OSError:
         pass
 
 

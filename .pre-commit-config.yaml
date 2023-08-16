@@ -11,37 +11,32 @@ repos:
         )$
     - id: check-added-large-files
 
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.10.1
+    hooks:
+      - id: pyupgrade
+        args:
+          - "--py38-plus"
+
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.22.0
+    rev: 0.24.1
     hooks:
       - id: check-github-workflows
       - id: check-dependabot
 
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.7.0
     hooks:
     - id: black-jupyter
     - id: black
-
-    # Allow tox to run black strictly as a linter.
-    - id: black
-      alias: black-check
-      stages: [manual]
-      args: [--check]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
 
-      # Allow tox to run isort strictly as a linter.
-      - id: isort
-        alias: isort-check
-        stages: [manual]
-        args: [--check]
-
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
       - id: flake8
-        additional_dependencies: ["flake8-bugbear==23.3.12"]
+        additional_dependencies: ["flake8-bugbear==23.7.10"]

@@ -7,10 +7,10 @@ from globus_automate_client import create_flows_client
 
 def main():
     flow_file = sys.argv[1]
-    with open(flow_file, "r") as ff:
+    with open(flow_file) as ff:
         flow_dict = json.load(ff)
     flow_input = sys.argv[2]
-    with open(flow_input, "r") as fi:
+    with open(flow_input) as fi:
         flow_input_data = json.load(fi)
     fc = create_flows_client()
     deploy_result = fc.deploy_flow(
