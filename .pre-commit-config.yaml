@@ -23,22 +23,10 @@ repos:
     - id: black-jupyter
     - id: black
 
-    # Allow tox to run black strictly as a linter.
-    - id: black
-      alias: black-check
-      stages: [manual]
-      args: [--check]
-
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-
-      # Allow tox to run isort strictly as a linter.
-      - id: isort
-        alias: isort-check
-        stages: [manual]
-        args: [--check]
 
   - repo: https://github.com/PyCQA/flake8
     rev: 6.1.0
