@@ -2,9 +2,7 @@ Globus Automate - CLI and Python SDK
 ====================================
 
 .. toctree::
-   :maxdepth: 1
-   :titlesonly:
-   :caption: Migrating to Globus CLI and GLobus SDK
+   :maxdepth: 2
 
    migration
 
