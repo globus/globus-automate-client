@@ -64,3 +64,22 @@ html_theme = "furo"
 pygments_dark_style = "monokai"
 
 html_static_path = ["_static"]
+
+
+# -- Deprecation notice ------------------------------------------------------
+
+rst_prolog = """
+..  warning::
+
+    The Globus Automate SDK and Globus Automate CLI are deprecated.
+
+    The `Globus SDK`_ and `Globus CLI`_ have integrated their functionality
+    and are able to interact with other Globus services, as well.
+
+    It is strongly recommended that new projects use the Globus SDK and Globus CLI,
+    and that existing projects begin migrating to the Globus SDK and Globus CLI.
+
+..  _Globus SDK: https://globus-sdk-python.readthedocs.io/en/stable/
+..  _Globus CLI: https://docs.globus.org/cli/
+
+"""
