@@ -179,6 +179,135 @@ mapping of methods for the ``FlowsClient``.
 +-----------------------------------------------+--------------------------------------+
 
 
+Converting YAML to JSON
+-----------------------
+
+In the Globus Automate Client, users were allowed to use YAML files to define
+their flows.
+However, the Flows service only accepts JSON data, and YAML was being converted
+to JSON by the client.
+
+Unfortunately, the YAML language specification contains ambiguities, and
+different parsers may treat identical documents differently.
+``globus-cli`` and ``globus-sdk`` do not support YAML parsing, but it is possible
+to convert YAML to JSON using a variety of tools.
+This approach ensures that Globus provided software operates consistently, and
+allows users to continue using YAML or to move off of it, as they prefer.
+
+In this section, we will cover two popular tools for converting YAML to JSON,
+yq (written in Go) and remarshal (written in Python). We will also cover
+one python library, ``pyyaml``, which can be used to load YAML data and pass it
+to the ``globus-sdk``.
+Various other tools provide similar functionality in other languages, and there
+are alternative parsers available in python.
+
+yq
+~~
+
+The `yq <https://mikefarah.gitbook.io/yq/>`_ tool is a CLI utility similar to the
+popular ``jq`` command.
+It provides a wide variety of commands for manipulating and extracting data
+from YAML documents.
+
+Installation
+++++++++++++
+
+``yq`` is distributed for multiple platforms as a binary as well as Homebrew
+and Snapcraft.
+For these latter two, use:
+
+.. code-block:: bash
+
+    # macOS, brew
+    brew install yq
+
+    # ubuntu-based linux, snap
+    snap install yq
+
+To get a ``yq`` binary directly, or to use the docker based distribution,
+follow
+`yq's installation instructions <https://github.com/mikefarah/yq/#install>`_.
+
+Usage
++++++
+
+In order to convert a flow from YAML to JSON using ``yq``, all that is needed
+is a command which loads the YAML document and then outputs it as JSON.
+
+.. code-block:: bash
+
+    yq -o=json foo.yaml > foo.json
+
+remarshal
+~~~~~~~~~
+
+The `remarshal <https://github.com/remarshal-project/remarshal>`_ project
+provides a wide range of commands for converting data between different
+formats, including YAML and JSON.
+
+These commands exist for the sole purpose of converting data between formats,
+and are therefore a perfect fit for our use-case.
+
+Installation
+++++++++++++
+
+As ``remarshal`` is a python CLI, installation should be performed with
+``pipx``, as with the ``globus-cli``.
+
+First `follow the pipx installation documentation
+<https://pypa.github.io/pipx/installation/>`_ to ensure you have ``pipx``
+installed.
+
+Next, run the install command:
+
+.. code-block:: bash
+
+    pipx install remarshal
+
+Usage
++++++
+
+Of the many commands provided by ``remarshal``, the one we want is simply
+``yaml2json``. After installing, all that is needed is to run:
+
+.. code-block:: bash
+
+    yaml2json foo.yaml foo.json
+
+pyyaml
+~~~~~~
+
+Unlike the previous two tools, ``pyyaml`` is a python library, not a CLI.
+
+If you have a YAML flow definition and want to use it with the ``globus-sdk``,
+you must parse it from YAML yourself and proivde it as a dictionary.
+
+Installation
+++++++++++++
+
+``pyyaml`` can be installed with ``pip install pyyaml``.
+
+Usage
++++++
+
+``pyyaml`` provides the ``yaml`` package.
+To parse a YAML file, ``foo.yaml``, into a python data structure, import it and
+use the ``load`` function::
+
+    import yaml
+
+    with open("foo.yaml") as fp:
+        data = yaml.load(fp)
+
+    # a check may be a wise precaution, as YAML documents can contain lists or
+    # other non-dict data
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"YAML document 'foo.yaml' contained unexpected type {type(data)}"
+        )
+
+    print(data)
+
 .. [*] ``scopes`` is an instance attribute of ``SpecificFlowClient``, so usage is
     slightly different from a method, but the information provided is the same.
 
