@@ -29,6 +29,8 @@ is now provided in a completely different way -- for example,
 ``globus-automate flow lint`` provided logic which is now incorporated into the
 Globus Flows service as part of *flow* creation.
 
+.. _cli_command_table:
+
 +-------------------------------------------+--------------------------------------+
 | Old Command(s)                            | New Command(s)                       |
 +===========================================+======================================+
@@ -307,6 +309,155 @@ use the ``load`` function::
         )
 
     print(data)
+
+
+Updating Command Line Usages
+----------------------------
+
+The :ref:`table above <cli_command_table>` shows the mapping between the old
+``globus-automate`` CLI commands and the new ``globus-cli`` commands.
+
+This section provides more detailed guidance for converting commands between
+the two, for commands and usages where the mapping is non-obvious.
+
+Required Options vs Positional Arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In general, the ``globus-cli`` uses positional arguments for all required
+data, whereas the ``globus-automate`` CLI used required options in some cases.
+
+The conversion is typically straightforward, requiring first that you read the
+``globus-cli`` helptext and then order arguments appropriately if necessary.
+
+For example, ``globus-automate flow deploy`` has been replaced with
+``globus flows create``. Starting from an original command like so:
+
+.. code-block:: bash
+
+    $ globus-automate flow deploy --description bar --title foo --definition foo.json
+
+The first step is to determine which CLI options are required and in what
+order. Run ``globus flows create --help`` to see the help text:
+
+.. code-block:: bash
+
+    $ globus flows create --help
+    Usage: globus flows create [OPTIONS] TITLE DEFINITION
+
+      Create a new flow.
+
+
+    # more text follows
+    ...
+
+With this information, we can see that ``TITLE`` is the first positional
+argument and ``DEFINITION`` is the second. ``--description`` is still an
+option.
+
+The final command is therefore:
+
+.. code-block:: bash
+
+    globus flows create foo foo.json --description bar
+
+Pagination Options
+~~~~~~~~~~~~~~~~~~
+
+A number of ``globus-automate`` commands provide options for paging through
+data, typically ``--marker`` and ``--per-page``.
+In ``globus-cli``, these options are replaced with a single option ``--limit``,
+which controls the total number of results returned.
+
+Under ``globus-automate``, users had precise control over pagination, while
+under ``globus-cli`` all pagination is implicitly handled for the user.
+
+The two implementations trade off between simplicity for users vs fine-grained
+control, and are not fully translatable.
+For users, simply note that ``--marker`` and ``-per-page`` are no longer
+available as options, but that users relying on these options should now have
+their use-cases covered by the implicit pagination of the ``globus-cli``
+commands.
+
+``--flow-scope``
+~~~~~~~~~~~~~~~~
+
+Under the ``globus-automate`` CLI several commands took a ``--flow-scope``
+option to control internal behaviors.
+
+This option is no longer needed, as the ``globus-cli`` will automatically
+handle the cases which this option covered.
+
+``run-log --watch``
+~~~~~~~~~~~~~~~~~~~
+
+``globus-automate flow run-log --watch`` allowed a user to tail logs from the
+service by polling.
+
+``globus flows run show-logs`` does not support this behavior.
+
+``run-resume`` Options
+~~~~~~~~~~~~~~~~~~~~~~
+
+``globus-automate flow run-resume`` accepted two options which are not present
+in the ``globus-cli``.
+
+One option is ``--watch``, which is identical to the ``run-status --watch``
+flag.
+See the documentation below on ``run-status --watch`` for details on how to
+achieve the same result with ``globus flows run show``.
+``globus flows run resume`` does not provide any built-in behavior for polling.
+
+``globus-automate flow run-resume`` also supported an option,
+``--query-for-inactive-reason/--no-query-for-inactive-reason``.
+This behavior is now built into ``globus flows run resume`` and users do not
+need to explicitly specify how to handle inactive runs.
+
+``run-status --watch``
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``globus-automate flow run-status --watch`` flag polled on the run until
+it completed.
+This same behavior can be achieved by running ``globus flows run show`` in a
+loop.
+
+For example, it can be scripted like so:
+
+.. code-block:: bash
+
+    #!/bin/bash
+
+    RUN_ID="$1"
+    echo "Poll until '$RUN_ID' terminates"
+
+    NUM_TRIES=10
+    until [ "$NUM_TRIES" -eq 0 ]; do
+      status="$(globus flows run show "$RUN_ID" --jmespath "status" --format unix)"
+      case "$status" in
+        SUCCEEDED)
+          echo "succeeded"
+          exit 0
+          ;;
+        FAILED)
+          echo "failed"
+          exit 1
+          ;;
+        *)
+          NUM_TRIES=$((NUM_TRIES - 1))
+          sleep 30
+          ;;
+      esac
+    done
+
+    echo "Run '$RUN_ID' did not terminate after 10 tries"
+    exit 3
+
+``globus-automate flow run --watch``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This ``--watch`` flag is another instance of the same behavior described above.
+Users needing to poll on run status can use ``globus flows run show`` as in the
+preceding example.
+
 
 .. [*] ``scopes`` is an instance attribute of ``SpecificFlowClient``, so usage is
     slightly different from a method, but the information provided is the same.
