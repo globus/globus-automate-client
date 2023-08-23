@@ -129,11 +129,8 @@ in the Globus SDK:
 The ``ActionClient`` is effectively removed, and the ``FlowsClient`` is split
 in two.
 
-The ``create_flow_client`` helper has no singular replacement. Instead, users
-should expect to write a small block of code to correctly authenticate pass the
-resulting authorizer to the matching client class. See `the globus-sdk example
-usage <https://gist.github.com/sirosen/c7dd9fd00a41b7a4fc6b1c79d84d2eaf>`_ for
-an example of how to do this.
+For details on how ``create_flows_client`` has been replaced, see the
+:ref:`section below <migrate_create_flows_client>` on this topic.
 
 In addition to the high-level component mapping, it's valuable to enumerate the
 mapping of methods for the ``FlowsClient``.
@@ -458,6 +455,45 @@ This ``--watch`` flag is another instance of the same behavior described above.
 Users needing to poll on run status can use ``globus flows run show`` as in the
 preceding example.
 
+.. _migrate_create_flows_client:
+
+SDK Migration and ``create_flows_client``
+-----------------------------------------
+
+The ``create_flows_client`` helper has no singular replacement.
+
+Instead, users should expect to write a small block of code to correctly
+authenticate pass the resulting authorizer to the matching client clas.  See
+`the globus-sdk example usage
+<https://globus-sdk-python.readthedocs.io/en/stable/examples/create_and_run_flow/>`_ for
+an example of how to do this.
+
+Why was this removed?
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``create_flows_client`` helper attempts to consolidate functionality across
+a disparate set of concerns.
+However, implementers attempting to build applications on top of the Globus
+Flows API need finer grained control than could be provided through this
+interface.
+This removal reflects the same restructuring of client code which separates the
+``FlowsClient`` and ``SpecificFlowClient`` classes, as these two classes
+represent different authentication contexts.
+
+There are also more minor issues which were obscured by the helper.
+For example, ``globus-automate-client`` included its own client, meaning that all
+users using the ``create_flows_client`` helper were authenticating against a
+singular client application.
+Under the ``globus-sdk``, users are expected to create their own client,
+allowing them to set Globus Auth fields for that client for terms and
+conditions, login policy, and other features.
+
+The design of the ``globus-sdk`` tends towards fewer holistic helpers and more
+pluggable components.
+This means that although `tokenstorage
+<https://globus-sdk-python.readthedocs.io/en/stable/tokenstorage.html>`_ is
+described as a replacement for ``create_flows_client``, it only covers a very
+specific subset of the functionality.
 
 .. [*] ``scopes`` is an instance attribute of ``SpecificFlowClient``, so usage is
     slightly different from a method, but the information provided is the same.
