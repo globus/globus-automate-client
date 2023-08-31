@@ -200,43 +200,6 @@ to the ``globus-sdk``.
 Various other tools provide similar functionality in other languages, and there
 are alternative parsers available in python.
 
-yq
-~~
-
-The `yq <https://mikefarah.gitbook.io/yq/>`_ tool is a CLI utility similar to the
-popular ``jq`` command.
-It provides a wide variety of commands for manipulating and extracting data
-from YAML documents.
-
-Installation
-++++++++++++
-
-``yq`` is distributed for multiple platforms as a binary as well as Homebrew
-and Snapcraft.
-For these latter two, use:
-
-.. code-block:: bash
-
-    # macOS, brew
-    brew install yq
-
-    # ubuntu-based linux, snap
-    snap install yq
-
-To get a ``yq`` binary directly, or to use the docker based distribution,
-follow
-`yq's installation instructions <https://github.com/mikefarah/yq/#install>`_.
-
-Usage
-+++++
-
-In order to convert a flow from YAML to JSON using ``yq``, all that is needed
-is a command which loads the YAML document and then outputs it as JSON.
-
-.. code-block:: console
-
-    $ yq -o=json foo.yaml > foo.json
-
 remarshal
 ~~~~~~~~~
 
@@ -247,21 +210,10 @@ formats, including YAML and JSON.
 These commands exist for the sole purpose of converting data between formats,
 and are therefore a perfect fit for our use-case.
 
-Installation
-++++++++++++
-
 As ``remarshal`` is a python CLI, installation should be performed with
 ``pipx``, as with the ``globus-cli``.
-
-First `follow the pipx installation documentation
-<https://pypa.github.io/pipx/installation/>`_ to ensure you have ``pipx``
-installed.
-
-Next, run the install command:
-
-.. code-block:: bash
-
-    pipx install remarshal
+For full instructions, follow `remsarhsal's installation documentation
+<https://github.com/remarshal-project/remarshal#installation>`_.
 
 Usage
 +++++
@@ -269,9 +221,30 @@ Usage
 Of the many commands provided by ``remarshal``, the one we want is simply
 ``yaml2json``. After installing, all that is needed is to run:
 
-.. code-block:: bash
+.. code-block:: console
 
-    yaml2json foo.yaml foo.json
+    $ yaml2json foo.yaml foo.json
+
+yq
+~~
+
+The `yq <https://mikefarah.gitbook.io/yq/>`_ tool is a CLI utility similar to the
+popular ``jq`` command.
+It provides a wide variety of commands for manipulating and extracting data
+from YAML documents.
+
+`yq's installation instructions <https://github.com/mikefarah/yq/#install>`_
+cover installation.
+
+Usage
++++++
+
+In order to convert a flow from YAML to JSON using ``yq``, all that is needed
+is a command which loads the YAML document and then outputs it as JSON.
+
+.. code-block:: console
+
+    $ yq -o=json foo.yaml > foo.json
 
 pyyaml
 ~~~~~~
@@ -291,7 +264,7 @@ Usage
 
 ``pyyaml`` provides the ``yaml`` package.
 To parse a YAML file, ``foo.yaml``, into a python data structure, import it and
-use the ``load`` function:
+use the ``safe_load`` function:
 
 ..  code-block:: python
 
@@ -299,13 +272,6 @@ use the ``load`` function:
 
     with open("foo.yaml") as fp:
         data = yaml.safe_load(fp)
-
-    # a check may be a wise precaution, as YAML documents can contain lists or
-    # other non-dict data
-    if not isinstance(data, dict):
-        raise ValueError(
-            f"YAML document 'foo.yaml' contained unexpected type {type(data)}"
-        )
 
     print(data)
 
@@ -322,18 +288,18 @@ the two, for commands and usages where the mapping is non-obvious.
 Required Options vs Positional Arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In general, the ``globus-cli`` uses positional arguments for all required
+In general, the ``globus`` CLI uses positional arguments for all required
 data, whereas the ``globus-automate`` CLI used required options in some cases.
 
 The conversion is typically straightforward, requiring first that you read the
-``globus-cli`` helptext and then order arguments appropriately if necessary.
+``globus`` CLI helptext and then order arguments appropriately if necessary.
 
 For example, ``globus-automate flow deploy`` has been replaced with
 ``globus flows create``. Starting from an original command like so:
 
-.. code-block:: bash
+.. code-block:: console
 
-    $ globus-automate flow deploy --description bar --title foo --definition foo.json
+    $ globus-automate flow deploy --input-schema '{}' --title foo --definition foo.json
 
 The first step is to determine which CLI options are required and in what
 order. Run ``globus flows create --help`` to see the help text:
@@ -350,25 +316,25 @@ order. Run ``globus flows create --help`` to see the help text:
     ...
 
 With this information, we can see that ``TITLE`` is the first positional
-argument and ``DEFINITION`` is the second. ``--description`` is still an
+argument and ``DEFINITION`` is the second. ``--input-schema`` is still an
 option.
 
 The final command is therefore:
 
 .. code-block:: bash
 
-    globus flows create foo foo.json --description bar
+    globus flows create foo foo.json --input-schema '{}'
 
 Pagination Options
 ~~~~~~~~~~~~~~~~~~
 
 A number of ``globus-automate`` commands provide options for paging through
 data, typically ``--marker`` and ``--per-page``.
-In ``globus-cli``, these options are replaced with a single option ``--limit``,
-which controls the total number of results returned.
+In the ``globus`` CLI, these options are replaced with a single option
+``--limit``, which controls the total number of results returned.
 
 Under ``globus-automate``, users had precise control over pagination, while
-under ``globus-cli`` all pagination is implicitly handled for the user.
+under the ``globus`` CLI all pagination is implicitly handled for the user.
 
 The two implementations trade off between simplicity for users versus fine-grained
 control, and are not fully translatable.
@@ -383,7 +349,7 @@ commands.
 Under the ``globus-automate`` CLI several commands took a ``--flow-scope``
 option to control internal behaviors.
 
-This option is no longer needed, as the ``globus-cli`` will automatically
+This option is no longer needed, as the ``globus`` CLI will automatically
 handle the cases which this option covered.
 
 ``run-log --watch``
@@ -398,7 +364,7 @@ service by polling.
 ~~~~~~~~~~~~~~~~~~~~~~
 
 ``globus-automate flow run-resume`` accepted two options which are not present
-in the ``globus-cli``.
+in the ``globus`` CLI.
 
 One option is ``--watch``, which is identical to the ``run-status --watch``
 flag.

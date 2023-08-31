@@ -10,8 +10,9 @@ Globus Automate - CLI and Python SDK
 
 .. warning::
 
-    The Globus Automate Client is deprecated in favor of the Globus CLI and the
-    Globus Python SDK.
+    The Globus Automate Client is deprecated in favor of the
+    `Globus CLI <https://docs.globus.org/cli/>`_ and the
+    `Globus Python SDK <https://globus-sdk-python.readthedocs.io/en/stable/>`_.
 
 This is the command line interface and Python package for working with the Globus
 Flows service and services that implement the Globus Action Provider interface.
