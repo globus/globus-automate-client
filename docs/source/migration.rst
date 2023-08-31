@@ -212,7 +212,7 @@ and are therefore a perfect fit for our use-case.
 
 As ``remarshal`` is a python CLI, installation should be performed with
 ``pipx``, as with the ``globus-cli``.
-For full instructions, follow `remsarhsal's installation documentation
+For full instructions, follow `remarshal's installation documentation
 <https://github.com/remarshal-project/remarshal#installation>`_.
 
 Usage
