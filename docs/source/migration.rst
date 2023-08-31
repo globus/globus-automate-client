@@ -1,7 +1,7 @@
 Migration to globus-sdk and globus-cli
 ======================================
 
-The Globus Automate Client has been deprecated.
+The Globus Automate Client is deprecated.
 All functionality is now available in `globus-sdk`_ and
 `globus-cli`_.
 
@@ -233,9 +233,9 @@ Usage
 In order to convert a flow from YAML to JSON using ``yq``, all that is needed
 is a command which loads the YAML document and then outputs it as JSON.
 
-.. code-block:: bash
+.. code-block:: console
 
-    yq -o=json foo.yaml > foo.json
+    $ yq -o=json foo.yaml > foo.json
 
 remarshal
 ~~~~~~~~~
@@ -276,10 +276,10 @@ Of the many commands provided by ``remarshal``, the one we want is simply
 pyyaml
 ~~~~~~
 
-Unlike the previous two tools, ``pyyaml`` is a python library, not a CLI.
+Unlike the previous two tools, ``pyyaml`` is a Python library, not a CLI.
 
 If you have a YAML flow definition and want to use it with the ``globus-sdk``,
-you must parse it from YAML yourself and proivde it as a dictionary.
+you must parse it from YAML yourself and provide it as a dictionary.
 
 Installation
 ++++++++++++
@@ -291,12 +291,14 @@ Usage
 
 ``pyyaml`` provides the ``yaml`` package.
 To parse a YAML file, ``foo.yaml``, into a python data structure, import it and
-use the ``load`` function::
+use the ``load`` function:
+
+..  code-block:: python
 
     import yaml
 
     with open("foo.yaml") as fp:
-        data = yaml.load(fp)
+        data = yaml.safe_load(fp)
 
     # a check may be a wise precaution, as YAML documents can contain lists or
     # other non-dict data
@@ -336,7 +338,7 @@ For example, ``globus-automate flow deploy`` has been replaced with
 The first step is to determine which CLI options are required and in what
 order. Run ``globus flows create --help`` to see the help text:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ globus flows create --help
     Usage: globus flows create [OPTIONS] TITLE DEFINITION
@@ -368,7 +370,7 @@ which controls the total number of results returned.
 Under ``globus-automate``, users had precise control over pagination, while
 under ``globus-cli`` all pagination is implicitly handled for the user.
 
-The two implementations trade off between simplicity for users vs fine-grained
+The two implementations trade off between simplicity for users versus fine-grained
 control, and are not fully translatable.
 For users, simply note that ``--marker`` and ``-per-page`` are no longer
 available as options, but that users relying on these options should now have
@@ -463,7 +465,7 @@ SDK Migration and ``create_flows_client``
 The ``create_flows_client`` helper has no singular replacement.
 
 Instead, users should expect to write a small block of code to correctly
-authenticate pass the resulting authorizer to the matching client clas.  See
+authenticate and pass the resulting authorizer to the matching client class.  See
 `the globus-sdk example usage
 <https://globus-sdk-python.readthedocs.io/en/stable/examples/create_and_run_flow/>`_ for
 an example of how to do this.
@@ -474,7 +476,7 @@ Why was this removed?
 The ``create_flows_client`` helper attempts to consolidate functionality across
 a disparate set of concerns.
 However, implementers attempting to build applications on top of the Globus
-Flows API need finer grained control than could be provided through this
+Flows API need finer-grained control than could be provided through this
 interface.
 This removal reflects the same restructuring of client code which separates the
 ``FlowsClient`` and ``SpecificFlowClient`` classes, as these two classes
