@@ -102,7 +102,7 @@ Globus Flows service as part of *flow* creation.
 SDK Translation
 ~~~~~~~~~~~~~~~
 
-The Globus Automate Client's functionality as a python library is primarily
+The Globus Automate Client's functionality as a Python library is primarily
 provided by the following four components, which map onto different components
 in the Globus SDK:
 
@@ -195,10 +195,10 @@ allows users to continue using YAML or to move off of it, as they prefer.
 
 In this section, we will cover two popular tools for converting YAML to JSON,
 yq (written in Go) and remarshal (written in Python). We will also cover
-one python library, ``pyyaml``, which can be used to load YAML data and pass it
+one Python library, ``pyyaml``, which can be used to load YAML data and pass it
 to the ``globus-sdk``.
 Various other tools provide similar functionality in other languages, and there
-are alternative parsers available in python.
+are alternative parsers available in Python.
 
 remarshal
 ~~~~~~~~~
@@ -210,7 +210,7 @@ formats, including YAML and JSON.
 These commands exist for the sole purpose of converting data between formats,
 and are therefore a perfect fit for our use-case.
 
-As ``remarshal`` is a python CLI, installation should be performed with
+As ``remarshal`` is a Python CLI, installation should be performed with
 ``pipx``, as with the ``globus-cli``.
 For full instructions, follow `remarshal's installation documentation
 <https://github.com/remarshal-project/remarshal#installation>`_.
@@ -263,7 +263,7 @@ Usage
 +++++
 
 ``pyyaml`` provides the ``yaml`` package.
-To parse a YAML file, ``foo.yaml``, into a python data structure, import it and
+To parse a YAML file, ``foo.yaml``, into a Python data structure, import it and
 use the ``safe_load`` function:
 
 ..  code-block:: python
