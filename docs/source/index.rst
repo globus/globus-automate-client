@@ -3,6 +3,7 @@ Globus Automate - CLI and Python SDK
 
 .. toctree::
    :maxdepth: 2
+   :caption: Migration Guide
 
    migration
 
