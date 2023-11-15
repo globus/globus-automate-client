@@ -1,3 +1,0 @@
-input:
-        echo_string: "Wrong indentation causes errors"
-    sleep: 20
