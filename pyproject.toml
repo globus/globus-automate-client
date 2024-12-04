@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "globus-automate-client"
-version = "0.17.1"
+version = "0.18.0"
 description = "Client for the Globus Flows service"
 authors = [
     "Jake Lewis <jake@globus.org>",
@@ -15,7 +15,7 @@ keywords = [
     "action_provider",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 7 - Inactive",
     "Intended Audience :: Developers",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Application Frameworks",

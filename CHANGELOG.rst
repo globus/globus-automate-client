@@ -10,6 +10,21 @@ Unreleased changes are documented in files in the `changelog.d`_ directory.
 
 ..  scriv-insert-here
 
+.. _changelog-0.18.0:
+
+0.18.0 — 2024-12-04
+===================
+
+End of life
+-----------
+
+* The Globus Automate Client is no longer supported.
+
+Python support
+--------------
+
+*   Require Python 3.9 or higher.
+
 .. _changelog-0.17.1:
 
 0.17.1 — 2023-07-24
