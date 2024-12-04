@@ -3,7 +3,7 @@ import os
 import pathlib
 import re
 from errno import ENAMETOOLONG
-from typing import AbstractSet, Callable, List, Optional, cast
+from typing import AbstractSet, Callable, Optional, cast
 from urllib.parse import urlparse
 
 import typer
@@ -38,8 +38,8 @@ def url_validator_callback(url: str) -> str:
 
 
 def _base_principal_validator(
-    principals: List[str], *, special_vals: AbstractSet[str] = frozenset()
-) -> List[str]:
+    principals: list[str], *, special_vals: AbstractSet[str] = frozenset()
+) -> list[str]:
     """
     This validator ensures the principal IDs are valid UUIDs prefixed with valid
     Globus ID beginnings. It will optionally determine if a provided principal
@@ -76,16 +76,16 @@ def _base_principal_validator(
     return valid_principals
 
 
-def principal_validator(principals: List[str]) -> List[str]:
+def principal_validator(principals: list[str]) -> list[str]:
     """A principal ID needs to be a valid UUID."""
 
-    return _base_principal_validator(cast(List[str], principals))
+    return _base_principal_validator(cast(list[str], principals))
 
 
 def custom_principal_validator(special_values: AbstractSet[str]) -> Callable:
     """A principal ID needs to be a valid UUID."""
 
-    def wrapper(principals: List[str]) -> List[str]:
+    def wrapper(principals: list[str]) -> list[str]:
         return _base_principal_validator(principals, special_vals=special_values)
 
     return wrapper

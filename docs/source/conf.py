@@ -27,7 +27,7 @@ autodoc_typehints = "description"
 # -- Project information -----------------------------------------------------
 
 project = "Globus Automate Client"
-copyright = "2020-2023, University of Chicago"
+copyright = "2020-2024, University of Chicago"
 author = "Globus"
 
 # The full version, including alpha/beta/rc tags
@@ -64,3 +64,19 @@ html_theme = "furo"
 pygments_dark_style = "monokai"
 
 html_static_path = ["_static"]
+
+
+# -- Deprecation notice ------------------------------------------------------
+
+rst_prolog = """
+..  warning::
+
+    The Globus Automate SDK and Globus Automate CLI are no longer supported.
+
+    The `Globus SDK`_ and `Globus CLI`_ have integrated their functionality
+    and are able to interact with other Globus services, as well.
+
+..  _Globus SDK: https://globus-sdk-python.readthedocs.io/en/stable/
+..  _Globus CLI: https://docs.globus.org/cli/
+
+"""

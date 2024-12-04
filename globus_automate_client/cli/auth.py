@@ -5,7 +5,7 @@ import pathlib
 import platform
 import sys
 from json import JSONDecodeError
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Union, cast
+from typing import Any, Callable, NamedTuple, Optional, Union, cast
 
 import click
 import typer
@@ -55,10 +55,10 @@ class TokenSet(NamedTuple):
     # there isn't a matching dependent scope, that means we need to prompt for consent
     # again. If there is a matching full-scope-string in `dependent_scopes`, then we're
     # OK to use the token from looking up that base scope.
-    dependent_scopes: Set[str]
+    dependent_scopes: set[str]
 
 
-TokensInTokenCache = Dict[str, Union[TokenSet, Dict[str, TokenSet]]]
+TokensInTokenCache = dict[str, Union[TokenSet, dict[str, TokenSet]]]
 
 
 class TokenCache:
@@ -81,7 +81,7 @@ class TokenCache:
             return self.tokens
         environ_cache_key = TokenCache._environment_prefix + environ
         if environ_cache_key not in self.tokens:
-            self.tokens[environ_cache_key]: Dict[str, TokenSet] = {}
+            self.tokens[environ_cache_key]: dict[str, TokenSet] = {}
         return self.tokens[environ_cache_key]
 
     def set_tokens(self, scope: str, tokens: TokenSet) -> TokenSet:
@@ -115,7 +115,7 @@ class TokenCache:
         return self.tokens_for_environment.get(scope)
 
     @staticmethod
-    def _deserialize_from_file(file_tokens: Dict[str, Any]) -> TokensInTokenCache:
+    def _deserialize_from_file(file_tokens: dict[str, Any]) -> TokensInTokenCache:
         deserialized: TokensInTokenCache = {}
         for k, v in file_tokens.items():
             if k.startswith(TokenCache._environment_prefix):
@@ -136,14 +136,14 @@ class TokenCache:
         except FileNotFoundError:
             pass
         except JSONDecodeError:
-            raise EnvironmentError(
+            raise OSError(
                 "Token cache is corrupted; please run `session revoke` or remove "
                 f"file {self.token_store} and try again"
             )
 
     @staticmethod
-    def _make_jsonable(tokens) -> Dict[str, Any]:
-        serialized: Dict[str, Any] = {}
+    def _make_jsonable(tokens) -> dict[str, Any]:
+        serialized: dict[str, Any] = {}
         for k, v in tokens.items():
             if isinstance(v, TokenSet):
                 v = v._asdict()
@@ -194,10 +194,10 @@ class TokenCache:
                 self.modified = True
 
     def update_from_oauth_token_response(
-        self, token_response: OAuthTokenResponse, original_scopes: Set[str]
-    ) -> Dict[str, TokenSet]:
+        self, token_response: OAuthTokenResponse, original_scopes: set[str]
+    ) -> dict[str, TokenSet]:
         by_scopes = token_response.by_scopes
-        token_sets: Dict[str, TokenSet] = {}
+        token_sets: dict[str, TokenSet] = {}
         for scope in by_scopes:
             token_info = by_scopes[scope]
             dependent_scopes = {s for s in original_scopes if "[" in s}
@@ -232,12 +232,12 @@ def safeprint(s, err: bool = False):
             sys.stderr.flush()
         else:
             sys.stdout.flush()
-    except IOError:
+    except OSError:
         pass
 
 
 def _do_login_for_scopes(
-    native_client: NativeAppAuthClient, scopes: List[str]
+    native_client: NativeAppAuthClient, scopes: list[str]
 ) -> OAuthTokenResponse:
     label = CLIENT_NAME
     host = platform.node()
@@ -269,17 +269,17 @@ def _new_refresh_handler(token_cache: TokenCache, scope: str):
 
 
 def get_authorizers_for_scopes(
-    scopes: List[str],
+    scopes: list[str],
     token_store: Optional[Union[pathlib.Path, str]] = None,
     client_id: str = CLIENT_ID,
     client_name: str = CLIENT_NAME,
     no_login: bool = False,
-) -> Dict[str, GlobusAuthorizer]:
+) -> dict[str, GlobusAuthorizer]:
     token_store = token_store or str(DEFAULT_TOKEN_FILE)
     token_cache = TokenCache(token_store)
     token_cache.load_tokens()
-    token_sets: Dict[str, TokenSet] = {}
-    needed_scopes: Set[str] = set()
+    token_sets: dict[str, TokenSet] = {}
+    needed_scopes: set[str] = set()
     native_client = _get_globus_sdk_native_client(client_id, client_name)
 
     for scope in scopes:
@@ -296,7 +296,7 @@ def get_authorizers_for_scopes(
         )
         token_sets.update(new_tokens)
 
-    authorizers: Dict[str, GlobusAuthorizer] = {}
+    authorizers: dict[str, GlobusAuthorizer] = {}
     for scope, token_set in token_sets.items():
         if token_set is not None:
             authorizer: Union[RefreshTokenAuthorizer, AccessTokenAuthorizer]
@@ -362,7 +362,7 @@ def revoke_login(token_store: Union[pathlib.Path, str] = DEFAULT_TOKEN_FILE) -> 
 
 def get_current_user(
     no_login: bool = False, token_store: Union[pathlib.Path, str] = DEFAULT_TOKEN_FILE
-) -> Optional[Dict[str, Any]]:
+) -> Optional[dict[str, Any]]:
     """
     When `no_login` is set, returns `None` if not logged in.
     """

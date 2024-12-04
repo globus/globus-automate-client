@@ -2,7 +2,7 @@ import functools
 import textwrap
 import uuid
 import warnings
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 import typer
 
@@ -64,7 +64,7 @@ def dedent(text: str) -> str:
     return textwrap.dedent(text).strip()
 
 
-def handle_aliases(canonical_item: Tuple[str, Any], *aliases: Tuple[str, Any]) -> Any:
+def handle_aliases(canonical_item: tuple[str, Any], *aliases: tuple[str, Any]) -> Any:
     """Validate aliases, and handle exceptions in a CLI context."""
 
     try:
@@ -117,12 +117,12 @@ def flow_deploy(
         ),
         callback=input_validator,
     ),
-    keywords: List[str] = typer.Option(
+    keywords: list[str] = typer.Option(
         None,
         "--keyword",
         help="A keyword which may categorize or help discover the Flow. [repeatable]",
     ),
-    flow_viewer: List[str] = typer.Option(
+    flow_viewer: list[str] = typer.Option(
         None,
         help=(
             "A principal which may view this Flow. "
@@ -135,17 +135,17 @@ def flow_deploy(
     ),
     # viewer and visible_to are aliases for flow_viewer.
     # Both are deprecated.
-    viewer: List[str] = typer.Option(
+    viewer: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
-    visible_to: List[str] = typer.Option(
+    visible_to: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"public"}),
         hidden=True,
     ),
-    flow_starter: List[str] = typer.Option(
+    flow_starter: list[str] = typer.Option(
         None,
         help=(
             "A principal which may run an instance of the deployed Flow. "
@@ -158,17 +158,17 @@ def flow_deploy(
     ),
     # starter and runnable_by are aliases for flow_starter.
     # Both are deprecated.
-    starter: List[str] = typer.Option(
+    starter: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users"}),
         hidden=True,
     ),
-    runnable_by: List[str] = typer.Option(
+    runnable_by: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users"}),
         hidden=True,
     ),
-    flow_administrator: List[str] = typer.Option(
+    flow_administrator: list[str] = typer.Option(
         None,
         help=(
             "A principal which may update the deployed Flow. "
@@ -179,10 +179,10 @@ def flow_deploy(
     ),
     # administrator and administered_by are aliases for flow_administrator.
     # Both are deprecated.
-    administrator: List[str] = typer.Option(
+    administrator: list[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
-    administered_by: List[str] = typer.Option(
+    administered_by: list[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
     subscription_id: Optional[str] = typer.Option(
@@ -298,12 +298,12 @@ def flow_update(
         ),
         callback=input_validator,
     ),
-    keywords: List[str] = typer.Option(
+    keywords: list[str] = typer.Option(
         None,
         "--keyword",
         help="A keyword which may categorize or help discover the Flow. [repeatable]",
     ),
-    flow_viewer: Optional[List[str]] = typer.Option(
+    flow_viewer: Optional[list[str]] = typer.Option(
         None,
         help=(
             "A principal which may view this flow. "
@@ -316,13 +316,13 @@ def flow_update(
         ),
         callback=custom_principal_validator({"public", ""}),
     ),
-    viewer: List[str] = typer.Option(
+    viewer: list[str] = typer.Option(
         None, callback=custom_principal_validator({"public", ""}), hidden=True
     ),
-    visible_to: List[str] = typer.Option(
+    visible_to: list[str] = typer.Option(
         None, callback=custom_principal_validator({"public", ""}), hidden=True
     ),
-    flow_starter: Optional[List[str]] = typer.Option(
+    flow_starter: Optional[list[str]] = typer.Option(
         None,
         help=(
             "A principal which may start an instance of the flow. "
@@ -335,17 +335,17 @@ def flow_update(
         ),
         callback=custom_principal_validator({"all_authenticated_users", ""}),
     ),
-    starter: List[str] = typer.Option(
+    starter: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users", ""}),
         hidden=True,
     ),
-    runnable_by: List[str] = typer.Option(
+    runnable_by: list[str] = typer.Option(
         None,
         callback=custom_principal_validator({"all_authenticated_users", ""}),
         hidden=True,
     ),
-    flow_administrator: Optional[List[str]] = typer.Option(
+    flow_administrator: Optional[list[str]] = typer.Option(
         None,
         help=(
             "A principal which may update the deployed Flow. "
@@ -356,10 +356,10 @@ def flow_update(
         ),
         callback=custom_principal_validator({""}),
     ),
-    administrator: List[str] = typer.Option(
+    administrator: list[str] = typer.Option(
         None, callback=custom_principal_validator({""}), hidden=True
     ),
-    administered_by: List[str] = typer.Option(
+    administered_by: list[str] = typer.Option(
         None, callback=custom_principal_validator({""}), hidden=True
     ),
     subscription_id: Optional[str] = typer.Option(
@@ -459,7 +459,7 @@ def flow_lint(
 
 @app.command("list")
 def flow_list(
-    roles: List[FlowRoleAllNames] = typer.Option(
+    roles: list[FlowRoleAllNames] = typer.Option(
         [FlowRole.flow_owner],
         "--role",
         "-r",
@@ -492,7 +492,7 @@ def flow_list(
         max=50,
     ),
     flows_endpoint: str = flows_env_var_option,
-    filters: Optional[List[str]] = typer.Option(
+    filters: Optional[list[str]] = typer.Option(
         None,
         "--filter",
         help="A filtering criteria in the form 'key=value' to apply to the "
@@ -502,7 +502,7 @@ def flow_list(
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
-    orderings: Optional[List[str]] = typer.Option(
+    orderings: Optional[list[str]] = typer.Option(
         None,
         "--orderby",
         help="An ordering criteria in the form 'key=value' to apply to the resulting "
@@ -652,24 +652,24 @@ def flow_run(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    run_manager: List[str] = typer.Option(
+    run_manager: list[str] = typer.Option(
         None,
         help="A principal which may change the execution of the Flow instance. "
         + _principal_description
         + " [repeatable]",
         callback=principal_validator,
     ),
-    manage_by: List[str] = typer.Option(
+    manage_by: list[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
-    run_monitor: List[str] = typer.Option(
+    run_monitor: list[str] = typer.Option(
         None,
         help="A principal which may monitor the execution of the Flow instance. "
         + _principal_description
         + " [repeatable]",
         callback=principal_validator,
     ),
-    monitor_by: List[str] = typer.Option(
+    monitor_by: list[str] = typer.Option(
         None, callback=principal_validator, hidden=True
     ),
     flows_endpoint: str = flows_env_var_option,
@@ -692,7 +692,7 @@ def flow_run(
         "-l",
         help="Label to mark this run.",
     ),
-    tags: Optional[List[str]] = typer.Option(
+    tags: Optional[list[str]] = typer.Option(
         None,
         "--tag",
         help=dedent(
@@ -789,7 +789,7 @@ def flow_actions_list(
         help="The scope this Flow uses to authenticate requests.",
         callback=url_validator_callback,
     ),
-    roles: List[ActionRoleAllNames] = typer.Option(
+    roles: list[ActionRoleAllNames] = typer.Option(
         None,
         "--role",
         help=(
@@ -801,7 +801,7 @@ def flow_actions_list(
             "value provided will determine the flows displayed.]"
         ),
     ),
-    statuses: List[ActionStatus] = typer.Option(
+    statuses: list[ActionStatus] = typer.Option(
         [],
         "--status",
         help="Display Actions with the selected status. [repeatable]",
@@ -822,7 +822,7 @@ def flow_actions_list(
         min=1,
         max=50,
     ),
-    filters: Optional[List[str]] = typer.Option(
+    filters: Optional[list[str]] = typer.Option(
         None,
         "--filter",
         help="A filtering criteria in the form 'key=value' to apply to the "
@@ -832,7 +832,7 @@ def flow_actions_list(
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
-    orderings: Optional[List[str]] = typer.Option(
+    orderings: Optional[list[str]] = typer.Option(
         None,
         "--orderby",
         help="An ordering criteria in the form 'key=value' to apply to the resulting "
@@ -1179,7 +1179,7 @@ def flow_action_log(
 @app.command("action-enumerate")
 @app.command("run-enumerate")
 def flow_action_enumerate(
-    roles: List[ActionRoleAllNames] = typer.Option(
+    roles: list[ActionRoleAllNames] = typer.Option(
         [ActionRole.run_owner],
         "--role",
         help="Display Actions/Runs where you have at least the selected role. "
@@ -1190,7 +1190,7 @@ def flow_action_enumerate(
         "are deprecated. [repeatable use deprecated as the lowest "
         "precedence value provided will determine the Actions/Runs displayed.]",
     ),
-    statuses: List[ActionStatus] = typer.Option(
+    statuses: list[ActionStatus] = typer.Option(
         [],
         "--status",
         help="Display Actions with the selected status. [repeatable]",
@@ -1211,7 +1211,7 @@ def flow_action_enumerate(
         min=1,
         max=50,
     ),
-    filters: Optional[List[str]] = typer.Option(
+    filters: Optional[list[str]] = typer.Option(
         None,
         "--filter",
         help="A filtering criteria in the form 'key=value' to apply to the "
@@ -1221,7 +1221,7 @@ def flow_action_enumerate(
         "represent a logical OR. If multiple filters are applied, the returned "
         "data will be the result of a logical AND between them. [repeatable]",
     ),
-    orderings: Optional[List[str]] = typer.Option(
+    orderings: Optional[list[str]] = typer.Option(
         None,
         "--orderby",
         help="An ordering criteria in the form 'key=value' to apply to the resulting "
@@ -1278,7 +1278,7 @@ def flow_action_enumerate(
 @app.command("run-update")
 def update_run(
     run_id: str = typer.Argument(...),
-    run_managers: Optional[List[str]] = typer.Option(
+    run_managers: Optional[list[str]] = typer.Option(
         None,
         "--run-manager",
         help="A principal which may change the execution of the Run."
@@ -1287,7 +1287,7 @@ def update_run(
         + " [repeatable]",
         callback=custom_principal_validator({""}),
     ),
-    run_monitors: Optional[List[str]] = typer.Option(
+    run_monitors: Optional[list[str]] = typer.Option(
         None,
         "--run-monitor",
         help="A principal which may monitor the execution of the Run."
@@ -1295,7 +1295,7 @@ def update_run(
         + " [repeatable]",
         callback=custom_principal_validator({""}),
     ),
-    tags: Optional[List[str]] = typer.Option(
+    tags: Optional[list[str]] = typer.Option(
         None,
         "--tag",
         help=(
@@ -1344,22 +1344,22 @@ def update_run(
 
 @app.command("batch-run-update")
 def update_runs(
-    run_ids: List[str] = typer.Argument(...),
+    run_ids: list[str] = typer.Argument(...),
     #
     # Run manager parameters
-    set_run_managers: Optional[List[str]] = typer.Option(
+    set_run_managers: Optional[list[str]] = typer.Option(
         None,
         "--set-run-manager",
         help="Set a principal on affected Runs that can change the Run execution.",
         callback=custom_principal_validator({""}),
     ),
-    add_run_managers: Optional[List[str]] = typer.Option(
+    add_run_managers: Optional[list[str]] = typer.Option(
         None,
         "--add-run-manager",
         help="Add a principal to affected Runs that can change the Run execution.",
         callback=custom_principal_validator({""}),
     ),
-    remove_run_managers: Optional[List[str]] = typer.Option(
+    remove_run_managers: Optional[list[str]] = typer.Option(
         None,
         "--remove-run-manager",
         help="Remove a principal from affected Runs that can change the Run execution.",
@@ -1367,19 +1367,19 @@ def update_runs(
     ),
     #
     # Run monitor parameters
-    set_run_monitors: Optional[List[str]] = typer.Option(
+    set_run_monitors: Optional[list[str]] = typer.Option(
         None,
         "--set-run-monitor",
         help="Set a principal on affected Runs that can monitor Run execution.",
         callback=custom_principal_validator({""}),
     ),
-    add_run_monitors: Optional[List[str]] = typer.Option(
+    add_run_monitors: Optional[list[str]] = typer.Option(
         None,
         "--add-run-monitor",
         help="Add a principal to affected Runs that can monitor Run execution.",
         callback=custom_principal_validator({""}),
     ),
-    remove_run_monitors: Optional[List[str]] = typer.Option(
+    remove_run_monitors: Optional[list[str]] = typer.Option(
         None,
         "--remove-run-monitor",
         help="Remove a principal from affected Runs that can monitor Run execution.",
@@ -1387,17 +1387,17 @@ def update_runs(
     ),
     #
     # Tag parameters
-    set_tags: Optional[List[str]] = typer.Option(
+    set_tags: Optional[list[str]] = typer.Option(
         None,
         "--set-tag",
         help="A tag to set on the specified Runs.",
     ),
-    add_tags: Optional[List[str]] = typer.Option(
+    add_tags: Optional[list[str]] = typer.Option(
         None,
         "--add-tag",
         help="A tag to add to the affected Runs.",
     ),
-    remove_tags: Optional[List[str]] = typer.Option(
+    remove_tags: Optional[list[str]] = typer.Option(
         None,
         "--remove-tag",
         help="A tag to remove from the affected Runs.",

@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Optional
 
 from graphviz import Digraph
 
@@ -18,8 +19,8 @@ def json_to_label_text(json_dict: Mapping[str, Any]) -> str:
     return label_text
 
 
-def state_colors_for_log(flow_action_log_entries: List[Mapping]) -> Dict[str, str]:
-    color_dict: Dict[str, str] = {}
+def state_colors_for_log(flow_action_log_entries: list[Mapping]) -> dict[str, str]:
+    color_dict: dict[str, str] = {}
     for log_entry in flow_action_log_entries:
         state_name = log_entry.get("details", {}).get("state_name")
         if state_name is not None:
@@ -41,7 +42,7 @@ def state_colors_for_log(flow_action_log_entries: List[Mapping]) -> Dict[str, st
 
 
 def graphviz_format(
-    flow: Dict[str, Any], state_colors: Optional[Dict[str, str]] = None
+    flow: dict[str, Any], state_colors: Optional[dict[str, str]] = None
 ) -> Digraph:
     states = flow.get("States")
     graph = Digraph()

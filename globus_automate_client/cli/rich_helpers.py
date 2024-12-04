@@ -3,7 +3,7 @@ import collections
 import functools
 import json
 from time import sleep
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union, cast
+from typing import Any, Callable, Optional, Union, cast
 
 import arrow
 import typer
@@ -38,7 +38,7 @@ def humanize_auth_urn(urn: str) -> str:
     return urn
 
 
-def identity_to_user(field: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def identity_to_user(field: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Given a list of dict entries, this function will attempt to
     """
@@ -53,7 +53,7 @@ def identity_to_user(field: str, items: List[Dict[str, Any]]) -> List[Dict[str, 
         return items
 
     # Collect IDs from the List data
-    creators: Dict[str, None] = collections.OrderedDict()
+    creators: dict[str, None] = collections.OrderedDict()
     for item in items:
         urn_id = item.get(field, "")
         id = urn_id.split(":")[-1]
@@ -109,9 +109,9 @@ class DisplayFields(abc.ABC):
     path_to_data_list: A key under which the data list is defined
     """
 
-    fields: List[Field]
+    fields: list[Field]
     path_to_data_list: str
-    prehook: Optional[Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]] = None
+    prehook: Optional[Callable[[list[dict[str, Any]]], list[dict[str, Any]]]] = None
 
 
 class RunListDisplayFields(DisplayFields):
@@ -169,7 +169,7 @@ class CompletionDetector(abc.ABC):
     should continue polling.
     """
 
-    terminals: Set[str]
+    terminals: set[str]
 
     @classmethod
     @abc.abstractmethod
@@ -186,7 +186,7 @@ class ActionCompletionDetector(CompletionDetector):
     This class determines when a Run has reached a completed state.
     """
 
-    terminals: Set[str] = {"SUCCEEDED", "FAILED"}
+    terminals: set[str] = {"SUCCEEDED", "FAILED"}
 
     @classmethod
     def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
@@ -202,7 +202,7 @@ class LogCompletionDetector(CompletionDetector):
     inspecting its logs.
     """
 
-    terminals: Set[str] = {"FlowSucceeded", "FlowFailed", "FlowCanceled"}
+    terminals: set[str] = {"FlowSucceeded", "FlowFailed", "FlowCanceled"}
 
     @classmethod
     def is_complete(cls, result: Union[GlobusHTTPResponse, GlobusAPIError]) -> bool:
@@ -219,13 +219,13 @@ class Result:
     def __init__(
         self,
         response: Union[GlobusHTTPResponse, GlobusAPIError, str],
-        detector: Type[CompletionDetector] = ActionCompletionDetector,
+        detector: type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.result = response
         self.detector = detector
 
         self.is_api_error = isinstance(response, GlobusAPIError)
-        self.data: Union[str, Dict[str, Any]]
+        self.data: Union[str, dict[str, Any]]
         if isinstance(response, str):
             self.data = {"result": response}
         elif isinstance(response, GlobusAPIError):
@@ -263,7 +263,7 @@ class Renderer:
         verbose: bool = False,
         watching: bool = False,
         format: Literal["json", "yaml", "table"] = "json",
-        fields: Optional[Type[DisplayFields]] = None,
+        fields: Optional[type[DisplayFields]] = None,
         run_once: bool = False,
     ):
         self.result = result
@@ -329,7 +329,7 @@ class Renderer:
                 max_width=f.max_width,
             )
 
-        list_of_data: List[Dict[str, Any]] = cast(dict, self.result.data).get(
+        list_of_data: list[dict[str, Any]] = cast(dict, self.result.data).get(
             self.fields.path_to_data_list,
             [],
         )
@@ -356,7 +356,7 @@ class Renderer:
         as JQ to parse the results.
         """
         if self.use_rich_rendering:
-            renderables: List[RenderableType] = []
+            renderables: list[RenderableType] = []
             if self.verbose:
                 d = self.details_as_text
                 renderables.append(d)
@@ -389,8 +389,8 @@ class RequestRunner:
         verbose: bool = False,
         watch: bool = False,
         run_once: bool = False,
-        fields: Optional[Type[DisplayFields]] = None,
-        detector: Type[CompletionDetector] = ActionCompletionDetector,
+        fields: Optional[type[DisplayFields]] = None,
+        detector: type[CompletionDetector] = ActionCompletionDetector,
     ):
         self.callable = callable
         self.format = format
@@ -420,7 +420,7 @@ class RequestRunner:
 
     def render_as_result(
         self,
-        d: Dict[str, Any],
+        d: dict[str, Any],
         client: BaseClient,
         status_code: int = 200,
     ):
