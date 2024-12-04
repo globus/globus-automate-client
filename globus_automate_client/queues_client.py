@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from globus_sdk import (
     AccessTokenAuthorizer,
@@ -43,9 +43,9 @@ class QueuesClient(BaseClient):
     def create_queue(
         self,
         label: str,
-        admins: List[str],
-        senders: List[str],
-        receivers: List[str],
+        admins: list[str],
+        senders: list[str],
+        receivers: list[str],
         delivery_timeout: int = 60,
         **kwargs,
     ) -> GlobusHTTPResponse:
@@ -65,7 +65,7 @@ class QueuesClient(BaseClient):
         return self.get(f"/queues/{queue_id}")
 
     def list_queues(
-        self, roles: Optional[List[str]] = None, **kwargs
+        self, roles: Optional[list[str]] = None, **kwargs
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_ADMIN_SCOPE)
         params = {}
@@ -77,9 +77,9 @@ class QueuesClient(BaseClient):
         self,
         queue_id: str,
         label: Optional[str] = None,
-        admins: Optional[List[str]] = None,
-        senders: Optional[List[str]] = None,
-        receivers: Optional[List[str]] = None,
+        admins: Optional[list[str]] = None,
+        senders: Optional[list[str]] = None,
+        receivers: Optional[list[str]] = None,
         delivery_timeout: Optional[int] = None,
         visibility_timeout: Optional[int] = None,
         **kwargs,
@@ -130,13 +130,13 @@ class QueuesClient(BaseClient):
         receive_request_attempt_id: Optional[str] = None,
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_RECEIVE_SCOPE)
-        params: Dict[str, Any] = {"max_messages": max_messages}
+        params: dict[str, Any] = {"max_messages": max_messages}
         if receive_request_attempt_id is not None:
             params["receive_request_attempt_id"] = receive_request_attempt_id
         return self.get(f"/queues/{queue_id}/messages", query_params=params)
 
     def delete_messages(
-        self, queue_id: str, receipt_handles: List[str]
+        self, queue_id: str, receipt_handles: list[str]
     ) -> GlobusHTTPResponse:
         self.authorizer = get_authorizer_for_scope(QUEUES_RECEIVE_SCOPE)
         body = {"data": [{"receipt_handle": rh} for rh in receipt_handles]}

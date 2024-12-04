@@ -1,6 +1,5 @@
 import functools
 from enum import Enum
-from typing import List
 
 import typer
 
@@ -23,7 +22,7 @@ app = typer.Typer(short_help="Manage Globus Automate Queues")
 
 @app.command("list")
 def queue_list(
-    roles: List[QueueRole] = typer.Option(
+    roles: list[QueueRole] = typer.Option(
         [QueueRole.admin],
         "--role",
         "-r",
@@ -47,19 +46,19 @@ def queue_list(
 @app.command("create")
 def queue_create(
     label: str = typer.Option(..., help="A convenient name to identify the new Queue."),
-    admins: List[str] = typer.Option(
+    admins: list[str] = typer.Option(
         ...,
         "--admin",
         help="The Principal URNs allowed to administer the Queue. [repeatable]",
         callback=principal_validator,
     ),
-    senders: List[str] = typer.Option(
+    senders: list[str] = typer.Option(
         ...,
         "--sender",
         help="The Principal URNs allowed to send to the Queue. [repeatable]",
         callback=principal_validator,
     ),
-    receivers: List[str] = typer.Option(
+    receivers: list[str] = typer.Option(
         ...,
         "--receiver",
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
@@ -97,19 +96,19 @@ def queue_create(
 def queue_update(
     queue_id: str = typer.Argument(...),
     label: str = typer.Option(..., help="A convenient name to identify the new Queue."),
-    admins: List[str] = typer.Option(
+    admins: list[str] = typer.Option(
         ...,
         "--admin",
         help="The Principal URNs allowed to administer the Queue. [repeatable]",
         callback=principal_validator,
     ),
-    senders: List[str] = typer.Option(
+    senders: list[str] = typer.Option(
         ...,
         "--sender",
         help="The Principal URNs allowed to send to the Queue. [repeatable]",
         callback=principal_validator,
     ),
-    receivers: List[str] = typer.Option(
+    receivers: list[str] = typer.Option(
         ...,
         "--receiver",
         help="The Principal URNs allowed to receive from the Queue. [repeatable]",
@@ -237,7 +236,7 @@ def queue_send(
 @app.command("message-delete")
 def queue_delete_message(
     queue_id: str = typer.Argument(...),
-    receipt_handle: List[str] = typer.Option(
+    receipt_handle: list[str] = typer.Option(
         ...,
         help=(
             "A receipt_handle value returned by a previous call to "

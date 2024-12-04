@@ -1,8 +1,4 @@
-try:
-    from importlib.metadata import version as get_version  # type: ignore
-except ImportError:
-    # Python < 3.8
-    from importlib_metadata import version as get_version
+from importlib.metadata import version as get_version
 
 import typer
 import yaml

@@ -1,5 +1,4 @@
 import functools
-from typing import List
 
 import typer
 
@@ -71,14 +70,14 @@ def action_run(
         None,
         help="An identifier to associate with this Action invocation request",
     ),
-    manage_by: List[str] = typer.Option(
+    manage_by: list[str] = typer.Option(
         None,
         help="A principal which may change the execution of the Action. The principal "
         "is the user's or group's UUID prefixed with either 'urn:globus:groups:id:' "
         "or 'urn:globus:auth:identity:' [repeatable]",
         callback=principal_validator,
     ),
-    monitor_by: List[str] = typer.Option(
+    monitor_by: list[str] = typer.Option(
         None,
         help="A principal which may view the state of the Action. The principal "
         "is the user's or group's UUID prefixed with either 'urn:globus:groups:id:' "

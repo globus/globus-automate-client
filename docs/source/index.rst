@@ -11,7 +11,7 @@ Globus Automate - CLI and Python SDK
 
 .. warning::
 
-    The Globus Automate Client is deprecated in favor of the
+    The Globus Automate Client is no longer supported. Please migrate to the
     `Globus CLI <https://docs.globus.org/cli/>`_ and the
     `Globus Python SDK <https://globus-sdk-python.readthedocs.io/en/stable/>`_.
 

@@ -1,7 +1,7 @@
 Migration to globus-sdk and globus-cli
 ======================================
 
-The Globus Automate Client is deprecated.
+The Globus Automate Client is no longer supported.
 All functionality is now available in `globus-sdk`_ and
 `globus-cli`_.
 

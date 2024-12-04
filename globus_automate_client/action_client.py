@@ -1,6 +1,7 @@
 import os
 import uuid
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Type, TypeVar, Union
+from collections.abc import Iterable, Mapping
+from typing import Any, Optional, TypeVar, Union
 from urllib.parse import quote, urlparse
 
 from globus_sdk import BaseClient, GlobusHTTPResponse
@@ -76,7 +77,7 @@ class ActionClient(BaseClient):
         manage_by: Optional[Iterable[str]] = None,
         monitor_by: Optional[Iterable[str]] = None,
         label: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         force_path: Optional[str] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
@@ -203,7 +204,7 @@ class ActionClient(BaseClient):
 
         # *reverse_order* MUST BE None to prevent reversing the sort order.
         # Any other value, including False, will reverse the sort order.
-        params: Dict[str, Union[int, str, bool, None]] = {
+        params: dict[str, Union[int, str, bool, None]] = {
             "reverse_order": True if reverse_order else None,
             "limit": limit,
         }
@@ -215,7 +216,7 @@ class ActionClient(BaseClient):
 
     @classmethod
     def new_client(
-        cls: Type[_ActionClient],
+        cls: type[_ActionClient],
         action_url: str,
         authorizer: Optional[GlobusAuthorizer],
         http_timeout: int = 10,

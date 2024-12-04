@@ -1,5 +1,6 @@
 import json
-from typing import Any, Callable, Dict, List, Mapping, Optional, Union
+from collections.abc import Mapping
+from typing import Any, Callable, Optional, Union
 
 import requests
 import typer
@@ -80,8 +81,8 @@ def process_input(input_arg: Optional[str]) -> Optional[Mapping[str, Any]]:
     return input_dict
 
 
-def parse_query_options(queries: Optional[List[str]]) -> Dict[str, str]:
-    result: Dict[str, str] = {}
+def parse_query_options(queries: Optional[list[str]]) -> dict[str, str]:
+    result: dict[str, str] = {}
 
     if queries is None:
         return result
@@ -100,7 +101,7 @@ def parse_query_options(queries: Optional[List[str]]) -> Dict[str, str]:
 
 
 def make_role_param(
-    roles_list: Optional[Union[List[FlowRoleAllNames], List[ActionRoleAllNames]]]
+    roles_list: Optional[Union[list[FlowRoleAllNames], list[ActionRoleAllNames]]]
 ) -> Mapping[str, Any]:
     if roles_list is None or len(roles_list) == 0:
         return {"role": None}
