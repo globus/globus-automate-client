@@ -1,11 +1,12 @@
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 
 def merge_keywords(
     base: Optional[Iterable[str]],
-    kwargs: Dict[str, Union[str, Iterable[str]]],
+    kwargs: dict[str, Union[str, Iterable[str]]],
     *keywords: str,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     """Merge all given keyword parameter aliases and deduplicate the values.
 
     ..  warning::
@@ -35,7 +36,7 @@ def merge_keywords(
 
     """
 
-    result: Optional[Set[str]] = None
+    result: Optional[set[str]] = None
     if base is not None:
         result = set(base)
 
@@ -60,8 +61,8 @@ def merge_keywords(
 
 
 def validate_aliases(
-    canonical_item: Tuple[str, Any],
-    *aliases: Tuple[str, Any],
+    canonical_item: tuple[str, Any],
+    *aliases: tuple[str, Any],
 ) -> Any:
     """Validate and standardize canonical values and aliased values.
 

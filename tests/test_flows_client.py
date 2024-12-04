@@ -2,7 +2,7 @@ import json
 import os
 import pathlib
 import urllib.parse
-from typing import Any, Dict, Union, cast
+from typing import Any, Union, cast
 from unittest.mock import Mock
 
 import pytest
@@ -168,7 +168,7 @@ def test_deploy_flow_data_construction(fc, mocked_responses):
     """Verify the flow JSON data is constructed correctly."""
 
     mocked_responses.add("POST", f"{flows_client.PROD_FLOWS_BASE_URL}/flows")
-    expected: Dict[str, Union[str, Dict[str, Any]]] = {
+    expected: dict[str, Union[str, dict[str, Any]]] = {
         "definition": VALID_FLOW_DEFINITION,
         "input_schema": {"Comment": "flow-input-schema"},
         "title": "--title--",
@@ -316,7 +316,7 @@ def test_update_flow_data_construction(fc, mocked_responses):
     """Verify the flow JSON data is constructed correctly."""
 
     mocked_responses.add("PUT", f"{flows_client.PROD_FLOWS_BASE_URL}/flows/bogus")
-    expected: Dict[str, Union[str, Dict[str, Any]]] = {
+    expected: dict[str, Union[str, dict[str, Any]]] = {
         "definition": VALID_FLOW_DEFINITION,
         "input_schema": {"Comment": "flow-input-schema"},
         "title": "--title--",

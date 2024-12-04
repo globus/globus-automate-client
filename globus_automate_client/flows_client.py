@@ -2,22 +2,9 @@ import contextlib
 import json
 import os
 import warnings
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Optional, TypeVar, Union
 from urllib.parse import quote, urljoin, urlparse
 
 from globus_sdk import (
@@ -77,10 +64,10 @@ class FlowValidationError(Exception):
 
 
 def _all_vals_for_keys(
-    key_name_set: Set[str],
+    key_name_set: set[str],
     d: Mapping[str, Any],
-    stop_traverse_key_set: Optional[Set[str]] = None,
-) -> Set[str]:
+    stop_traverse_key_set: Optional[set[str]] = None,
+) -> set[str]:
     val_set = set()
     for k, v in d.items():
         if k in key_name_set and isinstance(v, str):
@@ -202,8 +189,8 @@ def _get_flows_base_url_for_environment():
 
 
 def handle_aliases(
-    canonical_item: Tuple[str, Any],
-    *aliases: Tuple[str, Any],
+    canonical_item: tuple[str, Any],
+    *aliases: tuple[str, Any],
 ) -> Any:
     """Validate aliases, and handle warnings in an API context."""
 
@@ -344,7 +331,7 @@ class FlowsClient(BaseClient):
             ("`administered_by`", kwargs.pop("administered_by", None)),
         )
 
-        temp_body: Dict[str, Any] = {
+        temp_body: dict[str, Any] = {
             "definition": flow_definition,
             "title": title,
             "subtitle": subtitle,
@@ -447,7 +434,7 @@ class FlowsClient(BaseClient):
             ("`administered_by`", kwargs.pop("administered_by", None)),
         )
 
-        temp_body: Dict[str, Any] = {
+        temp_body: dict[str, Any] = {
             "definition": flow_definition,
             "title": title,
             "subtitle": subtitle,
@@ -574,7 +561,7 @@ class FlowsClient(BaseClient):
         ).action_scope
 
     def _get_authorizer_for_flow(
-        self, flow_id: str, flow_scope: Optional[str], extras: Dict[str, Any]
+        self, flow_id: str, flow_scope: Optional[str], extras: dict[str, Any]
     ) -> AllowedAuthorizersType:
         if "authorizer" in extras:
             return extras.pop("authorizer")
@@ -598,7 +585,7 @@ class FlowsClient(BaseClient):
         run_monitors: Optional[Iterable[str]] = None,
         dry_run: bool = False,
         label: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         **kwargs,
     ) -> GlobusHTTPResponse:
         """
@@ -1260,7 +1247,7 @@ class FlowsClient(BaseClient):
 
     @classmethod
     def new_client(
-        cls: Type[_FlowsClient],
+        cls: type[_FlowsClient],
         client_id: str,
         authorizer_callback: AuthorizerCallbackType,
         authorizer: Optional[GlobusAuthorizer],

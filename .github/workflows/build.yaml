@@ -8,16 +8,16 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         os-name: [Ubuntu]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         # we do not want a large number of windows and macos builds, so
         # enumerate them explicitly
         include:
           - os: windows-latest
             os-name: Windows
-            python-version: 3.11
+            python-version: "3.13"
           - os: macos-latest
             os-name: MacOS
-            python-version: 3.11
+            python-version: "3.13"
 
     name: "Test py${{ matrix.python-version }} on ${{ matrix.os-name }}"
     runs-on: ${{ matrix.os }}
