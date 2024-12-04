@@ -1,3 +1,8 @@
+..  warning::
+
+    The code in this repository is no longer supported.
+
+
 Globus Automate Client
 ======================
 
