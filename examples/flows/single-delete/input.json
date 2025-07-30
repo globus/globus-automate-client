@@ -1,8 +1,0 @@
-{
-    "endpoint_id": "go#ep1",
-    "recursive": false,
-    "label": "Test via Flows",
-    "items": [
-        "file1.txt"
-    ]
-}
